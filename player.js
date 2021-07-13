@@ -77,7 +77,7 @@ class Player {
             colorElement.onclick = () => {}; //Does nothing
             colorElement.classList.add('color');
             let image = document.createElement('img');
-            image.src = './' + color + '.jpg';
+            image.src = './Images/' + color + '.jpg';
             let amount = document.createElement('span');
             amount.textContent = '';
             colorElement.appendChild(amount);

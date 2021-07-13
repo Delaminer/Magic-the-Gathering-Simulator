@@ -96,7 +96,7 @@ class Card {
         let image = document.createElement('div');
         image.classList.add('image');
         let img = document.createElement('img');
-        img.src = './sample_image.png';
+        img.src = './Images/sample_image.png';
         img.width = 100;
         img.draggable = false;
         image.appendChild(img)
