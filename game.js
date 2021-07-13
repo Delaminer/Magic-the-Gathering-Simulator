@@ -34,18 +34,58 @@ class Game {
     progressTurn() {
         this.phase++;
         if (this.phase == TurnStep.CombatDamage) {
-            //Deal damage
+            //Handle combat damage
+            let blockingPlayer = this.getBlockingPlayer();
+
+            // For each attacker
             this.players[this.currentPlayer].selection.cards.forEach(attacker => {
                 if (!attacker.types.includes('Creature')) {
                     console.log('This attacker isnt a creature: '+attacker.name);
                     return;
                 }
-                this.players[1 - this.currentPlayer].life -= attacker.extra.power;
-            })
-            //Update UI
-            this.players[1 - this.currentPlayer].lifeCounter.textContent = this.players[1 - this.currentPlayer].life;
+                //Check if this creature was blocked
+                let blockers = blockingPlayer.getBlockers();
+                if (blockers.length > 0) {
+                    //Deal damage to blockers
+                    let damageLeft = attacker.power;
+                    let index = 0;
+
+                    //Deal some damage to each blocker until each one receives damage, or there is no power left
+                    while (damageLeft > 0 && index < blockers.length) {
+                        // Determine how much damage is needed to kill this blocker
+                        let blockerHealthLeft = blockers[index].toughness - blockers[index].damage;
+                        // Get how much damage the attacker will deal to this blocker
+                        let damageToDeal = Math.max(damageLeft - blockerHealthLeft, 0);
+                        // Decrease how much damage is left to deal to other blockers (or trample to the player)
+                        damageLeft -= damageToDeal;
+
+                        // Deal the damage to the blocker
+                        blockers[index].damage += damageToDeal;
+
+                        // Take damage from the blocker
+                        attacker.damage += blockers[index].power;
+
+                        index++;
+                    }
+                    // If there is damage left and this attacker has trample, deal the extra damage to the player
+                    if (damageLeft > 0 && attacker.hasAbility('Trample')) {
+                        //Deal damage to player
+                        blockingPlayer.life -= damageLeft;
+                        damageLeft = 0;
+                    }
+                }
+                else {
+                    //Deal damage to target player
+                    blockingPlayer.life -= attacker.power;
+                }
+
+            });
+            //Update UI Life total
+            blockingPlayer.lifeCounter.textContent = blockingPlayer.life;
+            //Update each card (there could be a better way to do this)
+            this.players.forEach(player => player.updatePermanents());
         }
-        if (this.phase == TurnStep.PostcombatMain) {
+        else if (this.phase == TurnStep.PostcombatMain) {
             //Stop attacking and blocking, each has a different way of doing so
             this.players.forEach(player =>  {
                 if (player.selection.type == 'attackers') {
@@ -67,15 +107,19 @@ class Game {
                 player.selection.cards = [];
             });
         }
-        if (this.phase > TurnStep.End) { //If it passed the end turn phase
+        else if (this.phase > TurnStep.End) { //If it passed the end turn phase
             //Pass the turn
             this.phase = 0;
             this.turn++;
             this.currentPlayer = 1 - this.currentPlayer; //Swap players
             this.priorityPlayer = this.currentPlayer; //Set priority
+
+            //Clear all damage
+            this.players.forEach(player => player.cleanup());
         }
         this.players.forEach(player => player.updateTurn());
     }
+
     drawUI(element) {
         this.players.forEach((player, i) => {
             element.appendChild(player.element);

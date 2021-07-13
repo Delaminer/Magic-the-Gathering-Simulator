@@ -39,7 +39,7 @@ button {
     min-height: 30px;
 }
 
-.library {
+.library, .graveyard, .exile {
     display: none;
 }
 

@@ -7,7 +7,12 @@ class Card {
         this.subtypes = subtype.split(' ');
         this.text = text.split('\n');
         this.abilities = [];
-        this.extra = extra;
+        if (this.types.includes('Creature')) {
+            //Add creature data
+            this.power = extra.power;
+            this.toughness = extra.toughness;
+            this.damage = 0;
+        }
         this.location = 'unkown';
         this.tapped = false;
         this.getUI();
@@ -83,6 +88,27 @@ class Card {
         }
         return 'unkown!';
     }
+    update() {
+        if (this.types.includes('Creature')) {
+            if (this.damage > this.toughness) {
+                // This creature dies
+                this.cleanup(false);
+                this.player.graveyardElement.appendChild(this.element);
+            }
+            this.statElement.textContent = `${this.power} / ${this.toughness - this.damage}`;
+        }
+    }
+    cleanup(update) {
+        //Clear damage and 'until end of turn' effects
+        if (this.types.includes('Creature')) {
+            this.damage = 0;
+        }
+        //TODO: Clear Until EOT
+
+        // Update UI (if requested)
+        if (update)
+            this.update();
+    }
     getUI() {
         
         this.element = document.createElement('div');
@@ -113,10 +139,11 @@ class Card {
         this.element.appendChild(text);
 
         if (this.types.includes('Creature')) {
-            let extra = document.createElement('div');
+            let extra = document.createElement('span');
             extra.classList.add('extra');
-            extra.textContent = this.extra.power + ' / ' + this.extra.toughness;
+            extra.textContent = this.power + ' / ' + this.toughness;
             this.element.appendChild(extra);
+            this.statElement = extra; //For updating the values
         }
         
         this.element.onclick = () => {
@@ -186,89 +213,17 @@ class Card {
                             console.log('Ability yeah!');
                             break;
                         case ActionType.Attack:
-                            // if (this.player.selection.cards.includes(this)) {
-                            //     //Stop attacking
-                            //     this.player.selection.cards.splice(this.player.selection.cards.indexOf(this), 1); //remove this from the attackers
-                            //     this.element.classList.remove('attacker');
-                            //     console.log('not attacking');
-                            // }
-                            // else {
-                            //     //Declare as an attacker
-                            //     this.player.selection.cards.push(this); //Join the attackers
-                            //     this.element.classList.add('attacker');
-                            //     console.log('Attacking!');
-                            // }
                             this.player.selectAttacker(this);
                             break;
                         case ActionType.Block:
-                            // let index = this.player.selection.cards.map(v => v.blocker).indexOf(this)
-                            // if (index >= 0) {
-                            //     //Stop blocking
-                            //     let blockData = this.player.selection.cards.splice(index, 1); //remove this from the blockers
-                            //     removeLine(blockData.line);
-                            //     this.element.classList.remove('blocker');
-                            //     console.log('not blocking');
-                            // }
-                            // else if (this.player.temp != undefined) {
-                            //     // The player has to select an attacker to block.
-                            //     // If this was the blocker needed assignment, cancel the job.
-                            //     // If it was some other creature, change focus to this one.
-
-                            //     if (this.player.temp == this) {
-                            //         // This is the unassigned blocker, so cancel the job.
-                            //         this.element.classList.remove('blocker');
-                            //         this.player.temp = undefined;
-                            //         console.log('block cancelled');
-                            //     }
-                            //     else {
-                            //         // This was not, so switch to this one.
-
-                            //         // First remove the old one
-                            //         let oldBlocker = this.player.temp;
-                            //         oldBlocker.classList.remove('blocker');
-
-                            //         // Then assign this one
-                            //         this.player.temp = this;
-                            //         this.element.classList.add('blocker');
-                            //         console.log('this will block maybe.');
-                            //     }
-                            // }
-                            // else {
-                            //     // Put this blocker wannabe into the temp slot, so you can choose who to target it with
-                            //     this.player.temp = this;
-                            //     this.element.classList.add('blocker');
-                            //     console.log('this will block maybe');
-                            // }
                             this.player.selectBlocker(this);
                             break;
-                        case ActionType.BlockTarget: 
-                            // // Note: this is the incorrect player (fix, and edit code below)
-                            // let blockingPlayer = this.player.game.players[1 - this.player.game.currentPlayer];
-                            // console.log('Blocking player is '+blockingPlayer.name);
-                            // // This can only be targeted if there is an unassigned blocker
-                            // if (blockingPlayer.temp != undefined) {
-                            //     //This is the target of the blocker (temp)
-                            //     //Assign this target and add a line (connecting the interaction) to show it
-
-                            //     // Create the line element
-                            //     let line = document.createElement('div');
-                            //     // Give it some CSS
-                            //     line.classList.add('line');
-                            //     // Put into into the document
-                            //     document.body.appendChild(line);
-                            //     // Connect the line from the attacker (this.element) to the blocker (blockingPlayer.temp.element)
-                            //     adjustLine(this.element, blockingPlayer.temp.element, line);
-
-                            //     // Add the blocker to their list with this card as its target, and add the line element for reference
-                            //     blockingPlayer.selection.cards.push({blocker: blockingPlayer.temp, target: this, line: line});
-
-                            //     console.log('So you are blocking ');
-
-                            //     // the blocker has been assigned, so remove it from the temp slot
-                            //     blockingPlayer.temp = undefined;
-                            // }
-                            //Call the select target method on the player that is blocking my player's attack
-                            this.player.game.getBlockingPlayer().selectBlockTarget(this);
+                        case ActionType.BlockTarget:
+                            //This can only be a block target if it is attacking
+                            if (this.player.isAttacking(this)) {
+                                //Call the select target method on the player that is blocking my player's attack
+                                this.player.game.getBlockingPlayer().selectBlockTarget(this);
+                            }
                             break;
                         case ActionType.Unkown:
                             console.log(`Card ${this.name} clicked when action is unkown`)
@@ -284,5 +239,9 @@ class Card {
         }
 
         
+    }
+
+    hasAbility(ability) {
+        return this.abilities.includes(ability);
     }
 }

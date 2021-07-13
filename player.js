@@ -40,6 +40,10 @@ class Player {
         this.permanentsElement.classList.add('permanents');
         this.libraryElement = document.createElement('div');
         this.libraryElement.classList.add('library');
+        this.graveyardElement = document.createElement('div');
+        this.graveyardElement.classList.add('graveyard');
+        this.exileElement = document.createElement('div');
+        this.exileElement.classList.add('exile');
 
         let battlefield = document.createElement('div');
         battlefield.classList.add('battlefield');
@@ -232,6 +236,14 @@ class Player {
             this.moveControl.disabled = true;
         }
     }
+    cleanup() {
+        //Cleanup all effects
+        this.permanents.forEach(permanent => permanent.cleanup(true));
+    }
+    updatePermanents() {
+        //Update UI for all permanents
+        this.permanents.forEach(permanent => permanent.update());
+    }
     canPlaySorcery() {
         return this.canPlayInstant() && this.game.currentPlayer == this.playerIndex && (this.game.phase == TurnStep.PrecombatMain || this.game.phase == TurnStep.PostcombatMain);
     }
@@ -346,12 +358,12 @@ class Player {
     }
 
     selectBlocker(card) {
-        let index = this.player.selection.cards.map(data => data.blocker).indexOf(card)
+        let index = this.selection.cards.map(data => data.blocker).indexOf(card)
         if (index != -1) {
             //Stop blocking
-            let blockData = this.selection.cards.splice(index, 1);
+            let blockData = this.selection.cards.splice(index, 1)[0];
             removeLine(blockData.line);
-            dard.element.classList.remove('blocker');
+            card.element.classList.remove('blocker');
             console.log(`${card.name} is no longer blocking`);
         }
         else if (this.temp != undefined) {
@@ -412,5 +424,22 @@ class Player {
             // the blocker has been assigned, so remove it from the temp slot
             this.temp = undefined;
         }
+    }
+
+    isAttacking(card) {
+        return this.selection.cards.includes(card);
+    }
+    isBlocking(card) {
+        return this.selection.cards.map(blockData => blockData.blocker).includes(card);
+    }
+    // Get the blockers for the specified attacker
+    getBlockers(card) {
+        let blockers = [];
+        this.selection.cards.forEach(blockData => {
+            if (blockData.attacker === card) {
+                blockers.push(blockData.blocker);
+            }
+        });
+        return blockers;
     }
 }
