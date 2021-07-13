@@ -1,0 +1,71 @@
+
+.game {
+    border: black solid thin;
+    /* box-sizing: border-box; */
+    /* overflow: hidden; */
+}
+button {
+    user-select: none;
+}
+
+.player .main {
+    box-sizing: border-box;
+    width: 100%;
+    overflow: hidden;
+}
+.player .main .sidebar {
+    float: left;
+    width: 10%;
+    
+}
+
+.player .main .battlefield {
+    float: left;
+    width: 90%;
+}
+
+
+.bar {
+    height: 3px;
+    background-color: red;
+    width: 100%;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+
+.lands, .permanents {
+    border: solid thin green;
+    min-height: 30px;
+}
+
+.library {
+    display: none;
+}
+
+.card {
+    user-select: none;
+    width: 150px;
+    /* height: 210px; */
+    height: 170px;
+    display: inline-block;
+    vertical-align: top;
+    border: solid thick black;
+    border-radius: 10px;
+}
+.card .image img {
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
+.card.tapped {
+    background-color: rgb(172, 185, 192);
+}
+
+.card.attacker {
+    background-color: rgb(247, 157, 157);
+}
+.card.blocker {
+    background-color: rgb(158, 158, 241);
+}
