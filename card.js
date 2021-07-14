@@ -174,11 +174,15 @@ class Card {
                                 //Ask for player to pay for this
                                 this.player.payForCard(this, (success) => {
                                     if (success) {
-                                        //Play it!
-                                        this.location = 'permanents';
-                                        this.player.permanentsElement.appendChild(this.element);
-                                        this.player.hand.splice(this.player.hand.indexOf(this), 1); //remove from hand
-                                        this.player.permanents.push(this); //add to permanents
+                                        //Add it to the stack
+                                        this.location = 'stack';
+                                        this.player.game.addToStack(this);
+
+                                        // //Play it!
+                                        // this.location = 'permanents';
+                                        // this.player.permanentsElement.appendChild(this.element);
+                                        // this.player.hand.splice(this.player.hand.indexOf(this), 1); //remove from hand
+                                        // this.player.permanents.push(this); //add to permanents
                                     }
                                 });
                             }

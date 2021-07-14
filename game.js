@@ -21,6 +21,7 @@ class Game {
         this.phase = 0;
         this.turn = 0;
         this.players = [this.player1, this.player2];
+        this.stack = [];
     }
     //Start turns and so forth.
     start() {
@@ -121,6 +122,7 @@ class Game {
     }
 
     drawUI(element) {
+        //Add each player UI
         this.players.forEach((player, i) => {
             element.appendChild(player.element);
             if (i == 0) {
@@ -129,6 +131,41 @@ class Game {
                 element.appendChild(bar);
             }
         });
+
+        //Add stack UI
+        this.stackElement = document.createElement('div');
+        this.stackElement.classList.add('stack');
+        //Title of the stack area
+        let stackTitle = document.createElement('div');
+        stackTitle.classList.add('title');
+        stackTitle.textContent = 'The Stack'
+        this.stackElement.appendChild(stackTitle);
+        let stackBody = document.createElement('div');
+        stackBody.classList.add('body');
+        this.stackElement.appendChild(stackBody);
+        this.stackElement.body = stackBody; //For reference
+
+        //Make the stack draggable
+        this.stackElement.onmousedown = (event) => {
+            event = event || window.event;
+            event.preventDefault();
+            this.stackElement.position = [event.clientX, event.clientY];
+            
+            document.onmouseup = () => {
+                //Stop dragging
+                document.onmouseup = null;
+                document.onmousemove = null;
+            };
+            document.onmousemove = (event) => {
+                let [dx, dy] = [this.stackElement.position[0] - event.clientX, this.stackElement.position[1] - event.clientY];
+                this.stackElement.style.top = (this.stackElement.offsetTop - dy) + 'px';
+                this.stackElement.style.left = (this.stackElement.offsetLeft - dx) + 'px';
+                this.stackElement.position[0] -= dx;
+                this.stackElement.position[1] -= dy;
+            };
+        };
+
+        element.appendChild(this.stackElement);
 
         // main.appendChild(this.player1.getUI(false));
         // main.appendChild(this.player2.getUI(true));
@@ -177,5 +214,13 @@ class Game {
 
     getBlockingPlayer() {
         return this.players[1 - this.currentPlayer];
+    }
+
+    addToStack(card) {
+        this.stack.push({
+            card: card,
+
+        });
+        this.stackElement.body.appendChild(card.element);
     }
 }
