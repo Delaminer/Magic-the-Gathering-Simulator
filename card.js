@@ -103,7 +103,7 @@ class Card {
         if (this.types.includes('Creature')) {
             this.damage = 0;
         }
-        //TODO: Clear Until EOT
+        //TODO: Clear Until EOT effects
 
         // Update UI (if requested)
         if (update)
@@ -170,12 +170,19 @@ class Card {
                             break;
                         case 'Creature':
                             //Put it onto the battlefield (if you can afford it)
-                            if (this.player.canPlaySorcery()) {
+                            if ((this.abilities.includes('Flash') && this.player.canPlayInstant()) || this.player.canPlaySorcery()) {
                                 //Ask for player to pay for this
                                 this.player.payForCard(this, (success) => {
                                     if (success) {
                                         //Add it to the stack
                                         this.location = 'stack';
+                                        //For when it resolves
+                                        this.play = () => {
+                                            this.location = 'permanents';
+                                            this.player.permanentsElement.appendChild(this.element);
+                                            this.player.hand.splice(this.player.hand.indexOf(this), 1); //remove from hand
+                                            this.player.permanents.push(this); //add to permanents
+                                        }
                                         this.player.game.addToStack(this);
 
                                         // //Play it!
@@ -237,6 +244,9 @@ class Card {
                             break;
                     }
                     break;
+                case 'stack':
+                    //Do nothing
+                break;
                 default:
                     console.log(this.name + ': unkown card location '+this.location);
             }

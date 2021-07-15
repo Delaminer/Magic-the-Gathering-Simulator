@@ -12,7 +12,7 @@ let makeDeck = (deck) => {
 }
 
 let soldier = new Card('Weary Soldier', 'W', 'Creature', 'Human Soldier', 'Vigilance', {power: 3, toughness: 2});
-let cat = new Card('Catty kitten', 'B', 'Creature', 'Cat', '', {power: 1, toughness: 1});
+let cat = new Card('Catty kitten', 'B', 'Creature', 'Cat', '', {power: 1, toughness: 2});
 
 let Plains = new Card('Plains', '', 'Basic Land', 'Plains', '');
 let Island = new Card('Island', '', 'Basic Land', 'Island', '');

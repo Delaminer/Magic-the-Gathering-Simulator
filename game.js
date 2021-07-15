@@ -30,11 +30,108 @@ class Game {
         this.priorityPlayer = 0;
         this.phase = TurnStep.PrecombatMain; //start at main
         this.turn = 1;
-        this.players.forEach(player => player.updateTurn());
+        //Update turn status and priority status for each player
+        this.players.forEach(player => {
+            player.updateTurn();
+            player.updatePriority(this.currentPlayer, this.stack);
+        });
     }
+
+    passPriority(playerIndex) {
+        //Make sure this player has priority
+        if (this.getPriorityPlayer() != playerIndex) return;
+
+        //Either pass priority for the turn, or an item on the stack
+        if (this.stack.length > 0) {
+            //Pass their priority for this item on the stack
+            let stackItem = this.stack[this.stack.length - 1];
+            
+            if (stackItem.priority == this.currentPlayer) {
+                //Active player passed, so pass priority to non active player
+                stackItem.priority = 1 - this.currentPlayer;
+                //Update player UI
+                this.players.forEach(player => player.updatePriority(stackItem.priority, this.stack));
+            }
+            else {
+                //Nonactive player passed, so resolve the spell
+
+                //Remove it from the stack
+                this.stack.pop();
+                //Play it
+                stackItem.card.play();
+                //Update player UI
+                this.players.forEach(player => player.updatePriority(this.getPriorityPlayer(), this.stack));
+            }
+        }
+        else {
+            //Pass their priority for the turn
+
+            if (this.priorityPlayer == this.currentPlayer) {
+                //Pass priority to non active player before the phase ends
+                this.priorityPlayer = 1 - this.priorityPlayer;
+                //Update player UI
+                this.players.forEach(player => player.updatePriority(this.priorityPlayer, this.stack));
+            }
+            else {
+                //Nonactive player passed, so pass the turn
+                console.log('progressing turn')
+                this.progressTurn();
+            }
+        }
+    }
+
+    /**
+     * Gets which player has priority.
+     * @returns The index of the player.
+     */
+    getPriorityPlayer() {
+        if (this.stack.length > 0) {
+            return this.stack[this.stack.length - 1].priority;
+        }
+        return this.priorityPlayer;
+    }
+
+    addToStack(card) {
+        //Add the card to the stack, and give priority to the active player
+        this.stack.push({
+            card: card,
+            owner: this.getPriorityPlayer(),
+            priority: this.currentPlayer,
+        });
+        //Move the card's UI to the stack parent
+        this.stackElement.body.appendChild(card.element);
+
+        //Notify players of the change in priority
+        this.players.forEach(player => player.updatePriority(this.currentPlayer, this.stack));
+    }
+
     progressTurn() {
+        //Increment phase and reset priority
         this.phase++;
-        if (this.phase == TurnStep.CombatDamage) {
+        this.priorityPlayer = this.currentPlayer;
+
+        //Handle phase specific events
+        if (this.phase == TurnStep.Untap) {
+            //Untap
+            let untap = card => {
+                card.tapped = false;
+                card.element.classList.remove('tapped');
+            };
+            this.players[this.currentPlayer].lands.forEach(untap);
+            this.players[this.currentPlayer].permanents.forEach(untap);
+            this.players[this.currentPlayer].playedLand = false;
+
+            //That's all for this phase! Let's move on!
+            this.progressTurn();
+        }
+        else if (this.phase == TurnStep.Draw) {
+            //Draw
+            this.players[this.currentPlayer].draw(1);
+
+            //That's all for this phase! Let's move on!
+            this.progressTurn();
+        }
+        else if (this.phase == TurnStep.CombatDamage) {
             //Handle combat damage
             let blockingPlayer = this.getBlockingPlayer();
 
@@ -45,7 +142,7 @@ class Game {
                     return;
                 }
                 //Check if this creature was blocked
-                let blockers = blockingPlayer.getBlockers();
+                let blockers = blockingPlayer.getBlockers(attacker);
                 if (blockers.length > 0) {
                     //Deal damage to blockers
                     let damageLeft = attacker.power;
@@ -118,7 +215,10 @@ class Game {
             //Clear all damage
             this.players.forEach(player => player.cleanup());
         }
-        this.players.forEach(player => player.updateTurn());
+        this.players.forEach(player => {
+            player.updateTurn();
+            player.updatePriority(this.currentPlayer, this.stack);
+        });
     }
 
     drawUI(element) {
@@ -216,11 +316,4 @@ class Game {
         return this.players[1 - this.currentPlayer];
     }
 
-    addToStack(card) {
-        this.stack.push({
-            card: card,
-
-        });
-        this.stackElement.body.appendChild(card.element);
-    }
 }

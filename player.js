@@ -4,6 +4,7 @@ const ActionType = {
     Attack: 'attack',
     Block: 'block',
     BlockTarget: 'block-target',
+    AttackTarget: 'attack-target',
     Unkown: 'unkown'
 };
 class Player {
@@ -144,14 +145,113 @@ class Player {
             this.hand.push(cardToDraw);
         }
     }
-    //Control flow of the turn, moving through phases and ultimately passing the turn
-    progressTurn() {
-        if (this.game.currentPlayer == this.playerIndex) {
-            //Move on
-            this.game.progressTurn();
+    //Update control UI when priority is changed
+    updatePriority(newPriorityPlayer, stack) {
+        //All status include's the turn state at the top, so determine it here
+        //Begin with whose turn it is (say either 'Yours' or 'Opponents')
+        let turnStatus = (this.game.currentPlayer == this.playerIndex) ? 'Your ' : (this.game.players[this.game.currentPlayer].name + '\'s ')
+        //Then the phase of the turn
+        turnStatus += this.game.phaseName(this.game.phase) + ' Phase.';
+
+        //Note: priority is swapped for the declare blockers step
+        let declaringBlockers = (this.game.phase == TurnStep.DeclareBlockers) && (this.action == ActionType.Block || this.action == ActionType.BlockTarget);
+        
+        //Add text telling the player to declare attackers or blockers
+        if (this.action == ActionType.Attack) {
+            turnStatus += '\nDeclare attackers.';
+        }
+        else if (this.action == ActionType.Block) {
+            turnStatus += '\nDeclare blockers.';
+        }
+
+        if ((newPriorityPlayer == this.playerIndex) ^ declaringBlockers) {
+            //My priority!
+            if (stack.length > 0) {
+                //Decide whether or not to let the top spell on the stack resolves
+                let stackItem = stack[stack.length - 1];
+                let source = stackItem.owner == this.playerIndex ? 'You' : this.game.players[stackItem.owner].name;
+                this.moveStatus.innerText = `${turnStatus}\n${source} played ${stackItem.card.name}.`;
+                this.moveControl.textContent = 'Resolve';
+            }
+            else {
+                //Decide whether or not to pass priority on the turn (pass turn)
+                this.moveStatus.innerText = turnStatus;
+                this.moveControl.textContent = 'Pass';
+            }
+            //Enable button to pass priority
+            this.moveControl.disabled = false;
+            this.moveControl.onclick = () => {
+                this.progressTurn();
+            };
+            this.moveControl.style.display = 'inline-block';
+
+        }
+        else {
+            //Not my priority
+            if (stack.length > 0) {
+                let stackItem = stack[stack.length - 1];
+                let source = stackItem.owner == this.playerIndex ? 'You' : this.game.players[stackItem.owner].name;
+                this.moveStatus.innerText = `${turnStatus}\n${source} played ${stackItem.card.name}.`;
+            }
+            else {
+                this.moveStatus.innerText = `${turnStatus}\nWaiting for ${this.game.players[newPriorityPlayer].name}.`;
+            }
+            //Disable button
+            this.moveControl.disabled = true;
+            this.moveControl.onclick = () => {}; // Disable clicking no matter what.
+            this.moveControl.textContent = 'Wait';
+            this.moveControl.style.display = 'none';
         }
     }
+
+    //Control flow of the turn, moving through phases and ultimately passing the turn
+    progressTurn() {
+        if (this.game.getPriorityPlayer() == this.playerIndex) {
+            if (this.action == ActionType.Play) {
+                //Pass priority, whether be resolving a spell or passing the turn
+                console.log('Normal pass')
+                this.game.passPriority(this.playerIndex);
+            }
+            else if (this.action == ActionType.Attack){// || this.action == ActionType.Block) {
+                // Selections have been made, and now it is time to play
+                // Update each player's action type to Play so spells can be played properly
+                console.log('attack pass')
+
+                let priorityPlayer = this.game.getPriorityPlayer();
+                let stack = this.game.stack;
+                this.game.players.forEach(player => {
+                    player.action = ActionType.Play;
+                    player.updatePriority(priorityPlayer, stack); //Just in case
+                });
+            }
+        }
+        else if (this.action == ActionType.Block) {
+            console.log('block pass')
+            let priorityPlayer = this.game.getPriorityPlayer();
+            let stack = this.game.stack;
+            this.game.players.forEach(player => {
+                player.action = ActionType.Play;
+                player.updatePriority(priorityPlayer, stack); //Just in case
+            });
+        }
+    }
+
     updateTurn() {
+        //Clear mana
+        for(let color in this.mana) {
+            this.mana[color] = 0;
+        }
+        this.updateMana();
+
+        // Update selection type
+        if (this.game.phase == TurnStep.Combat) {
+            // Your selections are as attackers or blockers
+            this.selection.type = this.game.currentPlayer == this.playerIndex ? 'attackers' : 'blockers';
+        }
+        else if (this.game.phase == TurnStep.PostcombatMain) {
+            // You have no selection
+            this.selection.type = 'none';
+        }
 
         if (this.game.currentPlayer == this.playerIndex) {
             //My turn, what can I do?
@@ -169,87 +269,36 @@ class Player {
         else {
             //Their turn, what can I do?
             switch(this.game.phase) {
+                case TurnStep.DeclareAttackers: //Declare attack
+                    this.action = ActionType.AttackTarget;
+                    break;
                 case TurnStep.DeclareBlockers: //Declare block
                     this.action = ActionType.Block;
                     break;
                 default:
-                    this.action = ActionType.Wait;
+                    this.action = ActionType.Play; //Was Wait, changing to 'Play' may or may not work
             }
-        }
-
-        // Update selection type
-        if (this.game.phase == TurnStep.Combat) {
-            // Your selections are as attackers or blockers
-            this.selection.type = this.game.currentPlayer == this.playerIndex ? 'attackers' : 'blockers';
-        }
-        else if (this.game.phase == TurnStep.PostcombatMain) {
-            // You have no selection
-            this.selection.type = 'none';
-        }
-
-        //Clear mana
-        for(let color in this.mana) {
-            this.mana[color] = 0;
-        }
-        this.updateMana();
-
-        //Show that a change occurred
-        let phase = this.game.phase;
-        let turn = this.game.turn;
-        if (this.game.currentPlayer == this.playerIndex) {
-            //My turn
-            this.moveStatus.textContent = `Your ${this.game.phaseName(phase)} Phase.`
-            if (phase == 10) {
-                //End the turn
-                this.moveControl.textContent = 'End turn';
-            }
-            else { //Proceed
-                this.moveControl.textContent = `Proceed to ${this.game.phaseName(phase + 1)} Phase`;
-            }
-            this.moveControl.disabled = false;
-
-            //Handle actual events
-            if (phase == 0) {
-                //Untap
-                let untap = card => {
-                    card.tapped = false;
-                    card.element.classList.remove('tapped');
-                };
-                this.lands.forEach(untap);
-                this.permanents.forEach(untap);
-                this.playedLand = false;
-
-                //That's all for this phase! Let's move on!
-                this.progressTurn();
-            }
-            else if (phase == 2) {
-                //Draw
-                this.draw(1);
-
-                //That's all for this phase! Let's move on!
-                this.progressTurn();
-            }
-        }
-        else {
-            this.moveStatus.textContent = 'Please wait.';
-            this.moveControl.textContent = 'Pass';
-            this.moveControl.disabled = true;
         }
     }
+
     cleanup() {
         //Cleanup all effects
         this.permanents.forEach(permanent => permanent.cleanup(true));
     }
+
     updatePermanents() {
         //Update UI for all permanents
         this.permanents.forEach(permanent => permanent.update());
     }
+
     canPlaySorcery() {
-        return this.canPlayInstant() && this.game.currentPlayer == this.playerIndex && (this.game.phase == TurnStep.PrecombatMain || this.game.phase == TurnStep.PostcombatMain);
+        return this.canPlayInstant() && this.game.currentPlayer == this.playerIndex && (this.game.phase == TurnStep.PrecombatMain || this.game.phase == TurnStep.PostcombatMain) && this.game.stack.length == 0;
     }
+
     canPlayInstant() {
-        return this.action == ActionType.Play && this.game.priorityPlayer == this.playerIndex;
+        return this.action == ActionType.Play && this.game.getPriorityPlayer() == this.playerIndex;
     }
+
     payForCard(card, callback) {
         //Ask player to pay for the spell
         this.action = 'pay'; //No shenanigans bud!
@@ -324,6 +373,7 @@ class Player {
             callback(false);
         };
     }
+
     updateMana() {
         //Update each mana color
         for(let color in this.mana) {
@@ -333,13 +383,6 @@ class Player {
             this.manaStatus[color].amount.textContent = this.mana[color];
         }
     }
-
-    // includesAttacker(card) {
-    //     return this.selection.cards.includes(card);
-    // }
-    // includesBlocker(card) {
-    //     return this.selection
-    // }
 
     selectAttacker(card) {
         let index = this.selection.cards.indexOf(card);
@@ -429,14 +472,16 @@ class Player {
     isAttacking(card) {
         return this.selection.cards.includes(card);
     }
+
     isBlocking(card) {
         return this.selection.cards.map(blockData => blockData.blocker).includes(card);
     }
+    
     // Get the blockers for the specified attacker
     getBlockers(card) {
         let blockers = [];
         this.selection.cards.forEach(blockData => {
-            if (blockData.attacker === card) {
+            if (blockData.target === card) {
                 blockers.push(blockData.blocker);
             }
         });
