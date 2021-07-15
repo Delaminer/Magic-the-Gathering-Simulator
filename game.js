@@ -206,13 +206,16 @@ class Game {
         }
         else if (this.phase > TurnStep.End) { //If it passed the end turn phase
             //Pass the turn
-            this.phase = 0;
+            this.phase = -1; //So it becomes 0 (untap) when the next progressturn calls
             this.turn++;
             this.currentPlayer = 1 - this.currentPlayer; //Swap players
             this.priorityPlayer = this.currentPlayer; //Set priority
 
             //Clear all damage
             this.players.forEach(player => player.cleanup());
+
+            //Progress turn
+            this.progressTurn();
         }
         this.players.forEach(player => {
             player.updateTurn();
