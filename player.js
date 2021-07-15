@@ -1,5 +1,6 @@
 const ActionType = {
     Play: 'play',
+    Play: 'pay',
     Wait: 'wait',
     Attack: 'attack',
     Block: 'block',
@@ -226,13 +227,21 @@ class Player {
             }
         }
         else if (this.action == ActionType.Block) {
-            console.log('block pass')
-            let priorityPlayer = this.game.getPriorityPlayer();
-            let stack = this.game.stack;
-            this.game.players.forEach(player => {
-                player.action = ActionType.Play;
-                player.updatePriority(priorityPlayer, stack); //Just in case
-            });
+            //You can only pass if there is no unassigned blocker, so check for that
+            if (this.temp == undefined) {
+                //All good, all blockers have been properly defined
+                console.log('block pass')
+                let priorityPlayer = this.game.getPriorityPlayer();
+                let stack = this.game.stack;
+                this.game.players.forEach(player => {
+                    player.action = ActionType.Play;
+                    player.updatePriority(priorityPlayer, stack); //Just in case
+                });
+            }
+            else {
+                //Hey! You forgot to assign the blocker!
+                this.moveControl.textContent = 'Please assign a target for all blockers!';
+            }
         }
     }
 
@@ -301,7 +310,7 @@ class Player {
 
     payForCard(card, callback) {
         //Ask player to pay for the spell
-        this.action = 'pay'; //No shenanigans bud!
+        this.action = ActionType.Pay; //No shenanigans bud!
         let costLeft = Object.create(card.cost);
         let alreadyPaid = {}; //In case user wants to cancel, we can reimburse them
         this.moveStatus.textContent = "Please pay " + card.cost.text;

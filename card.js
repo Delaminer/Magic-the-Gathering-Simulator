@@ -5,8 +5,16 @@ class Card {
         this.cost = this.calculateCost(cost);
         this.types = type.split(' ');
         this.subtypes = subtype.split(' ');
+
         this.text = text.split('\n');
         this.abilities = [];
+
+        //Add basic abilities
+        this.text.forEach(line => {
+            if (line.length > 0) //In case it is blank from the split
+                this.abilities.push(line)
+        });
+
         if (this.types.includes('Creature')) {
             //Add creature data
             this.power = extra.power;
@@ -169,7 +177,8 @@ class Card {
                             }
                             break;
                         case 'Creature':
-                            //Put it onto the battlefield (if you can afford it)
+                            //Play the creature spell
+                            //You must be able to play it at this time though, so check for that
                             if ((this.abilities.includes('Flash') && this.player.canPlayInstant()) || this.player.canPlaySorcery()) {
                                 //Ask for player to pay for this
                                 this.player.payForCard(this, (success) => {
@@ -220,8 +229,11 @@ class Card {
                 case 'permanents':
                     switch(this.player.action) {
                         case ActionType.Play:
-                            //Activate an ability
-                            console.log('Ability yeah!');
+                            //Activate an ability (if you have priority)
+                            if (this.player.game.getPriorityPlayer() == this.player.playerIndex) {
+                                //You have priority
+                                console.log('Ability yeah!');
+                            }
                             break;
                         case ActionType.Attack:
                             this.player.selectAttacker(this);

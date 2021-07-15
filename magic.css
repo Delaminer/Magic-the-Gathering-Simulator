@@ -19,6 +19,12 @@ button {
     
 }
 
+/* Move control button */
+.sidebar button.control {
+    width: 100px;
+    height: 100px;
+}
+
 .player .main .battlefield {
     float: left;
     width: 90%;
