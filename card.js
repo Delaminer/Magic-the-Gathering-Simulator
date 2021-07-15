@@ -90,7 +90,7 @@ class Card {
     }
     update() {
         if (this.types.includes('Creature')) {
-            if (this.damage > this.toughness) {
+            if (this.damage >= this.toughness) {
                 // This creature dies
                 this.cleanup(false);
                 this.player.graveyardElement.appendChild(this.element);

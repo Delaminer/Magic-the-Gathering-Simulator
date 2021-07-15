@@ -153,10 +153,9 @@ class Game {
                         // Determine how much damage is needed to kill this blocker
                         let blockerHealthLeft = blockers[index].toughness - blockers[index].damage;
                         // Get how much damage the attacker will deal to this blocker
-                        let damageToDeal = Math.max(damageLeft - blockerHealthLeft, 0);
+                        let damageToDeal = Math.min(damageLeft, blockerHealthLeft);
                         // Decrease how much damage is left to deal to other blockers (or trample to the player)
                         damageLeft -= damageToDeal;
-
                         // Deal the damage to the blocker
                         blockers[index].damage += damageToDeal;
 
