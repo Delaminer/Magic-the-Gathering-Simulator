@@ -32,7 +32,7 @@ class Game {
         this.turn = 1;
         //Update turn status and priority status for each player
         this.players.forEach(player => {
-            player.updateTurn();
+            player.updateTurn(true);
             player.updatePriority(this.currentPlayer, this.stack);
         });
     }
@@ -218,7 +218,7 @@ class Game {
             this.progressTurn();
         }
         this.players.forEach(player => {
-            player.updateTurn();
+            player.updateTurn(true);
             player.updatePriority(this.currentPlayer, this.stack);
         });
     }

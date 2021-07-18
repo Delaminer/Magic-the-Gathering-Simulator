@@ -213,7 +213,10 @@ class Player {
                 console.log('Normal pass')
                 this.game.passPriority(this.playerIndex);
             }
-            else if (this.action == ActionType.Attack){// || this.action == ActionType.Block) {
+            else if (this.action == ActionType.Attack){
+                //Attack selections have been made. If there are no selected attackers, end combat.
+                
+
                 // Selections have been made, and now it is time to play
                 // Update each player's action type to Play so spells can be played properly
                 console.log('attack pass')
@@ -245,12 +248,14 @@ class Player {
         }
     }
 
-    updateTurn() {
+    updateTurn(clearMana) {
         //Clear mana
-        for(let color in this.mana) {
-            this.mana[color] = 0;
+        if (clearMana) {
+            for(let color in this.mana) {
+                this.mana[color] = 0;
+            }
+            this.updateMana();
         }
-        this.updateMana();
 
         // Update selection type
         if (this.game.phase == TurnStep.Combat) {
@@ -334,6 +339,7 @@ class Player {
                 else {
                     console.log('Hey ' + color + ' mana is useless');
                 }
+                //Show new amounts of mana left
                 this.updateMana();
 
                 //Check if it is complete
@@ -350,7 +356,7 @@ class Player {
                         this.manaStatus[color2].onclick = () => {};
                     });
                     //Restore the controls to focusing on the turn
-                    this.updateTurn();
+                    this.updateTurn(false);
                     this.moveControl.onclick = () => { this.progressTurn() }
                     //Allow spells to be played as normal
                     this.action = ActionType.Play;
@@ -374,7 +380,7 @@ class Player {
             //Update mana UI
             this.updateMana();
             //Restore the controls to focusing on the turn
-            this.updateTurn();
+            this.updateTurn(false);
             this.moveControl.onclick = () => { this.progressTurn() }
             //Allow spells to be played as normal
             this.action = ActionType.Play;

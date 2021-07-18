@@ -9,18 +9,24 @@ class Card {
         this.text = text.split('\n');
         this.abilities = [];
 
-        //Add basic abilities
-        this.text.forEach(line => {
-            if (line.length > 0) //In case it is blank from the split
-                this.abilities.push(line)
-        });
-
+        //Add abilities depending on card type (definitely needs to be fixed)
         if (this.types.includes('Creature')) {
             //Add creature data
             this.power = extra.power;
             this.toughness = extra.toughness;
             this.damage = 0;
+            //Add basic abilities
+            this.text.forEach(line => {
+                if (line.length > 0) //In case it is blank from the split
+                    this.abilities.push(line)
+            });
         }
+        else if (this.types.includes('Instant') || this.types.includes('Sorcery')) {
+            //Directly add abilities from input
+            this.abilities = extra;
+        }
+
+
         this.location = 'unkown';
         this.tapped = false;
         this.getUI();
@@ -87,6 +93,7 @@ class Card {
         }
         return costs;
     }
+
     playType() {
         if (this.types.includes('Land')) {
             return 'Land';
@@ -94,18 +101,26 @@ class Card {
         else if (this.types.includes('Creature')) {
             return 'Creature';
         }
+        else if (this.types.includes('Instant')) {
+            return 'Instant';
+        }
         return 'unkown!';
     }
+
     update() {
         if (this.types.includes('Creature')) {
             if (this.damage >= this.toughness) {
                 // This creature dies
                 this.cleanup(false);
+                this.location = 'graveyard';
                 this.player.graveyardElement.appendChild(this.element);
+                this.player.permanents.splice(this.player.hand.indexOf(this), 1); //remove from permanents
+                this.player.graveyard.push(this); //add to graveyard
             }
             this.statElement.textContent = `${this.power} / ${this.toughness - this.damage}`;
         }
     }
+
     cleanup(update) {
         //Clear damage and 'until end of turn' effects
         if (this.types.includes('Creature')) {
@@ -117,6 +132,7 @@ class Card {
         if (update)
             this.update();
     }
+
     getUI() {
         
         this.element = document.createElement('div');
@@ -187,18 +203,36 @@ class Card {
                                         this.location = 'stack';
                                         //For when it resolves
                                         this.play = () => {
+                                            //Play the creature, putting it onto the battlefield
                                             this.location = 'permanents';
                                             this.player.permanentsElement.appendChild(this.element);
                                             this.player.hand.splice(this.player.hand.indexOf(this), 1); //remove from hand
                                             this.player.permanents.push(this); //add to permanents
                                         }
                                         this.player.game.addToStack(this);
+                                    }
+                                });
+                            }
+                            break;
+                        case 'Instant':
+                            if (this.player.canPlayInstant()) {
+                                //Ask for player to pay for this
+                                this.player.payForCard(this, (success) => {
+                                    if (success) {
+                                        //Add it to the stack
+                                        this.location = 'stack';
+                                        //For when it resolves
+                                        this.play = () => {
+                                            //Do what the card says
+                                            this.abilities.forEach(ability => ability(this));
 
-                                        // //Play it!
-                                        // this.location = 'permanents';
-                                        // this.player.permanentsElement.appendChild(this.element);
-                                        // this.player.hand.splice(this.player.hand.indexOf(this), 1); //remove from hand
-                                        // this.player.permanents.push(this); //add to permanents
+                                            //Once played, it goes directly to the graveyard (it's not a permanent)
+                                            this.location = 'graveyard';
+                                            this.player.graveyardElement.appendChild(this.element);
+                                            this.player.hand.splice(this.player.hand.indexOf(this), 1); //remove from hand
+                                            this.player.graveyard.push(this); //add to graveyard
+                                        }
+                                        this.player.game.addToStack(this);
                                     }
                                 });
                             }
