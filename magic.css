@@ -25,6 +25,14 @@ button {
     height: 100px;
 }
 
+/* Targettable Player Element */
+.sidebar .player {
+    /* border: black solid thin; */
+    background-color: rgb(204, 233, 204);
+    user-select: none;
+    text-align: center;
+}
+
 .player .main .battlefield {
     float: left;
     width: 90%;

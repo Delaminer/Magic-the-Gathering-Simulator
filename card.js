@@ -176,7 +176,7 @@ class Card {
 
         let text = document.createElement('div');
         text.classList.add('text');
-        text.textContent = this.text.join(' <br> ');
+        text.innerText = this.text.join('\n');
         this.element.appendChild(text);
 
         if (this.types.includes('Creature')) {
@@ -287,22 +287,71 @@ class Card {
 
                                     //If an ability was selected, pay its cost and activate it
                                     if (ability != undefined) {
-                                        if (!(ability.cost.tap && this.tapped)) {
-                                            if (ability.cost.tap) {
-                                                //Tap the card
-                                                this.tapped = true;
-                                                this.element.classList.add('tapped');
-                                            }
+                                        //Play the ability
+                                        //First make sure tapping wont stop it
+                                        //Then select targets
+                                        //Then pay for it
+                                        //Then play it
 
-                                            //Pay the cost (TODO)
-                                            let paid = true;
-                                            if (paid) {
-                                                ability.activate(this);
-                                            }
+
+                                        //Either this must be untapped, or the ability cannot require a tap to run
+                                        if (!this.tapped || !ability.cost.tap) {
+                                            //We know the tapping situation is under control, now lets get the targets.
+
+                                            //Get targets from the user
+                                            this.player.getTargets(ability.targets, (targets) => {
+                                                //Targets have been obtained, now pay for the ability (if necessary)
+    
+                                                //Once paid for, this function will run
+                                                let onPayReceived = (paid) => {
+                                                    //Must have been paid to play the ability
+                                                    if (paid) {
+                                                        //Payment received, activate the ability.
+
+                                                        //First, if the ability, requires a tap, tap it.
+                                                        if (ability.cost.tap) {
+                                                            this.tapped = true;
+                                                            this.element.classList.add('tapped');
+                                                        }
+
+                                                        //Abilities receive the input (card, targets)
+                                                        ability.activate(this, targets);
+                                                    }
+                                                }
+    
+                                                if (ability.cost.mana != undefined) {
+                                                    //Ask the player to pay
+                                                    this.player.pay(this, ability.cost, onPayReceived);
+                                                }
+                                                else {
+                                                    //No payment necessary, run the method immediately
+                                                    onPayReceived(true);
+                                                }
+                                            });
                                         }
+
+                                        
+
+                                        // if (!(ability.cost.tap && this.tapped)) {
+                                        //     if (ability.cost.tap) {
+                                        //         //Tap the card
+                                        //         this.tapped = true;
+                                        //         this.element.classList.add('tapped');
+                                        //     }
+
+                                        //     //Pay the cost (TODO)
+                                        //     let paid = true;
+                                        //     if (paid) {
+                                        //         ability.activate(this);
+                                        //     }
+                                        // }
                                     }
                                 }
                             }
+                            break;
+                        case ActionType.Target:
+                            //User clicked on this card to target it with a spell or ability
+                            this.player.selectTarget(this, false);
                             break;
                         case ActionType.Attack:
                             if (this.types.includes('Creature')) //Must be a creature that can attack

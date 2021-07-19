@@ -6,6 +6,7 @@ const ActionType = {
     Block: 'block',
     BlockTarget: 'block-target',
     AttackTarget: 'attack-target',
+    Target: 'target',
     Unkown: 'unkown'
 };
 class Player {
@@ -54,15 +55,27 @@ class Player {
         battlefield.appendChild(this.libraryElement);
 
         
+        //Name and life elements show the player's name and life total
+        let nameElement = document.createElement('p');
+        nameElement.textContent = this.name;
+        let lifeElement = document.createElement('p');
+        lifeElement.textContent = this.life;
+        this.lifeCounter = lifeElement;
+
+        //Player element holds the player stuff (you can click on it to target the player)
+        let playerElement = document.createElement('div');
+        playerElement.classList.add('player');
+        playerElement.appendChild(nameElement);
+        playerElement.appendChild(lifeElement);
+        //When clicked, the player element becomes a target of a spell or ability
+        playerElement.onclick = () => {
+            this.selectTarget(this, true);
+        };
+
+        //Side bar holds all player control
         let sidebar = document.createElement('div');
         sidebar.classList.add('sidebar');
-        let ne = document.createElement('p');
-        ne.textContent = this.name;
-        sidebar.appendChild(ne);
-        let le = document.createElement('p');
-        le.textContent = this.life;
-        this.lifeCounter = le;
-        sidebar.appendChild(le);
+        sidebar.appendChild(playerElement);
 
         //Add player controls
         this.moveControl = document.createElement('button');
@@ -72,8 +85,12 @@ class Player {
         this.moveControl.onclick = () => { this.progressTurn() }
 
         this.moveStatus = document.createElement('p');
-        this.moveStatus.classList.add('status');
+        this.moveStatus.classList.add('move-status');
         this.moveStatus.textContent = 'Please wait.';
+
+        this.turnStatus = document.createElement('p');
+        this.turnStatus.classList.add('turn-status');
+        this.turnStatus.textContent = 'Turn status.';
 
         this.manaStatus = document.createElement('div');
         this.manaStatus.classList.add('mana');
@@ -96,6 +113,7 @@ class Player {
         });
         this.updateMana();
 
+        sidebar.appendChild(this.turnStatus);
         sidebar.appendChild(this.moveStatus);
         sidebar.appendChild(this.moveControl);
         sidebar.appendChild(this.manaStatus);
@@ -164,6 +182,8 @@ class Player {
         else if (this.action == ActionType.Block) {
             turnStatus += '\nDeclare blockers.';
         }
+        //Show the turn status on its element
+        this.turnStatus.textContent = turnStatus;
 
         if ((newPriorityPlayer == this.playerIndex) ^ declaringBlockers) {
             //My priority!
@@ -171,12 +191,12 @@ class Player {
                 //Decide whether or not to let the top spell on the stack resolves
                 let stackItem = stack[stack.length - 1];
                 let source = stackItem.owner == this.playerIndex ? 'You' : this.game.players[stackItem.owner].name;
-                this.moveStatus.innerText = `${turnStatus}\n${source} played ${stackItem.card.name}.`;
+                this.moveStatus.innerText = `${source} played ${stackItem.card.name}.`;
                 this.moveControl.textContent = 'Resolve';
             }
             else {
                 //Decide whether or not to pass priority on the turn (pass turn)
-                this.moveStatus.innerText = turnStatus;
+                this.moveStatus.innerText = '';
                 this.moveControl.textContent = 'Pass';
             }
             //Enable button to pass priority
@@ -192,10 +212,10 @@ class Player {
             if (stack.length > 0) {
                 let stackItem = stack[stack.length - 1];
                 let source = stackItem.owner == this.playerIndex ? 'You' : this.game.players[stackItem.owner].name;
-                this.moveStatus.innerText = `${turnStatus}\n${source} played ${stackItem.card.name}.`;
+                this.moveStatus.innerText = `${source} played ${stackItem.card.name}.`;
             }
             else {
-                this.moveStatus.innerText = `${turnStatus}\nWaiting for ${this.game.players[newPriorityPlayer].name}.`;
+                this.moveStatus.innerText = `Waiting for ${this.game.players[newPriorityPlayer].name}.`;
             }
             //Disable button
             this.moveControl.disabled = true;
@@ -355,9 +375,9 @@ class Player {
                     colors.forEach(color2 => {
                         this.manaStatus[color2].onclick = () => {};
                     });
-                    //Restore the controls to focusing on the turn
-                    this.updateTurn(false);
-                    this.moveControl.onclick = () => { this.progressTurn() }
+
+                    //Restore the controls and focus of the turn
+                    this.updatePriority(this.game.getPriorityPlayer(), this.game.stack);
                     //Allow spells to be played as normal
                     this.action = ActionType.Play;
                     //Let the card know it can be played
@@ -379,13 +399,90 @@ class Player {
             }
             //Update mana UI
             this.updateMana();
-            //Restore the controls to focusing on the turn
-            this.updateTurn(false);
-            this.moveControl.onclick = () => { this.progressTurn() }
+
+            //Restore the controls and focus of the turn
+            this.updatePriority(this.game.getPriorityPlayer(), this.game.stack);
             //Allow spells to be played as normal
             this.action = ActionType.Play;
             //Let the card know it was cancelled
             callback(false);
+        };
+    }
+
+    pay(card, cost, paymentReceivedCallback) {
+        //Pay a cost for a spell or ability
+
+        this.action = ActionType.Pay; //Action type is currently pay
+        let costLeft = Object.create(cost);
+        let alreadyPaid = {}; //In case user wants to cancel, we can reimburse them
+        this.moveStatus.textContent = "Please pay " + cost.text;
+        let colors = ['colorless', 'white', 'blue', 'black', 'red', 'green'];
+        colors.forEach(color => {
+            alreadyPaid[color] = 0;
+            //Add functionality
+            this.manaStatus[color].onclick = () => {
+                if (costLeft[color] > 0) {
+                    //Pay this color
+                    costLeft[color]--;
+                    alreadyPaid[color]++;
+                    this.mana[color]--;
+                }
+                else if (costLeft['any'] > 0) {
+                    //Pay colorless (if left)
+                    costLeft['any']--;
+                    alreadyPaid[color]++;
+                    this.mana[color]--;
+                }
+                else {
+                    console.log('Hey ' + color + ' mana is useless');
+                }
+                //Show new amounts of mana left
+                this.updateMana();
+
+                //Check if it is complete
+                let finished = true;
+                for(let color in costLeft) {
+                    //Loop through each color in the cost that's left and if it is not zero, we know we are not finished.
+                    if (typeof costLeft[color] == 'number' && costLeft[color]> 0) {
+                        finished = false;
+                        break;
+                    }
+                }
+                if (finished) { //Play the card!
+                    //Disable all of these pay mana click events
+                    colors.forEach(color2 => {
+                        this.manaStatus[color2].onclick = () => {};
+                    });
+                    //Restore the controls and focus of the turn
+                    this.updatePriority(this.game.getPriorityPlayer(), this.game.stack);
+                    //Allow spells to be played as normal
+                    this.action = ActionType.Play;
+
+                    //Let the card know it can be played
+                    paymentReceivedCallback(true);
+                }
+            }
+        });
+
+        //Change what the control button does (it cancels paying for this)
+        this.moveControl.textContent = 'Cancel';
+        this.moveControl.onclick = () => { //Cancel playing the card
+            //Disable mana payment
+            colors.forEach(color => {
+                this.manaStatus[color].onclick = () => {};
+            });
+            //Restore mana already paid
+            for(let color in alreadyPaid) {
+                this.mana[color] += alreadyPaid[color];
+            }
+            //Update mana UI
+            this.updateMana();
+            //Restore the controls and focus of the turn
+            this.updatePriority(this.game.getPriorityPlayer(), this.game.stack);
+            //Allow spells to be played as normal
+            this.action = ActionType.Play;
+            //Let the card know it was cancelled
+            paymentReceivedCallback(false);
         };
     }
 
@@ -496,6 +593,113 @@ class Player {
 
             // the blocker has been assigned, so remove it from the temp slot
             this.temp = undefined;
+        }
+    }
+
+    selectTarget(card, isPlayer) {
+        //Must be in target mode
+        if (this.action != ActionType.Target) return;
+        //Must be the player that is doing the action
+        if (this.game.getPriorityPlayer() != this.playerIndex) {
+            this.game.players[this.game.getPriorityPlayer()].selectTarget(card, isPlayer)
+        }
+        else {
+            //This is the correct player.
+            //First, make sure this target is valid
+            //this.temp currently stores the validate function
+            if (this.temp.targets[this.temp.index].validate(card, isPlayer)) {
+                //Good! It works.
+                console.log('Valid target');
+                this.temp.targets[this.temp.index].target = card;
+                this.temp.index++;
+                if (this.temp.index >= this.temp.targets.length) {
+                    //Finished! Run the callback, giving the targets as input (info needs to be mapped to the targets only)
+                    this.temp.callback(this.temp.targets.map(targetInfo => targetInfo.target));
+                }
+            }
+            else {
+                console.log('invalid taregte')
+            }
+        }
+    }
+
+    //Give something a set of targets. Using the specs, this will call the callback method providing with those received.
+    getTargets(targetSpecifications, receiveTargetsCallback) {
+        if (targetSpecifications == undefined || targetSpecifications.length == 0) {
+            //There are no specifications, so callback right away with no targets
+            receiveTargetsCallback([]);
+        }
+        else {
+            //All players are now in Target mode as targets have to be specified.
+            this.game.players.forEach(player => player.action = ActionType.Target);
+
+            //Set up the player's temp storage to handle target selection.
+            //Whenever a player selects a target, it will be added to temp, and once they have all been assigned,
+            //the callback will be called.
+            this.temp = {
+                //Callback
+                callback: receiveTargetsCallback,
+                //Targets
+                targets: [],
+                //How many targets have already been specified
+                index: 0,
+            };
+
+            //Loop through the targets specified, getting each one in order
+            targetSpecifications.forEach(targetSpec => {
+                //For validation, a validate function
+                let validate;
+
+                if (typeof targetSpec == 'string') {
+                    //targetSpec is a string of identifiers
+                    let identifiers = targetSpec.split(' ');
+                    //Each identifier corresponds to a test
+                    let tests = [];
+                    //For each identifier, add a check for it
+                    identifiers.forEach(identifier => {
+                        //Create a test depending on what is needed
+                        let test = () => true;
+                        switch(identifier) {
+                            case 'Creature':
+                                //Card must be a creature
+                                test = card => card.types.includes('Creature');
+                                break;
+                            default:
+                                console.log('Unkown identifier ' + identifier);
+                        }
+                        //Add this test to the list that need to be tested
+
+                        tests.push(test);
+                    });
+
+                    //The target is valid if all tests pass (this is essentially a giant AND gate)
+                    validate = (target, isPlayer) => {
+                        for (let i in tests) {
+                            //All tests must return true
+                            if (!tests[i](target, isPlayer)) return false;
+                        }
+                        //All tests succeeded
+                        return true;
+                    }
+                }
+                else {
+                    //targetSpec is a function that validates for you
+                    validate = targetSpec;
+                }
+
+                //With this validation function generated, let's now assign it to the player (using temp).
+                this.temp.targets.push({
+                    //We are adding an object containing both the validation checker and the final target
+                    
+                    //The undefined target (will be assigned later)
+                    target: undefined,
+                    //The validation function
+                    validate: validate,
+                });
+            });
+
+            //Update UI showing that a target needs to be specified.
+            this.moveStatus.textContent = 'Please select a target.';
         }
     }
 

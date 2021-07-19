@@ -14,7 +14,7 @@ let makeDeck = (deck) => {
 let soldier = new Card('Weary Soldier', 'W', 'Creature', 'Human Soldier', 'Vigilance', {power: 3, toughness: 2});
 let bat = new Card('High Flier', 'BB', 'Creature', 'Bat Horror', 'Vigilance', {power: 6, toughness: 1});
 let cat = new Card('Catty kitten', 'B', 'Creature', 'Cat', '', {power: 1, toughness: 2});
-let rat = new Card('Heel Rat', 'B', 'Creature', 'Rat', 'Flying', {power: 1, toughness: 1, abilities: [
+let rat = new Card('Heel Rat', 'B', 'Creature', 'Rat', 'Flying\nTap to tap a creature.', {power: 1, toughness: 1, abilities: [
     {
         //Tapping ability:
         //T: Tap target creature.
@@ -23,10 +23,14 @@ let rat = new Card('Heel Rat', 'B', 'Creature', 'Rat', 'Flying', {power: 1, toug
         type: 'activated',
         //The only cost is to tap this creature
         cost: { tap: true },
+        //Requires 1 target (a creature)
+        targets: ['Creature'],
         //When activated, tap another target creature
-        activate: (card) => {
+        activate: (card, targets) => {
             //TODO: Get user input for who to tap
-            console.log('Tapped a creature....')
+            console.log('Tapped a creature!');
+            targets[0].tapped = true;
+            targets[0].element.classList.add('tapped');
         },
     },
 ]});
