@@ -12,7 +12,24 @@ let makeDeck = (deck) => {
 }
 
 let soldier = new Card('Weary Soldier', 'W', 'Creature', 'Human Soldier', 'Vigilance', {power: 3, toughness: 2});
+let bat = new Card('High Flier', 'BB', 'Creature', 'Bat Horror', 'Vigilance', {power: 6, toughness: 1});
 let cat = new Card('Catty kitten', 'B', 'Creature', 'Cat', '', {power: 1, toughness: 2});
+let rat = new Card('Heel Rat', 'B', 'Creature', 'Rat', 'Flying', {power: 1, toughness: 1, abilities: [
+    {
+        //Tapping ability:
+        //T: Tap target creature.
+        
+        //This is an activated ability
+        type: 'activated',
+        //The only cost is to tap this creature
+        cost: { tap: true },
+        //When activated, tap another target creature
+        activate: (card) => {
+            //TODO: Get user input for who to tap
+            console.log('Tapped a creature....')
+        },
+    },
+]});
 let ritual = new Card('Dark Ritual', 'B', 'Instant', '', 'Add BBB to your mana pool.', [
     //Add 3 black mana to your mana pool
     (card) => {
@@ -31,6 +48,8 @@ let alexDeck = makeDeck([
     [Swamp, 20],
     // [Mountain, 40],
     [cat, 20],
+    [rat, 20],
+    // [bat, 20],
     [ritual, 20],
 ])
 let bobDeck = makeDeck([

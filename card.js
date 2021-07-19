@@ -20,6 +20,12 @@ class Card {
                 if (line.length > 0) //In case it is blank from the split
                     this.abilities.push(line)
             });
+            if (extra.abilities != undefined) {
+                //Add more abilities
+                extra.abilities.forEach(ability => {
+                    this.abilities.push(ability);
+                });
+            }
         }
         else if (this.types.includes('Instant') || this.types.includes('Sorcery')) {
             //Directly add abilities from input
@@ -303,7 +309,7 @@ class Card {
                                 this.player.selectAttacker(this);
                             break;
                         case ActionType.Block:
-                            if (this.types.includes('Creature')) //Must be a creature that can block
+                            if (this.types.includes('Creature') && !this.tapped) //Must be a creature that can block
                                 this.player.selectBlocker(this);
                             break;
                         case ActionType.BlockTarget:

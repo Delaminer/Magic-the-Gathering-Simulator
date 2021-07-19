@@ -402,16 +402,31 @@ class Player {
     selectAttacker(card) {
         let index = this.selection.cards.indexOf(card);
         if (index == -1) {
-            //Add the card
-            this.selection.cards.push(card);
-            card.element.classList.add('attacker');
-            console.log(`${card.name} is now attacking`);
+            //The card must be untapped to attack
+            if (!card.tapped) {
+                //Add the card
+                this.selection.cards.push(card);
+                card.element.classList.add('attacker');
+                console.log(`${card.name} is now attacking`);
+    
+                //If it doesn't have vigilance, tap it
+                if (!card.abilities.includes('Vigilance')) {
+                    card.tapped = true;
+                    card.element.classList.add('tapped');
+                }
+            }
         }
         else {
             //Remove the card
             this.selection.cards.splice(index, 1);
             card.element.classList.remove('attacker');
             console.log(`${card.name} is no longer attacking`);
+            
+            //Untapping the creature might be risky: 
+            //If it got tapped by another source, this a free untap, 
+            //but also how could that have happened? I dont know.
+            card.tapped = false;
+            card.element.classList.remove('tapped');
         }
     }
 
