@@ -31,7 +31,18 @@ class Card {
         this.tapped = false;
         this.getUI();
         if (this.types.includes('Land')) {
-            let mana = (color) => ({ type: 'mana', cost: 'T', result: color });
+            //Function that creates an ability to create a color of mana
+            let mana = (color) => ({
+                //This is a mana ability
+                type: 'mana',
+                //The only cost is to tap the land
+                cost: { tap: true },
+                //When activated, add one colored mana to the player's mana pool
+                activate: (card) => {
+                    card.player.mana[color]++;
+                    card.player.updateMana();
+                },
+            });
             //Add mana abilities for basic land types
             if (this.subtypes.includes('Plains')) {
                 this.abilities.push(mana('white'));
@@ -253,14 +264,36 @@ class Card {
                                 //Get a list of activated or mana abilities
                                 let abilitiesToActivate = [];
                                 this.abilities.forEach(ability => {
+                                    //Check if ability is a mana ability or an activated ability (and you have priority)
                                     if (typeof ability === 'object' && (ability.type === 'mana' || (ability.type === 'activated' && this.player.action == ActionType.Play))) {
                                         abilitiesToActivate.push(ability);
                                     }
                                 });
                                 if (abilitiesToActivate.length > 0) {
+                                    let ability = undefined;
                                     if (abilitiesToActivate.length == 1) {
                                         //Activate the only ability available
-                                        abilitiesToActivate[0].activate(this);
+                                        ability = abilitiesToActivate[0];
+                                    }
+                                    else {
+                                        //TODO: Add user selection
+                                    }
+
+                                    //If an ability was selected, pay its cost and activate it
+                                    if (ability != undefined) {
+                                        if (!(ability.cost.tap && this.tapped)) {
+                                            if (ability.cost.tap) {
+                                                //Tap the card
+                                                this.tapped = true;
+                                                this.element.classList.add('tapped');
+                                            }
+
+                                            //Pay the cost (TODO)
+                                            let paid = true;
+                                            if (paid) {
+                                                ability.activate(this);
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -290,54 +323,6 @@ class Card {
                             break;
                     }
                 break;
-                case 'lands':
-                    //Tap the land for mana
-                    if (this.abilities.length > 0) {
-                        //Activate the ability
-                        let ability = this.abilities[0];
-                        if (ability.cost.includes('T')) {
-                            //Tap it!
-                            if (!this.tapped) {
-                                this.tapped = true;
-                                this.element.classList.add('tapped');
-
-                                //Activate the ability!
-                                this.player.mana[ability.result]++;
-                                this.player.updateMana();
-                            }
-                        }
-                    }
-                    break;
-                case 'permanents':
-                    switch(this.player.action) {
-                        case ActionType.Play:
-                            //Activate an ability (if you have priority)
-                            if (this.player.game.getPriorityPlayer() == this.player.playerIndex) {
-                                //You have priority
-                                console.log('Ability yeah!');
-                            }
-                            break;
-                        case ActionType.Attack:
-                            this.player.selectAttacker(this);
-                            break;
-                        case ActionType.Block:
-                            this.player.selectBlocker(this);
-                            break;
-                        case ActionType.BlockTarget:
-                            //This can only be a block target if it is attacking
-                            if (this.player.isAttacking(this)) {
-                                //Call the select target method on the player that is blocking my player's attack
-                                this.player.game.getBlockingPlayer().selectBlockTarget(this);
-                            }
-                            break;
-                        case ActionType.Unkown:
-                            console.log(`Card ${this.name} clicked when action is unkown`)
-                        case ActionType.Wait:
-                        default:
-                            //Nothing
-                            break;
-                    }
-                    break;
                 case 'stack':
                     //Do nothing
                 break;
