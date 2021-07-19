@@ -27,7 +27,7 @@ class Card {
         }
 
 
-        this.location = 'unkown';
+        this.location = Zone.Unkown; //Default location
         this.tapped = false;
         this.getUI();
         if (this.types.includes('Land')) {
@@ -112,7 +112,7 @@ class Card {
             if (this.damage >= this.toughness) {
                 // This creature dies
                 this.cleanup(false);
-                this.location = 'graveyard';
+                this.location = Zone.Graveyard;
                 this.player.graveyardElement.appendChild(this.element);
                 this.player.permanents.splice(this.player.hand.indexOf(this), 1); //remove from permanents
                 this.player.graveyard.push(this); //add to graveyard
@@ -172,18 +172,18 @@ class Card {
         
         this.element.onclick = () => {
             switch(this.location) {
-                case 'library':
+                case Zone.Library:
                     console.log('uhhhh, im in the library how\'d you click me?')
                     break;
-                case 'hand':
+                case Zone.Hand:
                     console.log('playing '+this.name);
                     //Play the card
                     switch(this.playType()) {
                         case 'Land':
-                            //Put it onto the battlefield, if you haven't played on yet
+                            //Put it onto the battlefield, if you haven't played one yet
                             if (!this.player.playedLand && this.player.canPlaySorcery()) {
                                 this.player.playedLand = true;
-                                this.location = 'lands';
+                                this.location = Zone.Battlefield;
                                 this.player.landsElement.appendChild(this.element);
                                 this.player.hand.splice(this.player.hand.indexOf(this), 1); //remove from hand
                                 this.player.lands.push(this); //add to lands
@@ -200,11 +200,11 @@ class Card {
                                 this.player.payForCard(this, (success) => {
                                     if (success) {
                                         //Add it to the stack
-                                        this.location = 'stack';
+                                        this.location = Zone.Stack;
                                         //For when it resolves
                                         this.play = () => {
                                             //Play the creature, putting it onto the battlefield
-                                            this.location = 'permanents';
+                                            this.location = Zone.Battlefield;
                                             this.player.permanentsElement.appendChild(this.element);
                                             this.player.hand.splice(this.player.hand.indexOf(this), 1); //remove from hand
                                             this.player.permanents.push(this); //add to permanents
@@ -220,14 +220,14 @@ class Card {
                                 this.player.payForCard(this, (success) => {
                                     if (success) {
                                         //Add it to the stack
-                                        this.location = 'stack';
+                                        this.location = Zone.Stack;
                                         //For when it resolves
                                         this.play = () => {
                                             //Do what the card says
                                             this.abilities.forEach(ability => ability(this));
 
                                             //Once played, it goes directly to the graveyard (it's not a permanent)
-                                            this.location = 'graveyard';
+                                            this.location = Zone.Graveyard;
                                             this.player.graveyardElement.appendChild(this.element);
                                             this.player.hand.splice(this.player.hand.indexOf(this), 1); //remove from hand
                                             this.player.graveyard.push(this); //add to graveyard
@@ -242,6 +242,54 @@ class Card {
                             console.log(this.name+': unkown card type in hand: '+this.playType());
                     }
                     break;
+                case Zone.Battlefield:
+                    switch(this.player.action) {
+                        case ActionType.Pay:
+                        case ActionType.Play:
+                            //Activate an ability (if you have priority)
+                            if (this.player.game.getPriorityPlayer() == this.player.playerIndex) {
+                                //You have priority, play an ability (of your choice)
+                                console.log('Ability yeah!');
+                                //Get a list of activated or mana abilities
+                                let abilitiesToActivate = [];
+                                this.abilities.forEach(ability => {
+                                    if (typeof ability === 'object' && (ability.type === 'mana' || (ability.type === 'activated' && this.player.action == ActionType.Play))) {
+                                        abilitiesToActivate.push(ability);
+                                    }
+                                });
+                                if (abilitiesToActivate.length > 0) {
+                                    if (abilitiesToActivate.length == 1) {
+                                        //Activate the only ability available
+                                        abilitiesToActivate[0].activate(this);
+                                    }
+                                }
+                            }
+                            break;
+                        case ActionType.Attack:
+                            if (this.types.includes('Creature')) //Must be a creature that can attack
+                                this.player.selectAttacker(this);
+                            break;
+                        case ActionType.Block:
+                            if (this.types.includes('Creature')) //Must be a creature that can block
+                                this.player.selectBlocker(this);
+                            break;
+                        case ActionType.BlockTarget:
+                            //Must be a creature that can attack
+                            //This can only be a block target if it is attacking
+                            if (this.types.includes('Creature') && this.player.isAttacking(this)) 
+                            {
+                                //Call the select target method on the player that is blocking my player's attack
+                                this.player.game.getBlockingPlayer().selectBlockTarget(this);
+                            }
+                            break;
+                        case ActionType.Unkown:
+                            console.log(`Card ${this.name} clicked when action is unkown`)
+                        case ActionType.Wait:
+                        default:
+                            //Nothing
+                            break;
+                    }
+                break;
                 case 'lands':
                     //Tap the land for mana
                     if (this.abilities.length > 0) {

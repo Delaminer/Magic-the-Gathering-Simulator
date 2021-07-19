@@ -12,6 +12,16 @@ const TurnStep = {
     End: 10,
 };
 
+const Zone = {
+    Battlefield: 'battlefield', //or permanents/land
+    Hand: 'hand',
+    Graveyard: 'graveyard',
+    Exile: 'exile',
+    Stack: 'stack',
+    Library: 'library',
+    Unkown: 'unkown',
+};
+
 class Game {
     constructor(name1, deck1, name2, deck2) {
         this.player1 = new Player(name1, deck1, this, 0);

@@ -112,7 +112,7 @@ class Player {
 
         this.library = [];
         for(let i = 0; i < this.deck.length; i++) { //Process all cards in the deck
-            this.deck[i].location = 'library';
+            this.deck[i].location = Zone.Library;
             this.libraryElement.appendChild(this.deck[i].element);
             this.library.push(this.deck[i]);
 
@@ -141,7 +141,7 @@ class Player {
     draw(numCards) {
         for(let i = 0; i < numCards; i++) {
             let cardToDraw = this.library.pop(); //remove from end (end = top of library)
-            cardToDraw.location = 'hand';
+            cardToDraw.location = Zone.Hand;
             this.handElement.appendChild(cardToDraw.element);
             this.hand.push(cardToDraw);
         }
