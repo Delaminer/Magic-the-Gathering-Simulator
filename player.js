@@ -140,7 +140,7 @@ class Player {
         this.graveyard = [];
 
         this.hand = [];
-        this.draw(7);
+        this.draw(17);
         
         this.lands = [];
         this.permanents = [];
@@ -270,7 +270,7 @@ class Player {
             else if (this.action == ActionType.Attack){
                 //Attack selections have been made. If there are no selected attackers, end combat.
                 console.log(this.name + ' declared attackers.');
-                
+
                 //Check for attackers
                 if (this.selection.cards.length > 0) {
                     //There are attackers, proceed
@@ -400,7 +400,7 @@ class Player {
         this.action = ActionType.Pay; //No shenanigans bud!
         let costLeft = Object.create(card.cost);
         let alreadyPaid = {}; //In case user wants to cancel, we can reimburse them
-        this.moveStatus.textContent = "Please pay " + card.cost.text;
+        this.moveStatus.innerHTML = 'Please pay ' + insertSymbols(card.cost.text);
         let colors = ['colorless', 'white', 'blue', 'black', 'red', 'green'];
         colors.forEach(color => {
             alreadyPaid[color] = 0;
@@ -483,7 +483,7 @@ class Player {
         this.action = ActionType.Pay; //Action type is currently pay
         let costLeft = Object.create(cost);
         let alreadyPaid = {}; //In case user wants to cancel, we can reimburse them
-        this.moveStatus.textContent = "Please pay " + cost.text;
+        this.moveStatus.innerHTML = 'Please pay ' + insertSymbols(cost.text);
         let colors = ['colorless', 'white', 'blue', 'black', 'red', 'green'];
         colors.forEach(color => {
             alreadyPaid[color] = 0;

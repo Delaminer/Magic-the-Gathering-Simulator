@@ -14,7 +14,7 @@ class ManaCost {
 
 /**
  * Generate an object that represents a mana cost.
- * @param {string} cost The cost as a string (ex: 2WU)
+ * @param {string} cost The cost as a string (ex: 2WU or {2}{W}{U})
  * @returns {any} The cost as an object (NOT A ManaCost object! Use new ManaCost instead!).
  */
 const calculateCost = (cost) => {
@@ -27,35 +27,70 @@ const calculateCost = (cost) => {
         'black': 0,
         'red': 0,
         'green': 0,
-        text: cost //for ease of use
+        'text': cost //for ease of use
     }
-    for(let i = 0; i < cost.length; i++) {
-        switch(cost[i]) {
-            case 'W':
-                costs['white']++;
-                break;
-            case 'U':
-                costs['blue']++;
-                break;
-            case 'B':
-                costs['black']++;
-                break;
-            case 'R':
-                costs['red']++;
-                break;
-            case 'G':
-                costs['green']++;
-                break;
-            case 'C':
-                costs['colorless']++;
-                break;
-            default: //Any color (numbers 1,2,3 etc)
-                //Must find ALL numbers in a row (for double digit costs like Emrakul's 15)
-                let end = i + 1;
-                let isLetter = (char) => char.toUpperCase() != char.toLowerCase();
-                while (end < cost.length && !isLetter(cost[end])) end++;
-                costs['any'] += parseInt(cost.substring(i, end));
-                i = end - 1;
+    if (cost.includes('{')) {
+        //Special format
+        //Convert a string of terms seperated with {} to an array of each term
+        //Seperating each term with {} essentially seperates them with terms of }{ 
+        //and adding caps on the ends of { and }, so remove the caps and split!
+        let parts = cost.substring(1, cost.length - 1).split('}{')
+
+        parts.forEach(part => {
+            switch(part) {
+                case 'W':
+                    costs['white']++;
+                    break;
+                case 'U':
+                    costs['blue']++;
+                    break;
+                case 'B':
+                    costs['black']++;
+                    break;
+                case 'R':
+                    costs['red']++;
+                    break;
+                case 'G':
+                    costs['green']++;
+                    break;
+                case 'C':
+                    costs['colorless']++;
+                    break;
+                default: //Any color (numbers 1,2,3 etc)
+                    //Convert the string to an int and add!
+                    costs['any'] += parseInt(part);
+            }
+        });
+    }
+    else {
+        for(let i = 0; i < cost.length; i++) {
+            switch(cost[i]) {
+                case 'W':
+                    costs['white']++;
+                    break;
+                case 'U':
+                    costs['blue']++;
+                    break;
+                case 'B':
+                    costs['black']++;
+                    break;
+                case 'R':
+                    costs['red']++;
+                    break;
+                case 'G':
+                    costs['green']++;
+                    break;
+                case 'C':
+                    costs['colorless']++;
+                    break;
+                default: //Any color (numbers 1,2,3 etc)
+                    //Must find ALL numbers in a row (for double digit costs like Emrakul's 15)
+                    let end = i + 1;
+                    let isLetter = (char) => char.toUpperCase() != char.toLowerCase();
+                    while (end < cost.length && !isLetter(cost[end])) end++;
+                    costs['any'] += parseInt(cost.substring(i, end));
+                    i = end - 1;
+            }
         }
     }
     return costs;

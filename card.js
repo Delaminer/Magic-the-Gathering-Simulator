@@ -144,7 +144,7 @@ class Card {
         
         let title = document.createElement('div');
         title.classList.add('title');
-        title.textContent = this.name + ' - ' + this.cost.text;
+        title.innerHTML = this.name + ' - ' + insertSymbols(this.cost.text);
         this.element.appendChild(title);
 
         let image = document.createElement('div');
@@ -163,7 +163,7 @@ class Card {
 
         let text = document.createElement('div');
         text.classList.add('text');
-        text.innerText = this.text.join('\n');
+        text.innerHTML = insertSymbols(this.text.join('<br>'));
         this.element.appendChild(text);
 
         if (this.types.includes('Creature')) {
@@ -216,12 +216,13 @@ class Card {
                                 if (success) {
                                     //Add it to the stack
                                     this.location = Zone.Stack;
+                                    //Remove it from the hand
+                                    this.player.hand.splice(this.player.hand.indexOf(this), 1);
                                     //For when it resolves
                                     this.play = () => {
                                         //Play the creature, putting it onto the battlefield
                                         this.location = Zone.Battlefield;
                                         this.player.permanentsElement.appendChild(this.element);
-                                        this.player.hand.splice(this.player.hand.indexOf(this), 1); //remove from hand
                                         this.player.permanents.push(this); //add to permanents
                                     }
                                     this.player.game.addToStack(this);
@@ -236,6 +237,8 @@ class Card {
                                 if (success) {
                                     //Add it to the stack
                                     this.location = Zone.Stack;
+                                    //Remove it from the hand
+                                    this.player.hand.splice(this.player.hand.indexOf(this), 1);
                                     //For when it resolves
                                     this.play = () => {
                                         //Do what the card says
@@ -244,7 +247,6 @@ class Card {
                                         //Once played, it goes directly to the graveyard (it's not a permanent)
                                         this.location = Zone.Graveyard;
                                         this.player.graveyardElement.appendChild(this.element);
-                                        this.player.hand.splice(this.player.hand.indexOf(this), 1); //remove from hand
                                         this.player.graveyard.push(this); //add to graveyard
                                     }
                                     this.player.game.addToStack(this);
@@ -425,7 +427,7 @@ class Card {
                 return !this.player.playedLand && this.player.canPlaySorcery();
             case 'Instant':
                 return this.player.canPlayInstant() && canPayCost(mana, this.cost);
-            default:
+            default: //All sorcery-like spells: Creatures, Sorceries, Enchantments, Artifacts, Planeswalkers, etc
                 return this.player.canPlaySorcery() && canPayCost(mana, this.cost);
         }
     }

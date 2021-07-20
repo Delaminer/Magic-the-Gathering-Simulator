@@ -11,10 +11,10 @@ let makeDeck = (deck) => {
     return out;
 }
 
-let soldier = new Card('Weary Soldier', 'W', 'Creature', 'Human Soldier', 'Vigilance', {power: 3, toughness: 2});
-let bat = new Card('High Flier', 'BB', 'Creature', 'Bat Horror', 'Vigilance', {power: 6, toughness: 1});
-let cat = new Card('Catty kitten', 'B', 'Creature', 'Cat', '', {power: 1, toughness: 2});
-let rat = new Card('Heel Rat', 'BB', 'Creature', 'Rat', 'Flying\nTap to tap a creature.', {power: 1, toughness: 1, abilities: [
+let soldier = new Card('Weary Soldier', '{W}', 'Creature', 'Human Soldier', 'Vigilance', {power: 3, toughness: 2});
+let bat = new Card('High Flier', '{B}{B}', 'Creature', 'Bat Horror', 'Vigilance', {power: 6, toughness: 1});
+let cat = new Card('Catty kitten', '{B}', 'Creature', 'Cat', '', {power: 1, toughness: 2});
+let rat = new Card('Heel Rat', '{B}{B}', 'Creature', 'Rat', 'Flying\n{1}{B}, {T}: Tap target creature.', {power: 1, toughness: 1, abilities: [
     {
         //Tapping ability:
         //T: Tap target creature.
@@ -22,7 +22,7 @@ let rat = new Card('Heel Rat', 'BB', 'Creature', 'Rat', 'Flying\nTap to tap a cr
         //This is an activated ability
         type: 'activated',
         //The only cost is to tap this creature
-        cost: { tap: true, mana: '1B' },
+        cost: { tap: true, mana: '{1}{B}' },
         //Requires 1 target (a creature)
         targets: ['Creature'],
         //When activated, tap another target creature
@@ -35,7 +35,7 @@ let rat = new Card('Heel Rat', 'BB', 'Creature', 'Rat', 'Flying\nTap to tap a cr
     },
 ]});
 
-let ritual = new Card('Dark Ritual', 'B', 'Instant', '', 'Add BBB to your mana pool.', [
+let ritual = new Card('Dark Ritual', '{B}', 'Instant', '', 'Add {B}{B}{B} to your mana pool.', [
     //Add 3 black mana to your mana pool
     (card) => {
         card.player.mana['black'] += 3;
@@ -43,7 +43,7 @@ let ritual = new Card('Dark Ritual', 'B', 'Instant', '', 'Add BBB to your mana p
     }
 ]);
 
-let AncestralRecall = new Card('Ancestral Recall', 'U', 'Instant', '', 'Target player draws three cards.', [
+let AncestralRecall = new Card('Ancestral Recall', '{U}', 'Instant', '', 'Target player draws three cards.', [
     //Target player draws three cards
     {
         //Target: a player
@@ -54,7 +54,7 @@ let AncestralRecall = new Card('Ancestral Recall', 'U', 'Instant', '', 'Target p
         },
     },
 ]);
-let ProdigalSorcerer = new Card('Prodigal Sorcerer', 'U', 'Creature', 'Human Wizard', 'Tap to deal 1 damage to any target.', {power: 1, toughness: 1, abilities: [
+let ProdigalSorcerer = new Card('Prodigal Sorcerer', '{2}{U}', 'Creature', 'Human Wizard', '{T}: Prodigal Sorcerer deals 1 damage to any target.', {power: 1, toughness: 1, abilities: [
     {
         //Tapping ability:
         //T: Deal 1 damage to any target
@@ -83,11 +83,11 @@ let ProdigalSorcerer = new Card('Prodigal Sorcerer', 'U', 'Creature', 'Human Wiz
     },
 ]});
 
-let Plains = new Card('Plains', '', 'Land', 'Plains', '', {supertypes: 'Basic'});
-let Island = new Card('Island', '', 'Land', 'Island', '', {supertypes: 'Basic'});
-let Swamp = new Card('Swamp', '', 'Land', 'Swamp', '', {supertypes: 'Basic'});
-let Mountain = new Card('Mountain', '', 'Land', 'Mountain', '', {supertypes: 'Basic'});
-let Forest = new Card('Forest', '', 'Land', 'Forest', '', {supertypes: 'Basic'});
+let Plains = new Card('Plains', '', 'Land', 'Plains', '{W}', {supertypes: 'Basic'});
+let Island = new Card('Island', '', 'Land', 'Island', '{U}', {supertypes: 'Basic'});
+let Swamp = new Card('Swamp', '', 'Land', 'Swamp', '{B}', {supertypes: 'Basic'});
+let Mountain = new Card('Mountain', '', 'Land', 'Mountain', '{R}', {supertypes: 'Basic'});
+let Forest = new Card('Forest', '', 'Land', 'Forest', '{G}', {supertypes: 'Basic'});
 
 let alexDeck = makeDeck([
     [Swamp, 20],
