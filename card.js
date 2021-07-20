@@ -263,6 +263,9 @@ class Card {
                     switch(this.player.action) {
                         case ActionType.Pay:
                         case ActionType.Play:
+                            //To restore the action that it already was at before doing everything
+                            let originalAction = this.player.action;
+
                             //Activate an ability (if you have priority)
                             if (this.player.game.getPriorityPlayer() == this.player.playerIndex) {
                                 //You have priority, play an ability (of your choice)
@@ -270,7 +273,9 @@ class Card {
                                 //Get a list of activated or mana abilities
                                 let abilitiesToActivate = [];
                                 this.abilities.forEach(ability => {
-                                    //Check if ability is a mana ability or an activated ability (and you have priority)
+                                    //Check if ability is a mana ability or an activated ability.
+                                    //A mana abilitiy can be activated in Pay or Play mode.
+                                    //An activated ability can only be activated in Play mode (because it uses the stack).
                                     if (typeof ability === 'object' && (ability.type === 'mana' || (ability.type === 'activated' && this.player.action == ActionType.Play))) {
                                         abilitiesToActivate.push(ability);
                                     }
@@ -304,6 +309,12 @@ class Card {
     
                                                 //Once paid for, this function will run
                                                 let onPayReceived = (paid) => {
+                                                    //Reset text
+                                                    this.player.updatePriority();
+                                                    //Reset play mode
+                                                    this.player.game.players.forEach(player => player.action = ActionType.Play);
+                                                    this.player.action = originalAction;
+
                                                     //Must have been paid to play the ability
                                                     if (paid) {
                                                         //Payment received, activate the ability.

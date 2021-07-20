@@ -166,15 +166,16 @@ class Player {
     }
     //Update control UI when priority is changed
     updatePriority(newPriorityPlayer, stack) {
+        //Get the values yourself if they are undefined
+        if (newPriorityPlayer == undefined) newPriorityPlayer = this.game.getPriorityPlayer();
+        if (stack == undefined) stack = this.game.stack;
+
         //All status include's the turn state at the top, so determine it here
         //Begin with whose turn it is (say either 'Yours' or 'Opponents')
         let turnStatus = (this.game.currentPlayer == this.playerIndex) ? 'Your ' : (this.game.players[this.game.currentPlayer].name + '\'s ')
         //Then the phase of the turn
         turnStatus += this.game.phaseName(this.game.phase) + ' Phase.';
 
-        //Note: priority is swapped for the declare blockers step
-        let declaringBlockers = (this.game.phase == TurnStep.DeclareBlockers) && (this.action == ActionType.Block || this.action == ActionType.BlockTarget);
-        
         //Add text telling the player to declare attackers or blockers
         if (this.action == ActionType.Attack) {
             turnStatus += '\nDeclare attackers.';
@@ -184,6 +185,9 @@ class Player {
         }
         //Show the turn status on its element
         this.turnStatus.textContent = turnStatus;
+
+        //Note: priority is swapped for the declare blockers step
+        let declaringBlockers = (this.game.phase == TurnStep.DeclareBlockers) && (this.action == ActionType.Block || this.action == ActionType.BlockTarget);
 
         if ((newPriorityPlayer == this.playerIndex) ^ declaringBlockers) {
             //My priority!
@@ -205,6 +209,8 @@ class Player {
                 this.progressTurn();
             };
             this.moveControl.style.display = 'inline-block';
+
+            //Autopass: if we cannot take any actions, then 
 
         }
         else {
@@ -377,7 +383,7 @@ class Player {
                     });
 
                     //Restore the controls and focus of the turn
-                    this.updatePriority(this.game.getPriorityPlayer(), this.game.stack);
+                    this.updatePriority();
                     //Allow spells to be played as normal
                     this.action = ActionType.Play;
                     //Let the card know it can be played
@@ -401,7 +407,7 @@ class Player {
             this.updateMana();
 
             //Restore the controls and focus of the turn
-            this.updatePriority(this.game.getPriorityPlayer(), this.game.stack);
+            this.updatePriority();
             //Allow spells to be played as normal
             this.action = ActionType.Play;
             //Let the card know it was cancelled
@@ -454,7 +460,7 @@ class Player {
                         this.manaStatus[color2].onclick = () => {};
                     });
                     //Restore the controls and focus of the turn
-                    this.updatePriority(this.game.getPriorityPlayer(), this.game.stack);
+                    this.updatePriority();
                     //Allow spells to be played as normal
                     this.action = ActionType.Play;
 
@@ -478,7 +484,7 @@ class Player {
             //Update mana UI
             this.updateMana();
             //Restore the controls and focus of the turn
-            this.updatePriority(this.game.getPriorityPlayer(), this.game.stack);
+            this.updatePriority();
             //Allow spells to be played as normal
             this.action = ActionType.Play;
             //Let the card know it was cancelled
