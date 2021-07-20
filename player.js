@@ -662,7 +662,15 @@ class Player {
                         switch(identifier) {
                             case 'Creature':
                                 //Card must be a creature
-                                test = card => card.types.includes('Creature');
+                                test = (card, isPlayer) => !isPlayer && card.types.includes('Creature');
+                                break;
+                            case 'Player':
+                                //Target must be a player
+                                test = (card, isPlayer) => isPlayer;
+                                break;
+                            case 'Any':
+                                //Target must be a player or creature (or planeswalker TODO)
+                                test = (card, isPlayer) => isPlayer || card.types.includes('Creature');
                                 break;
                             default:
                                 console.log('Unkown identifier ' + identifier);

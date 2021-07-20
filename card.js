@@ -321,7 +321,7 @@ class Card {
     
                                                 if (ability.cost.mana != undefined) {
                                                     //Ask the player to pay
-                                                    this.player.pay(this, ability.cost, onPayReceived);
+                                                    this.player.pay(this, this.calculateCost(ability.cost.mana), onPayReceived);
                                                 }
                                                 else {
                                                     //No payment necessary, run the method immediately
@@ -329,22 +329,6 @@ class Card {
                                                 }
                                             });
                                         }
-
-                                        
-
-                                        // if (!(ability.cost.tap && this.tapped)) {
-                                        //     if (ability.cost.tap) {
-                                        //         //Tap the card
-                                        //         this.tapped = true;
-                                        //         this.element.classList.add('tapped');
-                                        //     }
-
-                                        //     //Pay the cost (TODO)
-                                        //     let paid = true;
-                                        //     if (paid) {
-                                        //         ability.activate(this);
-                                        //     }
-                                        // }
                                     }
                                 }
                             }
