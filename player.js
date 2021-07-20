@@ -1,6 +1,6 @@
 const ActionType = {
     Play: 'play',
-    Play: 'pay',
+    Pay: 'pay',
     Wait: 'wait',
     Attack: 'attack',
     Block: 'block',
@@ -20,7 +20,6 @@ class Player {
         this.selection = {
             type: 'none',
             cards: [],
-            temp: undefined
         }; // For declaring attackers and blockers, and whatever stuff comes next
         this.selectedCards = []
         this.temp = undefined; // For saving which creature is blocking, waiting for the target attacker to be selected
@@ -147,6 +146,10 @@ class Player {
         this.permanents = [];
         
     }
+
+    /**
+     * Shuffle the player's library.
+     */
     shuffle() {
         for(let i = 0; i < this.library.length; i++) {
             let swapWith = Math.floor(Math.random() * this.library.length);
@@ -156,6 +159,11 @@ class Player {
             this.library[swapWith] = temp;
         }
     }
+
+    /**
+     * Draw a number of cards
+     * @param {number} numCards Number of cards to draw 
+     */
     draw(numCards) {
         for(let i = 0; i < numCards; i++) {
             let cardToDraw = this.library.pop(); //remove from end (end = top of library)
@@ -164,8 +172,15 @@ class Player {
             this.hand.push(cardToDraw);
         }
     }
-    //Update control UI when priority is changed
+
+    /**
+     * Update move control UI when priority is changed.
+     * The parameters are optional.
+     * @param {number} newPriorityPlayer The index of the player with priority.
+     * @param {Array} stack The current stack of the game.
+     */
     updatePriority(newPriorityPlayer, stack) {
+        console.log('ran update priorirty for ' + this.name)
         //Get the values yourself if they are undefined
         if (newPriorityPlayer == undefined) newPriorityPlayer = this.game.getPriorityPlayer();
         if (stack == undefined) stack = this.game.stack;
@@ -210,7 +225,16 @@ class Player {
             };
             this.moveControl.style.display = 'inline-block';
 
-            //Autopass: if we cannot take any actions, then 
+            //Autopass: if we cannot take any actions, then pass priority
+            //Note: I have chosen to make it so you cannot pass the first main phase (just in case)
+            if (!this.canDoAnything() && !(this.game.phase == TurnStep.PrecombatMain && this.canPlaySorcery())) {
+                //Pass priority! This is done by returning true, so the game knows once everything has been updated, this player can AutoPass
+                console.log(this.name + ' chose to autopass')
+                return true;
+            }
+            else {
+                console.log('not autopassing')
+            }
 
         }
         else {
@@ -229,43 +253,52 @@ class Player {
             this.moveControl.textContent = 'Wait';
             this.moveControl.style.display = 'none';
         }
+
+        return false;
     }
 
-    //Control flow of the turn, moving through phases and ultimately passing the turn
+    /**
+     * Control flow of the turn, mobing through phases and ultimately passing the turn.
+     */
     progressTurn() {
         if (this.game.getPriorityPlayer() == this.playerIndex) {
             if (this.action == ActionType.Play) {
                 //Pass priority, whether be resolving a spell or passing the turn
-                console.log('Normal pass')
+                console.log(this.name + ' passed priority.');
                 this.game.passPriority(this.playerIndex);
             }
             else if (this.action == ActionType.Attack){
                 //Attack selections have been made. If there are no selected attackers, end combat.
+                console.log(this.name + ' declared attackers.');
                 
+                //Check for attackers
+                if (this.selection.cards.length > 0) {
+                    //There are attackers, proceed
 
-                // Selections have been made, and now it is time to play
-                // Update each player's action type to Play so spells can be played properly
-                console.log('attack pass')
-
-                let priorityPlayer = this.game.getPriorityPlayer();
-                let stack = this.game.stack;
-                this.game.players.forEach(player => {
-                    player.action = ActionType.Play;
-                    player.updatePriority(priorityPlayer, stack); //Just in case
-                });
+                    // Update each player's action type to Play so spells can be played properly
+                    this.game.updatePlayers(this.game.getPriorityPlayer(),
+                        //Set action to Play
+                        player => player.action = ActionType.Play
+                    );
+                }
+                else {
+                    //No attackers! Skip to next main phase!
+                    this.game.phase = TurnStep.PostcombatMain - 1; //So progressTurn will change it to PostCombat Main
+                    this.game.progressTurn();
+                }
             }
         }
         else if (this.action == ActionType.Block) {
             //You can only pass if there is no unassigned blocker, so check for that
             if (this.temp == undefined) {
                 //All good, all blockers have been properly defined
-                console.log('block pass')
-                let priorityPlayer = this.game.getPriorityPlayer();
-                let stack = this.game.stack;
-                this.game.players.forEach(player => {
-                    player.action = ActionType.Play;
-                    player.updatePriority(priorityPlayer, stack); //Just in case
-                });
+                console.log(this.name + ' declared blockers.');
+
+                // Update each player's action type to Play so spells can be played properly
+                this.game.updatePlayers(this.game.getPriorityPlayer(),
+                    //Set action to Play
+                    player => player.action = ActionType.Play
+                );
             }
             else {
                 //Hey! You forgot to assign the blocker!
@@ -274,6 +307,10 @@ class Player {
         }
     }
 
+    /**
+     * Update the action and selection type for this phase of the turn.
+     * @param {boolean} clearMana True if you want the mana to be cleared as well.
+     */
     updateTurn(clearMana) {
         //Clear mana
         if (clearMana) {
@@ -321,24 +358,43 @@ class Player {
         }
     }
 
+    /**
+     * Cleanup end of turn effects and damage for this player and its permanents.
+     */
     cleanup() {
         //Cleanup all effects
         this.permanents.forEach(permanent => permanent.cleanup(true));
     }
 
+    /**
+     * Update UI/check status of all permanents this player controls.
+     */
     updatePermanents() {
         //Update UI for all permanents
-        this.permanents.forEach(permanent => permanent.update());
+        this.permanents.concat(this.lands).forEach(permanent => permanent.update());
     }
 
+    /**
+     * Get if the player can play a sorcery.
+     * @returns {boolean} True if this player can play a sorcery at this time.
+     */
     canPlaySorcery() {
         return this.canPlayInstant() && this.game.currentPlayer == this.playerIndex && (this.game.phase == TurnStep.PrecombatMain || this.game.phase == TurnStep.PostcombatMain) && this.game.stack.length == 0;
     }
 
+    /**
+     * Get if the player can play an instant.
+     * @returns {boolean} True if this player can play an instant at this time.
+     */
     canPlayInstant() {
         return this.action == ActionType.Play && this.game.getPriorityPlayer() == this.playerIndex;
     }
 
+    /**
+     * Pay for a card.
+     * @param {Card} card The card specified. 
+     * @param {Function} callback Method to run after, it gives True if paid for, False if cancelled.
+     */
     payForCard(card, callback) {
         //Ask player to pay for the spell
         this.action = ActionType.Pay; //No shenanigans bud!
@@ -523,10 +579,10 @@ class Player {
                 //Add the card
                 this.selection.cards.push(card);
                 card.element.classList.add('attacker');
-                console.log(`${card.name} is now attacking`);
+                console.log(`${card.name} is now attacking.`);
     
                 //If it doesn't have vigilance, tap it
-                if (!card.abilities.includes('Vigilance')) {
+                if (!card.hasAbility('Vigilance')) {
                     card.tapped = true;
                     card.element.classList.add('tapped');
                 }
@@ -536,7 +592,7 @@ class Player {
             //Remove the card
             this.selection.cards.splice(index, 1);
             card.element.classList.remove('attacker');
-            console.log(`${card.name} is no longer attacking`);
+            console.log(`${card.name} is no longer attacking.`);
             
             //Untapping the creature might be risky: 
             //If it got tapped by another source, this a free untap, 
@@ -557,7 +613,7 @@ class Player {
             let blockData = this.selection.cards.splice(index, 1)[0];
             removeLine(blockData.line);
             card.element.classList.remove('blocker');
-            console.log(`${card.name} is no longer blocking`);
+            console.log(`${card.name} is no longer blocking.`);
         }
         else if (this.temp != undefined) {
             // The player has to select an attacker to block.
@@ -568,7 +624,7 @@ class Player {
                 // This is the unassigned blocker, so cancel the job.
                 card.element.classList.remove('blocker');
                 this.temp = undefined;
-                console.log(`${card.name} block cancelled`);
+                console.log(`${card.name}'s block was cancelled.`);
             }
             else {
                 // This was not, so switch to this one.
@@ -576,17 +632,18 @@ class Player {
                 // First remove the old one
                 this.temp.classList.remove('blocker');
 
+                console.log(`${card.name} is now blocking instead of ${this.temp.name}.`);
+
                 // Then assign this one
                 this.temp = card;
                 card.element.classList.add('blocker');
-                console.log(`${card.name} is now blocking instead`);
             }
         }
         else {
             // Put this blocker wannabe into the temp slot, so you can choose who to target it with
             this.temp = card;
             card.element.classList.add('blocker');
-            console.log(`${card.name} is now blocking`);
+            console.log(`${card.name} is now blocking.`);
         }
     }
 
@@ -616,7 +673,7 @@ class Player {
                 line: line
             });
 
-            console.log(`${this.temp.name} is blocking ${card.name}`);
+            console.log(`${this.temp.name} is now blocking ${card.name}.`);
 
             // the blocker has been assigned, so remove it from the temp slot
             this.temp = undefined;
@@ -641,7 +698,7 @@ class Player {
             //this.temp currently stores the validate function
             if (this.temp.targets[this.temp.index].validate(target, isPlayer)) {
                 //Good! It works.
-                console.log('Valid target');
+                console.log(`Target is ${target.name}.`)
                 this.temp.targets[this.temp.index].target = target;
                 this.temp.index++;
                 if (this.temp.index >= this.temp.targets.length) {
@@ -650,7 +707,7 @@ class Player {
                 }
             }
             else {
-                console.log('invalid taregte')
+                console.log(`Invalid target ${target.name}.`)
             }
         }
     }
@@ -778,5 +835,49 @@ class Player {
             }
         });
         return blockers;
+    }
+    
+    /**
+     * Determines if the player can make any moves in response. If not, autopass should pass the turn.
+     * @returns {boolean} True if this player can make any moves
+     */
+    canDoAnything() {
+        switch(this.action) {
+            case ActionType.Play:
+                //Check if you can activate an ability or play a card from your hand
+
+                //Check if I can play an ability (including a mana ability, even though that's not a great idea)
+                //Loop through both lands and permanents using concat()
+                //This is a for loop and not a forEach to allow breaking if we find an ability we can play
+                let cards = this.lands.concat(this.permanents)
+                for(let i in cards) {
+                    if (cards[i].canPlayAbility(this.mana)) {
+                        return true;
+                    }
+                }
+
+                //Check if I can play a spell
+                for(let i in this.hand) { //Use a for loop (not forEach) to allow breaking if we find a card we can play
+                    if (this.hand[i].canPlay(this.mana)) {
+                        return true;
+                    }
+                }
+
+                //No other actions can be made, so return false.
+                return false;
+                break;
+            case ActionType.Attack:
+            case ActionType.Block:
+                //Check for creatures that can attack or block (they must be untapped)
+
+                //Must be a permanent
+                return this.permanents
+                //Must be a creature and must be untapped
+                .filter(permanent => !permanent.tapped && permanent.types.includes('Creature'))
+                //There must be at least 1 creature that can attack
+                .length > 0;
+                break;
+        }
+        return false;
     }
 }

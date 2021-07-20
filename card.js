@@ -2,9 +2,10 @@
 class Card {
     constructor(name, cost, type, subtype, text, extra) {
         this.name = name;
-        this.cost = this.calculateCost(cost);
+        this.cost = new ManaCost(cost);
         this.types = type.split(' ');
         this.subtypes = subtype.split(' ');
+        this.supertypes = [];
 
         this.text = text.split('\n');
         this.abilities = [];
@@ -31,6 +32,9 @@ class Card {
             //Directly add abilities from input
             this.abilities = extra;
         }
+
+        //Add supertypes
+        if (extra.supertypes != undefined) this.supertypes = extra.supertypes.split(' ');
 
 
         this.location = Zone.Unkown; //Default location
@@ -67,54 +71,6 @@ class Card {
             }
         }
     }
-    /**
-     * Generate an object that represents a mana cost.
-     * @param {string} cost The cost as a string (ex: 2WU)
-     * @returns {ManaCost} The cost as an object.
-     */
-    calculateCost(cost) {
-        //Convert a text cost (2WW) to a more usable representation
-        let costs = {
-            'any': 0,
-            'colorless': 0,
-            'white': 0,
-            'blue': 0,
-            'black': 0,
-            'red': 0,
-            'green': 0,
-            text: cost //for ease of use
-        }
-        for(let i = 0; i < cost.length; i++) {
-            switch(cost[i]) {
-                case 'W':
-                    costs['white']++;
-                    break;
-                case 'U':
-                    costs['blue']++;
-                    break;
-                case 'B':
-                    costs['black']++;
-                    break;
-                case 'R':
-                    costs['red']++;
-                    break;
-                case 'G':
-                    costs['green']++;
-                    break;
-                case 'C':
-                    costs['colorless']++;
-                    break;
-                default: //Any color (numbers 1,2,3 etc)
-                    //Must find ALL numbers in a row (for double digit costs like Emrakul's 15)
-                    let end = i + 1;
-                    let isLetter = (char) => char.toUpperCase() != char.toLowerCase();
-                    while (end < cost.length && !isLetter(cost[end])) end++;
-                    costs['any'] += parseInt(cost.substring(i, end));
-                    i = end - 1;
-            }
-        }
-        return costs;
-    }
 
     /**
      * Get the play type of this card.
@@ -129,6 +85,18 @@ class Card {
         }
         else if (this.types.includes('Instant')) {
             return 'Instant';
+        }
+        else if (this.types.includes('Sorcery')) {
+            return 'Sorcery';
+        }
+        else if (this.types.includes('Enchantment')) {
+            return 'Enchantment';
+        }
+        else if (this.types.includes('Artifact')) {
+            return 'Artifact';
+        }
+        else if (this.types.includes('Planeswalker')) {
+            return 'Planeswalker';
         }
         return 'unkown!';
     }
@@ -362,7 +330,7 @@ class Card {
 
                                             if (ability.cost.mana != undefined) {
                                                 //Ask the player to pay
-                                                this.player.pay(this, this.calculateCost(ability.cost.mana), onPayReceived);
+                                                this.player.pay(this, new ManaCost(ability.cost.mana), onPayReceived);
                                             }
                                             else {
                                                 //No payment necessary, run the method immediately
@@ -414,10 +382,51 @@ class Card {
 
     /**
      * Returns if this card has the ability specified.
-     * @param {*} ability 
+     * @param {*} ability Usually a string keyword like Vigilance or Trample
      * @returns {boolean} True if this card has the specified ability
      */
     hasAbility(ability) {
         return this.abilities.includes(ability);
+    }
+
+    /**
+     * Gets if this card has an ability that can be played
+     * @param {*} mana How much mana the player currently has
+     * @returns {boolean} True if there is an ability this card can play
+     */
+    canPlayAbility(mana) {
+        for(let i in this.abilities) {
+            let ability = this.abilities[i];
+            //Must be a non-keyword ability and either an activated ability or mana ability.
+            if (typeof ability == 'object' && (ability.type == 'activated' || ability.type == 'mana')) {
+                //First check the tapping cost (either this is untapped or it does not cost a tap)
+                if (!this.tapped || !ability.cost.tap) {
+                    //Tapping is good, now check for mana
+                    if (ability.cost.mana == undefined || canPayCost(mana, ability.cost.mana)) {
+                        //The cost can be paid, so this ability can be played! Return true!
+                        return true;
+                    }
+                }
+            }
+        }
+        //No abilities are able to be played, so return false.
+        return false;
+    }
+
+    /**
+     * Gets if this card can be played (from the player's hand).
+     * @param {*} mana The mana available.
+     * @returns {boolean} True if it can be played.
+     */
+    canPlay(mana) {
+        //If it can be played depends on HOW it can be played
+        switch(this.playType()) {
+            case 'Land':
+                return !this.player.playedLand && this.player.canPlaySorcery();
+            case 'Instant':
+                return this.player.canPlayInstant() && canPayCost(mana, this.cost);
+            default:
+                return this.player.canPlaySorcery() && canPayCost(mana, this.cost);
+        }
     }
 }

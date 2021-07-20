@@ -43,11 +43,33 @@ class Game {
         this.priorityPlayer = 0;
         this.phase = TurnStep.PrecombatMain; //start at main
         this.turn = 1;
-        //Update turn status and priority status for each player
+        //Update player statuses (as well as turn status)
+        this.updatePlayers(this.currentPlayer, player => player.updateTurn(true));
+    }
+
+    /**
+     * Update the turn and priority statuses of each player
+     * @param {number} priorityPlayer tells the players which player has priority.
+     * @param {Function} call If defined, this function runs on each player.
+     */
+    updatePlayers(priorityPlayer, call) {
+        let autoPassPlayer = undefined;
+
         this.players.forEach(player => {
-            player.updateTurn(true);
-            player.updatePriority(this.currentPlayer, this.stack);
+            if (call != undefined) {
+                //There is another method to call on each player
+                call(player);
+            }
+            if(player.updatePriority(priorityPlayer, this.stack)) {
+                //This player wants to AutoPass
+                autoPassPlayer = player;
+            }
         });
+
+        if (autoPassPlayer != undefined) {
+            //If a player wanted to AutoPass, let them (has to be after every player gets updated)
+            autoPassPlayer.progressTurn();
+        }
     }
 
     /**
@@ -67,7 +89,7 @@ class Game {
                 //Active player passed, so pass priority to non active player
                 stackItem.priority = 1 - this.currentPlayer;
                 //Update player UI
-                this.players.forEach(player => player.updatePriority(stackItem.priority, this.stack));
+                this.updatePlayers(stackItem.priority);
             }
             else {
                 //Nonactive player passed, so resolve the spell
@@ -77,7 +99,7 @@ class Game {
                 //Play it
                 stackItem.card.play();
                 //Update player UI
-                this.players.forEach(player => player.updatePriority(this.getPriorityPlayer(), this.stack));
+                this.updatePlayers(this.getPriorityPlayer());
             }
         }
         else {
@@ -87,11 +109,10 @@ class Game {
                 //Pass priority to non active player before the phase ends
                 this.priorityPlayer = 1 - this.priorityPlayer;
                 //Update player UI
-                this.players.forEach(player => player.updatePriority(this.priorityPlayer, this.stack));
+                this.updatePlayers(this.priorityPlayer);
             }
             else {
                 //Nonactive player passed, so pass the turn
-                console.log('progressing turn')
                 this.progressTurn();
             }
         }
@@ -123,7 +144,7 @@ class Game {
         this.stackElement.body.appendChild(card.element);
 
         //Notify players of the change in priority
-        this.players.forEach(player => player.updatePriority(this.currentPlayer, this.stack));
+        this.updatePlayers(this.currentPlayer);
     }
 
     /**
@@ -133,6 +154,8 @@ class Game {
         //Increment phase and reset priority
         this.phase++;
         this.priorityPlayer = this.currentPlayer;
+
+        console.log('Progressing turn to ' + this.phaseName(this.phase) + '.');
 
         //Handle phase specific events
         if (this.phase == TurnStep.Untap) {
@@ -147,6 +170,8 @@ class Game {
 
             //That's all for this phase! Let's move on!
             this.progressTurn();
+            //Stop the players from updating by ending the method early
+            return;
         }
         else if (this.phase == TurnStep.Draw) {
             //Draw
@@ -154,6 +179,8 @@ class Game {
 
             //That's all for this phase! Let's move on!
             this.progressTurn();
+            //Stop the players from updating by ending the method early
+            return;
         }
         else if (this.phase == TurnStep.CombatDamage) {
             //Handle combat damage
@@ -230,7 +257,7 @@ class Game {
         }
         else if (this.phase > TurnStep.End) { //If it passed the end turn phase
             //Pass the turn
-            this.phase = -1; //So it becomes 0 (untap) when the next progressturn calls
+            this.phase = TurnStep.Untap - 1; //So it becomes 0 (untap) when the next progressturn calls
             this.turn++;
             this.currentPlayer = 1 - this.currentPlayer; //Swap players
             this.priorityPlayer = this.currentPlayer; //Set priority
@@ -240,11 +267,11 @@ class Game {
 
             //Progress turn
             this.progressTurn();
+            //Stop the players from updating by ending the method early
+            return;
         }
-        this.players.forEach(player => {
-            player.updateTurn(true);
-            player.updatePriority(this.currentPlayer, this.stack);
-        });
+        //Update players
+        this.updatePlayers(this.currentPlayer, player => player.updateTurn(true));
     }
 
     /**

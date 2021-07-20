@@ -83,11 +83,11 @@ let ProdigalSorcerer = new Card('Prodigal Sorcerer', 'U', 'Creature', 'Human Wiz
     },
 ]});
 
-let Plains = new Card('Plains', '', 'Basic Land', 'Plains', '');
-let Island = new Card('Island', '', 'Basic Land', 'Island', '');
-let Swamp = new Card('Swamp', '', 'Basic Land', 'Swamp', '');
-let Mountain = new Card('Mountain', '', 'Basic Land', 'Mountain', '');
-let Forest = new Card('Forest', '', 'Basic Land', 'Forest', '');
+let Plains = new Card('Plains', '', 'Land', 'Plains', '', {supertypes: 'Basic'});
+let Island = new Card('Island', '', 'Land', 'Island', '', {supertypes: 'Basic'});
+let Swamp = new Card('Swamp', '', 'Land', 'Swamp', '', {supertypes: 'Basic'});
+let Mountain = new Card('Mountain', '', 'Land', 'Mountain', '', {supertypes: 'Basic'});
+let Forest = new Card('Forest', '', 'Land', 'Forest', '', {supertypes: 'Basic'});
 
 let alexDeck = makeDeck([
     [Swamp, 20],
