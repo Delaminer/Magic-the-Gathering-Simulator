@@ -33,7 +33,10 @@ class Game {
         this.players = [this.player1, this.player2];
         this.stack = [];
     }
-    //Start turns and so forth.
+
+    /**
+     * Start the game.
+     */
     start() {
         //Assume who goes first has already been decided
         this.currentPlayer = 0;
@@ -47,6 +50,10 @@ class Game {
         });
     }
 
+    /**
+     * Pass priority from a specified player
+     * @param {number} playerIndex the index of the player who has passed priority
+     */
     passPriority(playerIndex) {
         //Make sure this player has priority
         if (this.getPriorityPlayer() != playerIndex) return;
@@ -92,7 +99,7 @@ class Game {
 
     /**
      * Gets which player has priority.
-     * @returns The index of the player.
+     * @returns {number} The index of the player.
      */
     getPriorityPlayer() {
         if (this.stack.length > 0) {
@@ -101,6 +108,10 @@ class Game {
         return this.priorityPlayer;
     }
 
+    /**
+     * Add a spell or ability to the stack
+     * @param {Card} card 
+     */
     addToStack(card) {
         //Add the card to the stack, and give priority to the active player
         this.stack.push({
@@ -115,6 +126,9 @@ class Game {
         this.players.forEach(player => player.updatePriority(this.currentPlayer, this.stack));
     }
 
+    /**
+     * Progress the turn by one (or more) phase(s).
+     */
     progressTurn() {
         //Increment phase and reset priority
         this.phase++;
@@ -233,6 +247,10 @@ class Game {
         });
     }
 
+    /**
+     * Generate the UI for the game.
+     * @param {HTMLElement} element The parent element for the game.
+     */
     drawUI(element) {
         //Add each player UI
         this.players.forEach((player, i) => {
@@ -284,8 +302,13 @@ class Game {
 
         this.element = element; //for future reference
     }
-    phaseName(index) {
-        switch(index) {
+    /**
+     * Get the name of a phase in string format.
+     * @param {number} phase 
+     * @returns {string} The name of the phase
+     */
+    phaseName(phase) {
+        switch(phase) {
             case TurnStep.Untap:
                 return 'Untap';
                 break;
@@ -324,6 +347,10 @@ class Game {
         }
     }
 
+    /**
+     * Get the player that is currently blocking
+     * @returns {Player} The player object.
+     */
     getBlockingPlayer() {
         return this.players[1 - this.currentPlayer];
     }

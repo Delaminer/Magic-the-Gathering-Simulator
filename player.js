@@ -415,6 +415,12 @@ class Player {
         };
     }
 
+    /**
+     * Pay for a spell or ability. This allows the user to choose how to pay.
+     * @param {Card} card The card either being played or the source of the ability.
+     * @param {ManaCost} cost The cost that has to be paid. Generate using @link {card.calculateCost()}.
+     * @param {function} paymentReceivedCallback The function to be called once user has either paid or cancelled. Returns true if the user paid.
+     */
     pay(card, cost, paymentReceivedCallback) {
         //Pay a cost for a spell or ability
 
@@ -492,6 +498,9 @@ class Player {
         };
     }
 
+    /**
+     * Update the UI showing how much mana this player has
+     */
     updateMana() {
         //Update each mana color
         for(let color in this.mana) {
@@ -502,6 +511,10 @@ class Player {
         }
     }
 
+    /**
+     * Select a card for attacking
+     * @param {Card} card The new attacker
+     */
     selectAttacker(card) {
         let index = this.selection.cards.indexOf(card);
         if (index == -1) {
@@ -533,6 +546,10 @@ class Player {
         }
     }
 
+    /**
+     * Select a card for blocking
+     * @param {Card} card The new blocker
+     */
     selectBlocker(card) {
         let index = this.selection.cards.map(data => data.blocker).indexOf(card)
         if (index != -1) {
@@ -573,6 +590,10 @@ class Player {
         }
     }
 
+    /**
+     * Select a card as the target for a block.
+     * @param {Card} card The attacker
+     */
     selectBlockTarget(card) {
         // There has to be an unassigned blocker for this card to be targeted
         if (this.temp != undefined) {
@@ -602,21 +623,26 @@ class Player {
         }
     }
 
-    selectTarget(card, isPlayer) {
+    /**
+     * Selects a card or player as a target for the current spell the user is playing
+     * @param {*} target The target, either a player or card
+     * @param {boolean} isPlayer True if the target is a player, false if it is a card.
+     */
+    selectTarget(target, isPlayer) {
         //Must be in target mode
         if (this.action != ActionType.Target) return;
         //Must be the player that is doing the action
         if (this.game.getPriorityPlayer() != this.playerIndex) {
-            this.game.players[this.game.getPriorityPlayer()].selectTarget(card, isPlayer)
+            this.game.players[this.game.getPriorityPlayer()].selectTarget(target, isPlayer)
         }
         else {
             //This is the correct player.
             //First, make sure this target is valid
             //this.temp currently stores the validate function
-            if (this.temp.targets[this.temp.index].validate(card, isPlayer)) {
+            if (this.temp.targets[this.temp.index].validate(target, isPlayer)) {
                 //Good! It works.
                 console.log('Valid target');
-                this.temp.targets[this.temp.index].target = card;
+                this.temp.targets[this.temp.index].target = target;
                 this.temp.index++;
                 if (this.temp.index >= this.temp.targets.length) {
                     //Finished! Run the callback, giving the targets as input (info needs to be mapped to the targets only)
@@ -629,7 +655,11 @@ class Player {
         }
     }
 
-    //Give something a set of targets. Using the specs, this will call the callback method providing with those received.
+    /**
+     * Give something a set of targets.
+     * @param {Array} targetSpecifications This array specifies how many targets are needed and what qualities do they have to have.
+     * @param {Function} receiveTargetsCallback This method will be called once all targets have been obtained, returning an array of targets that follow the specs.
+     */
     getTargets(targetSpecifications, receiveTargetsCallback) {
         if (targetSpecifications == undefined || targetSpecifications.length == 0) {
             //There are no specifications, so callback right away with no targets
@@ -668,15 +698,15 @@ class Player {
                         switch(identifier) {
                             case 'Creature':
                                 //Card must be a creature
-                                test = (card, isPlayer) => !isPlayer && card.types.includes('Creature');
+                                test = (target, isPlayer) => !isPlayer && target.types.includes('Creature');
                                 break;
                             case 'Player':
                                 //Target must be a player
-                                test = (card, isPlayer) => isPlayer;
+                                test = (target, isPlayer) => isPlayer;
                                 break;
                             case 'Any':
                                 //Target must be a player or creature (or planeswalker TODO)
-                                test = (card, isPlayer) => isPlayer || card.types.includes('Creature');
+                                test = (target, isPlayer) => isPlayer || target.types.includes('Creature');
                                 break;
                             default:
                                 console.log('Unkown identifier ' + identifier);
@@ -717,19 +747,33 @@ class Player {
         }
     }
 
+    /**
+     * Gets if the specified card is currently attacking
+     * @param {Card} card 
+     * @returns {boolean} True if card is attacking
+     */
     isAttacking(card) {
         return this.selection.cards.includes(card);
     }
 
+    /**
+     * Gets if the specified card is currently blocking
+     * @param {Card} card 
+     * @returns {boolean} True if card is blocking
+     */
     isBlocking(card) {
         return this.selection.cards.map(blockData => blockData.blocker).includes(card);
     }
     
-    // Get the blockers for the specified attacker
-    getBlockers(card) {
+    /**
+     * Get the blockers for a specified attacker
+     * @param {Card} attacker Specified attacker
+     * @returns {Array} All blockers for the attacker
+     */
+    getBlockers(attacker) {
         let blockers = [];
         this.selection.cards.forEach(blockData => {
-            if (blockData.target === card) {
+            if (blockData.target === attacker) {
                 blockers.push(blockData.blocker);
             }
         });
