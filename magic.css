@@ -96,3 +96,23 @@ button {
 .card.blocker {
     background-color: rgb(158, 158, 241);
 }
+
+/* Font settings */
+@font-face {
+    font-family: 'Magic Title';
+    src: url('/Fonts/Matrix\ Bold.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Magic Text';
+    src: url('/Fonts/MPlantin.ttf') format('truetype');
+}
+
+.card .title,
+.card .type {
+    font-family: 'Magic Title';
+}
+
+.card .text,
+.card .extra {
+    font-family: 'Magic Text';
+}
