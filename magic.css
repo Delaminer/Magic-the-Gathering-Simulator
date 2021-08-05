@@ -71,19 +71,30 @@ button {
 
 .card {
     user-select: none;
-    width: 150px;
+    width: 213px;
     /* height: 210px; */
-    min-height: 170px;
+    /* min-height: 170px; */
+    height: 301px;
     display: inline-block;
     vertical-align: top;
     border: solid thick black;
     border-radius: 10px;
     background-color: white;
+
+    /* font-size: small; */
 }
-.card .image img {
-    margin-left: auto;
+.card .image {
+    width: 100%;
+    text-align: center;
+}
+.card .image canvas {
+    /* margin-left: auto;
     margin-right: auto;
-    display: block;
+    display: block; */
+    width: calc(100% - 15px);
+    height: 140px;
+    /* height: 100px; */
+    display: inline;
 }
 
 .card.tapped {

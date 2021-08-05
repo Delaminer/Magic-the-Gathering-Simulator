@@ -149,11 +149,29 @@ class Card {
 
         let image = document.createElement('div');
         image.classList.add('image');
-        let img = document.createElement('img');
-        img.src = './Images/sample_image.png';
-        img.width = 100;
-        img.draggable = false;
-        image.appendChild(img)
+
+        //Load a card image to draw the card's painting
+        let imgSource = document.createElement('img');
+
+        // img.src = './Images/sample_image.png';
+        imgSource.src = 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=413609&type=card'
+        // img.src = 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=527289&type=card'
+        // imgSource.src='https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=527376&type=card'
+        imgSource.src = 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=366479&type=card'
+        imgSource.src = 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=22962&type=card'
+        // img.width = 100;
+        // imgSource.draggable = false;
+        imgSource.style.display = 'none'; //Hide the image as it is used only as a source for the canvas 
+        image.appendChild(imgSource)
+        let canvas = document.createElement('canvas')
+        let ctx = canvas.getContext('2d')
+        imgSource.onload = () => {
+        
+        //(18,36), (205, 172)
+        let scale = imgSource.width / 223
+        ctx.drawImage(imgSource, scale*18, scale*36, scale*(205-18), scale*(172-36), 0, 0, canvas.width, canvas.height)
+        }
+        image.appendChild(canvas)
         this.element.appendChild(image);
 
         let type = document.createElement('div');

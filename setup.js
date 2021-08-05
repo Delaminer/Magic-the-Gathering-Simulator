@@ -105,7 +105,9 @@ let bobDeck = makeDeck([
     [soldier, 20],
 ])
 
-let game = new Game("Alex", alexDeck, 'Bob', bobDeck);
+let test = makeDeck([[ProdigalSorcerer, 100]])
+
+let game = new Game("Alex", test, 'Bob', bobDeck);
 
 game.drawUI(document.getElementById('game'));
 
