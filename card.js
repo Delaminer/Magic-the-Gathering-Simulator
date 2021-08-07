@@ -141,6 +141,9 @@ class Card {
         
         this.element = document.createElement('div');
         this.element.classList.add('card');
+
+        //Card color
+        this.element.classList.add(['white', 'blue', 'black', 'red', 'green', 'colorless', 'multicolored'][Math.floor(Math.random()*7)])
         
         let title = document.createElement('div');
         title.classList.add('title');
@@ -166,10 +169,9 @@ class Card {
         let canvas = document.createElement('canvas')
         let ctx = canvas.getContext('2d')
         imgSource.onload = () => {
-        
-        //(18,36), (205, 172)
-        let scale = imgSource.width / 223
-        ctx.drawImage(imgSource, scale*18, scale*36, scale*(205-18), scale*(172-36), 0, 0, canvas.width, canvas.height)
+            //(18,36), (205, 172)
+            let scale = imgSource.width / 223
+            ctx.drawImage(imgSource, scale*18, scale*36, scale*(205-18), scale*(172-36), 0, 0, canvas.width, canvas.height)
         }
         image.appendChild(canvas)
         this.element.appendChild(image);

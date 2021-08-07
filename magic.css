@@ -83,6 +83,29 @@ button {
 
     /* font-size: small; */
 }
+
+.card.white {
+    background-color: rgb(233, 232, 218);
+}
+.card.blue {
+    background-color: rgb(154, 198, 228);
+}
+.card.black {
+    background-color: rgb(129, 122, 122);
+}
+.card.red {
+    background-color: rgb(201, 77, 60);
+}
+.card.green {
+    background-color: rgb(51, 136, 72);
+}
+.card.colorless {
+    background-color: rgb(136, 166, 172);
+}
+.card.multicolored {
+    background-color: rgb(197, 162, 87);
+}
+
 .card .image {
     width: 100%;
     text-align: center;
