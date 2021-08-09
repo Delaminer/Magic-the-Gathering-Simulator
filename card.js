@@ -3,6 +3,12 @@ class Card {
     constructor(name, cost, type, subtype, text, extra) {
         this.name = name;
         this.cost = new ManaCost(cost);
+        //Determine the colors of this card based on its cost
+        this.colors = [];
+        for(let color of ['white', 'blue', 'black', 'red', 'green'])
+            if (this.cost[color] > 0)
+                this.colors.push(color);
+
         this.types = type.split(' ');
         this.subtypes = subtype.split(' ');
         this.supertypes = [];
@@ -142,8 +148,18 @@ class Card {
         this.element = document.createElement('div');
         this.element.classList.add('card');
 
-        //Card color
-        this.element.classList.add(['white', 'blue', 'black', 'red', 'green', 'colorless', 'multicolored'][Math.floor(Math.random()*7)])
+        //Determine the background color of the card based on its colors
+        let classColor = 'colorless';
+        if (this.colors.length > 1) {
+            //Multicolored
+            classColor = 'multicolored';
+        }
+        else if (this.colors.length == 1) {
+            //Monocolored
+            classColor = this.colors[0];
+        }
+
+        this.element.classList.add(classColor)
         
         let title = document.createElement('div');
         title.classList.add('title');

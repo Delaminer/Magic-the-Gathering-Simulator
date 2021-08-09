@@ -34,6 +34,7 @@ let rat = new Card('Heel Rat', '{B}{B}', 'Creature', 'Rat', 'Flying\n{1}{B}, {T}
         },
     },
 ]});
+let person = new Card('Super Soldier', '{W}{U}{R}', 'Creature', 'Human Soldier', '', {power: 5, toughness: 4});
 
 let ritual = new Card('Dark Ritual', '{B}', 'Instant', '', 'Add {B}{B}{B} to your mana pool.', [
     //Add 3 black mana to your mana pool
@@ -115,6 +116,7 @@ let bobDeck = makeDeck([
 let test = makeDeck([
     [ProdigalSorcerer, 100],
     [manaboost, 50],
+    [person, 50],
 ])
 
 let game = new Game("Alex", test, 'Bob', bobDeck);
