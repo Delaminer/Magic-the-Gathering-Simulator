@@ -251,7 +251,11 @@ class Card {
                         }
                         break;
                     case 'Instant':
-                        if (this.player.canPlayInstant()) {
+                    case 'Sorcery':
+                        //Instants and sorceries are basically the same, so play them the same way (except check for different rules)
+
+                        //It can be played if you can play a sorcery, or if its an instant and you can play one
+                        if (this.player.canPlaySorcery() || (this.playType() === 'Instant' && this.player.canPlayInstant())) {
                             //Ask for player to pay for this
                             this.player.payForCard(this, (success) => {
                                 if (success) {
@@ -275,7 +279,8 @@ class Card {
                         }
                         break;
                     case 'unkown!':
-                        //unkown
+                    default:
+                        //unkown or unimplemented card type
                         console.log(this.name+': unkown card type in hand: '+this.playType());
                 }
                 break;

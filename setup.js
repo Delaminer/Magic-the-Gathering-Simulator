@@ -42,6 +42,13 @@ let ritual = new Card('Dark Ritual', '{B}', 'Instant', '', 'Add {B}{B}{B} to you
         card.player.updateMana();
     }
 ]);
+let manaboost = new Card('Mana Boost', '{0}', 'Sorcery', '', 'Add twenty {W}{U}{B}{R}{G}.', [
+    (card) => {
+        for(let color of ['white', 'blue', 'black', 'red', 'green'])
+            card.player.mana[color] += 20;
+        card.player.updateMana();
+    }
+]);
 
 let AncestralRecall = new Card('Ancestral Recall', '{U}', 'Instant', '', 'Target player draws three cards.', [
     //Target player draws three cards
@@ -105,7 +112,10 @@ let bobDeck = makeDeck([
     [soldier, 20],
 ])
 
-let test = makeDeck([[ProdigalSorcerer, 100]])
+let test = makeDeck([
+    [ProdigalSorcerer, 100],
+    [manaboost, 50],
+])
 
 let game = new Game("Alex", test, 'Bob', bobDeck);
 

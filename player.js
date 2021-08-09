@@ -469,6 +469,29 @@ class Player {
             //Let the card know it was cancelled
             callback(false);
         };
+
+        
+        //Check if it is complete
+        let finished = true;
+        for(let color in costLeft) {
+            if (typeof costLeft[color] == 'number' && costLeft[color]> 0) {
+                finished = false;
+                break;
+            }
+        }
+        if (finished) { //Play the card!
+            //Disable all of these pay mana click events
+            colors.forEach(color2 => {
+                this.manaStatus[color2].onclick = () => {};
+            });
+
+            //Restore the controls and focus of the turn
+            this.updatePriority();
+            //Allow spells to be played as normal
+            this.action = ActionType.Play;
+            //Let the card know it can be played
+            callback(true);
+        }
     }
 
     /**
