@@ -81,29 +81,101 @@ button {
     border-radius: 10px;
     background-color: white;
 
-    /* font-size: small; */
+    font-size: 11px;
 }
 
 .card.white {
-    background-color: rgb(233, 232, 218);
+    background-color: rgb(221, 213, 176);
 }
+.card.white .title,
+.card.white .type,
+.card.white .text,
+.card.white .extra {
+    background-color: rgb(247, 247, 245);
+}
+
 .card.blue {
-    background-color: rgb(154, 198, 228);
+    background-color: rgb(54, 184, 229);
+    /* background-image: url('https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=482948&type=card'); */
+    /* background-image: url('https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=423754&type=card'); */
 }
+.card.blue .title,
+.card.blue .type,
+.card.blue .text,
+.card.blue .extra {
+    background-color: rgb(196, 226, 238);
+}
+
 .card.black {
-    background-color: rgb(129, 122, 122);
+    background-color: rgb(25, 38, 42);
 }
+.card.black .title,
+.card.black .type,
+.card.black .text,
+.card.black .extra {
+    background-color: rgb(193, 187, 187);
+}
+
 .card.red {
-    background-color: rgb(201, 77, 60);
+    background-color: rgb(254, 161, 147);
 }
+.card.red .title,
+.card.red .type,
+.card.red .text,
+.card.red .extra {
+    background-color: rgb(251, 212, 195);
+}
+
 .card.green {
-    background-color: rgb(51, 136, 72);
+    background-color: rgb(79, 135, 98);
 }
+.card.green .title,
+.card.green .type,
+.card.green .text,
+.card.green .extra {
+    background-color: rgb(202, 216, 211);
+}
+
 .card.colorless {
-    background-color: rgb(212, 215, 216);
+    background-color: rgb(135, 168, 186);
 }
+.card.colorless .title,
+.card.colorless .type,
+.card.colorless .text,
+.card.colorless .extra {
+    background-color: rgb(218, 225, 232);
+}
+
 .card.multicolored {
-    background-color: rgb(197, 162, 87);
+    background-color: rgb(225, 202, 134);
+}
+.card.multicolored .title,
+.card.multicolored .type,
+.card.multicolored .text,
+.card.multicolored .extra {
+    background-color: rgb(217, 195, 130);
+}
+
+.card .title .name {
+    font-size: 13px;
+}
+
+.card .title,
+.card .type
+{
+    background-color: rgb(255, 255, 255);
+    margin-top: 7px;
+    margin-left: 3px;
+    margin-right: 3px;
+    margin-bottom: 3px;
+    border: solid thin black;
+    border-radius: 20px;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.card .title .cost {
+    float: right;
 }
 
 .card .image {
@@ -118,6 +190,15 @@ button {
     height: 140px;
     /* height: 100px; */
     display: inline;
+}
+
+.card .text {
+    height: 30%;
+    background-color: wheat;
+    margin-left: 5px;
+    margin-right: 5px;
+    padding-left: 5px;
+    padding-right: 5px;
 }
 
 .card.tapped {

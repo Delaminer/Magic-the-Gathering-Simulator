@@ -34,24 +34,30 @@ let rat = new Card('Heel Rat', '{B}{B}', 'Creature', 'Rat', 'Flying\n{1}{B}, {T}
         },
     },
 ]});
-let person = new Card('Super Soldier', '{W}{U}{R}', 'Creature', 'Human Soldier', '', {power: 5, toughness: 4});
+let person = new Card('Super Soldier', '{W}{U}{R}', 'Creature', 'Human Soldier', '', {power: 5, toughness: 4,
+imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=391863&type=card'
+});
 
-let ritual = new Card('Dark Ritual', '{B}', 'Instant', '', 'Add {B}{B}{B} to your mana pool.', [
+let ritual = new Card('Dark Ritual', '{B}', 'Instant', '', 'Add {B}{B}{B} to your mana pool.', {
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=221510&type=card',
+    abilities: [
     //Add 3 black mana to your mana pool
     (card) => {
         card.player.mana['black'] += 3;
         card.player.updateMana();
     }
-]);
-let manaboost = new Card('Mana Boost', '{0}', 'Sorcery', '', 'Add twenty {W}{U}{B}{R}{G}.', [
+]});
+let manaboost = new Card('Mana Boost', '{0}', 'Sorcery', '', 'Add twenty {W}{U}{B}{R}{G}.', {
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=476467&type=card',
+    abilities: [
     (card) => {
         for(let color of ['white', 'blue', 'black', 'red', 'green'])
             card.player.mana[color] += 20;
         card.player.updateMana();
     }
-]);
+]});
 
-let AncestralRecall = new Card('Ancestral Recall', '{U}', 'Instant', '', 'Target player draws three cards.', [
+let AncestralRecall = new Card('Ancestral Recall', '{U}', 'Instant', '', 'Target player draws three cards.', {abilities: [
     //Target player draws three cards
     {
         //Target: a player
@@ -61,8 +67,11 @@ let AncestralRecall = new Card('Ancestral Recall', '{U}', 'Instant', '', 'Target
             targets[0].draw(3);
         },
     },
-]);
-let ProdigalSorcerer = new Card('Prodigal Sorcerer', '{2}{U}', 'Creature', 'Human Wizard', '{T}: Prodigal Sorcerer deals 1 damage to any target.', {power: 1, toughness: 1, abilities: [
+]});
+let ProdigalSorcerer = new Card('Prodigal Sorcerer', '{2}{U}', 'Creature', 'Human Wizard', 
+'{T}: Prodigal Sorcerer deals 1 damage to any target.', {power: 1, toughness: 1, 
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=413609&type=card',
+    abilities: [
     {
         //Tapping ability:
         //T: Deal 1 damage to any target
@@ -90,12 +99,28 @@ let ProdigalSorcerer = new Card('Prodigal Sorcerer', '{2}{U}', 'Creature', 'Huma
         },
     },
 ]});
+let KariZev = new Card('Kari Zev, Skyship Raider', '{1}{R}', 'Creature', 'Human Pirate', 
+'First strike, menace\n' + 'Whenever Kari Zev, Skyship Raider attacks, create Ragavan, a legendary 2/1 red Monkey creature token. '+
+'Ragavan enters the battlefield tapped and attacking. Exile that token at end of combat.', {
+    supertypes: 'Legendary', power: 1, toughness: 3, 
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=423754&type=card', abilities: [],
+});
 
-let Plains = new Card('Plains', '', 'Land', 'Plains', '{W}', {supertypes: 'Basic'});
-let Island = new Card('Island', '', 'Land', 'Island', '{U}', {supertypes: 'Basic'});
-let Swamp = new Card('Swamp', '', 'Land', 'Swamp', '{B}', {supertypes: 'Basic'});
-let Mountain = new Card('Mountain', '', 'Land', 'Mountain', '{R}', {supertypes: 'Basic'});
-let Forest = new Card('Forest', '', 'Land', 'Forest', '{G}', {supertypes: 'Basic'});
+let Plains = new Card('Plains', '', 'Land', 'Plains', '{W}', {supertypes: 'Basic', 
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?type=card&multiverseid=488462', 
+});
+let Island = new Card('Island', '', 'Land', 'Island', '{U}', {supertypes: 'Basic', 
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?type=card&multiverseid=488464', 
+});
+let Swamp = new Card('Swamp', '', 'Land', 'Swamp', '{B}', {supertypes: 'Basic', 
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?type=card&multiverseid=488467', 
+});
+let Mountain = new Card('Mountain', '', 'Land', 'Mountain', '{R}', {supertypes: 'Basic', 
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?type=card&multiverseid=488470', 
+});
+let Forest = new Card('Forest', '', 'Land', 'Forest', '{G}', {supertypes: 'Basic', 
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?type=card&multiverseid=488474', 
+});
 
 let alexDeck = makeDeck([
     [Swamp, 20],
@@ -114,9 +139,16 @@ let bobDeck = makeDeck([
 ])
 
 let test = makeDeck([
-    [ProdigalSorcerer, 100],
+    [ProdigalSorcerer, 50],
     [manaboost, 50],
-    [person, 50],
+    [person, 20],
+    [KariZev, 5],
+    [Plains, 5],
+    [Island, 5],
+    [Swamp, 5],
+    [Mountain, 5],
+    [Forest, 5],
+    [ritual, 20],
 ])
 
 let game = new Game("Alex", test, 'Bob', bobDeck);

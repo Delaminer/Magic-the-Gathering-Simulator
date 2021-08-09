@@ -9,8 +9,14 @@ class Card {
             if (this.cost[color] > 0)
                 this.colors.push(color);
 
+        //Get the image URL (or se the default)
+        this.imageURL = extra.imageURL ? extra.imageURL : 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=425693&type=card';
+
         this.types = type.split(' ');
         this.subtypes = subtype.split(' ');
+        if (subtype === '')
+            this.subtypes = []; //Avoid having a blank spot in the subtypes
+        
         this.supertypes = [];
 
         this.text = text.split('\n');
@@ -36,7 +42,7 @@ class Card {
         }
         else if (this.types.includes('Instant') || this.types.includes('Sorcery')) {
             //Directly add abilities from input
-            this.abilities = extra;
+            this.abilities = extra.abilities;
         }
 
         //Add supertypes
@@ -148,7 +154,9 @@ class Card {
         this.element = document.createElement('div');
         this.element.classList.add('card');
 
-        //Determine the background color of the card based on its colors
+        //Determine the background color of the card based on its colors (or land colors)
+
+
         let classColor = 'colorless';
         if (this.colors.length > 1) {
             //Multicolored
@@ -158,12 +166,24 @@ class Card {
             //Monocolored
             classColor = this.colors[0];
         }
+        if (this.types.includes('Land')) {
+            //Use the color that land produces, like come on
+            
+        }
 
         this.element.classList.add(classColor)
         
+        //Title: the name and cost of the card
         let title = document.createElement('div');
         title.classList.add('title');
-        title.innerHTML = this.name + ' - ' + insertSymbols(this.cost.text);
+        let name = document.createElement('span');
+        name.classList.add('name');
+        name.textContent = this.name;
+        title.appendChild(name);
+        let cost = document.createElement('span');
+        cost.classList.add('cost');
+        cost.innerHTML = insertSymbols(this.cost.text);
+        title.appendChild(cost);
         this.element.appendChild(title);
 
         let image = document.createElement('div');
@@ -173,11 +193,12 @@ class Card {
         let imgSource = document.createElement('img');
 
         // img.src = './Images/sample_image.png';
-        imgSource.src = 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=413609&type=card'
-        // img.src = 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=527289&type=card'
-        // imgSource.src='https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=527376&type=card'
-        imgSource.src = 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=366479&type=card'
-        imgSource.src = 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=22962&type=card'
+        imgSource.src = 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=413609&type=card';
+        // img.src = 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=527289&type=card';
+        // imgSource.src='https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=527376&type=card';
+        // imgSource.src = 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=366479&type=card';
+        // imgSource.src = 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=22962&type=card';
+        imgSource.src = this.imageURL;
         // img.width = 100;
         // imgSource.draggable = false;
         imgSource.style.display = 'none'; //Hide the image as it is used only as a source for the canvas 
@@ -194,7 +215,9 @@ class Card {
 
         let type = document.createElement('div');
         type.classList.add('type');
-        type.textContent = this.types.join(' ') + ' - ' + this.subtypes.join(' ');
+        type.textContent = this.types.join(' ');
+        if (this.subtypes.length > 0) //To avoid showing the blank hyphen
+            type.textContent += ' - ' + this.subtypes.join(' ');
         this.element.appendChild(type);
 
         let text = document.createElement('div');
