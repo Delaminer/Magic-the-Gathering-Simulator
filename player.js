@@ -140,7 +140,7 @@ class Player {
         this.graveyard = [];
 
         this.hand = [];
-        this.draw(17);
+        this.draw(7);
         
         this.lands = [];
         this.permanents = [];
@@ -181,6 +181,7 @@ class Player {
      */
     updatePriority(newPriorityPlayer, stack) {
         console.log('ran update priorirty for ' + this.name)
+        console.trace()
         //Get the values yourself if they are undefined
         if (newPriorityPlayer == undefined) newPriorityPlayer = this.game.getPriorityPlayer();
         if (stack == undefined) stack = this.game.stack;
@@ -261,6 +262,7 @@ class Player {
      * Control flow of the turn, mobing through phases and ultimately passing the turn.
      */
     progressTurn() {
+        console.log(this.name+': is progressTurn when PP='+this.game.getPriorityPlayer()+', pi='+this.playerIndex+', act='+this.action)
         if (this.game.getPriorityPlayer() == this.playerIndex) {
             if (this.action == ActionType.Play) {
                 //Pass priority, whether be resolving a spell or passing the turn
@@ -443,6 +445,7 @@ class Player {
                     //Allow spells to be played as normal
                     this.action = ActionType.Play;
                     //Let the card know it can be played
+                    console.log('plauyed')
                     callback(true);
                 }
             }

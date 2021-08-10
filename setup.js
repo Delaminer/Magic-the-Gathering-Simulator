@@ -57,7 +57,9 @@ let manaboost = new Card('Mana Boost', '{0}', 'Sorcery', '', 'Add twenty {W}{U}{
     }
 ]});
 
-let AncestralRecall = new Card('Ancestral Recall', '{U}', 'Instant', '', 'Target player draws three cards.', {abilities: [
+let AncestralRecall = new Card('Ancestral Recall', '{U}', 'Instant', '', 'Target player draws three cards.', {
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=95&type=card',
+    abilities: [
     //Target player draws three cards
     {
         //Target: a player
@@ -149,6 +151,7 @@ let test = makeDeck([
     [Mountain, 5],
     [Forest, 5],
     [ritual, 20],
+    [AncestralRecall, 20],
 ])
 
 let game = new Game("Alex", test, 'Bob', bobDeck);

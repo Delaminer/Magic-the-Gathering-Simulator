@@ -90,8 +90,11 @@ button {
 .card.white .title,
 .card.white .type,
 .card.white .text,
-.card.white .extra {
+.card.white .stats {
     background-color: rgb(247, 247, 245);
+}
+.card.white .text {
+    background-color: rgb(247, 243, 236);
 }
 
 .card.blue {
@@ -102,8 +105,11 @@ button {
 .card.blue .title,
 .card.blue .type,
 .card.blue .text,
-.card.blue .extra {
+.card.blue .stats {
     background-color: rgb(196, 226, 238);
+}
+.card.blue .text {
+    background-color: rgb(235, 239, 247);
 }
 
 .card.black {
@@ -112,8 +118,11 @@ button {
 .card.black .title,
 .card.black .type,
 .card.black .text,
-.card.black .extra {
+.card.black .stats {
     background-color: rgb(193, 187, 187);
+}
+.card.black .text {
+    background-color: rgb(236, 235, 233);
 }
 
 .card.red {
@@ -122,8 +131,11 @@ button {
 .card.red .title,
 .card.red .type,
 .card.red .text,
-.card.red .extra {
+.card.red .stats {
     background-color: rgb(251, 212, 195);
+}
+.card.red .text {
+    background-color: rgb(249, 235, 226);
 }
 
 .card.green {
@@ -132,8 +144,11 @@ button {
 .card.green .title,
 .card.green .type,
 .card.green .text,
-.card.green .extra {
+.card.green .stats {
     background-color: rgb(202, 216, 211);
+}
+.card.green .text {
+    background-color: rgb(224, 237, 230);
 }
 
 .card.colorless {
@@ -142,8 +157,11 @@ button {
 .card.colorless .title,
 .card.colorless .type,
 .card.colorless .text,
-.card.colorless .extra {
+.card.colorless .stats {
     background-color: rgb(218, 225, 232);
+}
+.card.colorless .text {
+    background-color: rgb(220, 229, 230);
 }
 
 .card.multicolored {
@@ -151,13 +169,16 @@ button {
 }
 .card.multicolored .title,
 .card.multicolored .type,
-.card.multicolored .text,
-.card.multicolored .extra {
+.card.multicolored .stats {
     background-color: rgb(217, 195, 130);
+}
+.card.multicolored .text {
+    background-color: rgb(243, 240, 234);
 }
 
 .card .title .name {
     font-size: 13px;
+    font-weight: bold;
 }
 
 .card .title,
@@ -195,8 +216,8 @@ button {
 .card .text {
     height: 30%;
     background-color: wheat;
-    margin-left: 5px;
-    margin-right: 5px;
+    margin-left: 9px;
+    margin-right: 9px;
     padding-left: 5px;
     padding-right: 5px;
 }
@@ -228,6 +249,17 @@ button {
 }
 
 .card .text,
-.card .extra {
+.card .stats {
     font-family: 'Magic Text';
+}
+
+.card .stats {
+    border: solid thin black;
+    border-radius: 7px;
+    float: right;
+    font-size: 13px;
+    font-weight: bold;
+    text-align: center;
+    width: 40px;
+    margin-right: 7px;
 }

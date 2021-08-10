@@ -1,5 +1,15 @@
 
 class Card {
+    /**
+     * Create a card object. This constructor does not do everything,
+     * the constructor defines the card, but not the individualized card.
+     * @param {string} name Name of the card.
+     * @param {ManaCost} cost Cost of the card.
+     * @param {string} type Types this card has separated by spaces.
+     * @param {string} subtype Types this card has separated by spaces.
+     * @param {string} text Text to display on the card UI.
+     * @param {any} extra Extra attributes, defined in a JSON style.
+     */
     constructor(name, cost, type, subtype, text, extra) {
         this.name = name;
         this.cost = new ManaCost(cost);
@@ -155,20 +165,25 @@ class Card {
         this.element.classList.add('card');
 
         //Determine the background color of the card based on its colors (or land colors)
+        let classColors = Object.create(this.colors); //So it copies the color values, not the reference to the array
+        if (this.types.includes('Land')) {
+            //If it's a land, add the colors it can produce
+            for(let [code, color] of [['{W}', 'white'], ['{U}', 'blue'], ['{B}', 'black'], ['{R}', 'red'], ['{G}', 'green']])
+                if (this.text.includes(code)) classColors.push(color)
 
-
+            if (this.text.includes('mana of any')) {
+                //Multicolored
+                classColors.push('white', 'blue', 'black', 'red', 'green'); //So it is marked as multicolored
+            }
+        }
         let classColor = 'colorless';
-        if (this.colors.length > 1) {
+        if (classColors.length > 1) {
             //Multicolored
             classColor = 'multicolored';
         }
-        else if (this.colors.length == 1) {
+        else if (classColors.length == 1) {
             //Monocolored
-            classColor = this.colors[0];
-        }
-        if (this.types.includes('Land')) {
-            //Use the color that land produces, like come on
-            
+            classColor = classColors[0];
         }
 
         this.element.classList.add(classColor)
@@ -191,32 +206,26 @@ class Card {
 
         //Load a card image to draw the card's painting
         let imgSource = document.createElement('img');
-
-        // img.src = './Images/sample_image.png';
-        imgSource.src = 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=413609&type=card';
-        // img.src = 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=527289&type=card';
-        // imgSource.src='https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=527376&type=card';
-        // imgSource.src = 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=366479&type=card';
-        // imgSource.src = 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=22962&type=card';
         imgSource.src = this.imageURL;
-        // img.width = 100;
-        // imgSource.draggable = false;
         imgSource.style.display = 'none'; //Hide the image as it is used only as a source for the canvas 
         image.appendChild(imgSource)
+
+        //The canvas displays a cropped version of the image
         let canvas = document.createElement('canvas')
         let ctx = canvas.getContext('2d')
         imgSource.onload = () => {
-            //(18,36), (205, 172)
+            //(18,36), (205, 172) are original corners of the image
             let scale = imgSource.width / 223
             ctx.drawImage(imgSource, scale*18, scale*36, scale*(205-18), scale*(172-36), 0, 0, canvas.width, canvas.height)
         }
         image.appendChild(canvas)
         this.element.appendChild(image);
 
+        //The line that shows the type and subtype (and expansion symbol)
         let type = document.createElement('div');
         type.classList.add('type');
         type.textContent = this.types.join(' ');
-        if (this.subtypes.length > 0) //To avoid showing the blank hyphen
+        if (this.subtypes.length > 0) //To avoid showing the blank hyphen, only display subtype if there is one
             type.textContent += ' - ' + this.subtypes.join(' ');
         this.element.appendChild(type);
 
@@ -226,11 +235,11 @@ class Card {
         this.element.appendChild(text);
 
         if (this.types.includes('Creature')) {
-            let extra = document.createElement('span');
-            extra.classList.add('extra');
-            extra.textContent = this.power + ' / ' + this.toughness;
-            this.element.appendChild(extra);
-            this.statElement = extra; //For updating the values
+            let stats = document.createElement('span');
+            stats.classList.add('stats');
+            stats.textContent = this.power + '/' + this.toughness;
+            this.element.appendChild(stats);
+            this.statElement = stats; //For updating the values
         }
         
         this.element.onclick = () => {
@@ -295,26 +304,80 @@ class Card {
 
                         //It can be played if you can play a sorcery, or if its an instant and you can play one
                         if (this.player.canPlaySorcery() || (this.playType() === 'Instant' && this.player.canPlayInstant())) {
-                            //Ask for player to pay for this
-                            this.player.payForCard(this, (success) => {
-                                if (success) {
-                                    //Add it to the stack
-                                    this.location = Zone.Stack;
-                                    //Remove it from the hand
-                                    this.player.hand.splice(this.player.hand.indexOf(this), 1);
-                                    //For when it resolves
-                                    this.play = () => {
-                                        //Do what the card says
-                                        this.abilities.forEach(ability => ability(this));
+                            //Try to play the spell. Just like an ability, this is done in steps, in this order:
+                            //Select targets
+                            //Pay for it
+                            //Play it
 
-                                        //Once played, it goes directly to the graveyard (it's not a permanent)
-                                        this.location = Zone.Graveyard;
-                                        this.player.graveyardElement.appendChild(this.element);
-                                        this.player.graveyard.push(this); //add to graveyard
+                            //Because a spell can have multiple abilities, each with its own targets, (although this has not been done yet),
+                            //Each one has to collect targets, then each one is played.
+                            //Group all the target specs in one, so they can be assigned one by one all at once and dealt with all at once
+
+                            let allTargetSpecifications = [].concat.apply([], this.abilities.map(ability => ability.targets).filter(targets => targets !== undefined));
+                            console.log(allTargetSpecifications)
+                            this.player.getTargets(allTargetSpecifications, allTargets => {
+                                //Reset action
+                                this.player.game.players.forEach(player => player.action = ActionType.Play);
+                                
+                                //Ask for player to pay for this
+                                this.player.payForCard(this, (success) => {
+                                    if (success) {
+                                        console.log('yep played with:')
+                                        console.log(allTargets)
+                                        //Add it to the stack
+                                        this.location = Zone.Stack;
+                                        //Remove it from the hand
+                                        this.player.hand.splice(this.player.hand.indexOf(this), 1);
+                                        //For when it resolves
+                                        this.play = () => {
+                                            console.log('bout to play:')
+                                            console.log(allTargets)
+                                            //Do what the card says
+                                            let targetsIndex = 0;
+                                            this.abilities.forEach(ability => {
+                                                if (typeof ability === 'function') {
+                                                    ability(this);
+                                                }
+                                                else if (typeof ability === 'object') {
+                                                    //Get targets for this ability
+                                                    let targets = allTargets.slice(targetsIndex, ability.targets.length);
+                                                    ability.activate(this, targets);
+                                                    //increase the index counter
+                                                    targetsIndex += ability.targets.length;
+                                                }
+                                            });
+
+                                            //Once played, it goes directly to the graveyard (it's not a permanent)
+                                            this.location = Zone.Graveyard;
+                                            this.player.graveyardElement.appendChild(this.element);
+                                            this.player.graveyard.push(this); //add to graveyard
+                                        }
+                                        this.player.game.addToStack(this);
                                     }
-                                    this.player.game.addToStack(this);
-                                }
+                                });
                             });
+                            
+                            //Simple spellcasting (no targets):
+                            // //Ask for player to pay for this
+                            // this.player.payForCard(this, (success) => {
+                            //     if (success) {
+                            //         //Add it to the stack
+                            //         this.location = Zone.Stack;
+                            //         //Remove it from the hand
+                            //         this.player.hand.splice(this.player.hand.indexOf(this), 1);
+                            //         //For when it resolves
+                            //         this.play = () => {
+                            //             //Do what the card says
+                            //             this.abilities.forEach(ability => ability(this));
+
+                            //             //Once played, it goes directly to the graveyard (it's not a permanent)
+                            //             this.location = Zone.Graveyard;
+                            //             this.player.graveyardElement.appendChild(this.element);
+                            //             this.player.graveyard.push(this); //add to graveyard
+                            //         }
+                            //         this.player.game.addToStack(this);
+                            //     }
+                            // });
                         }
                         break;
                     case 'unkown!':

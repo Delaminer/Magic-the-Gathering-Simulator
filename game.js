@@ -68,6 +68,7 @@ class Game {
 
         if (autoPassPlayer != undefined) {
             //If a player wanted to AutoPass, let them (has to be after every player gets updated)
+            console.log('this player is autopassing: ' +autoPassPlayer.name)
             autoPassPlayer.progressTurn();
         }
     }
