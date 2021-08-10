@@ -1,4 +1,3 @@
-
 .game {
     border: black solid thin;
     /* box-sizing: border-box; */
@@ -82,6 +81,20 @@ button {
     background-color: white;
 
     font-size: 11px;
+    /* For z-index control */
+    /* position: relative; */
+}
+:root {
+    --hand-margin0: 0px;
+    --hand-margin1: 0px;
+}
+.player0 .card.handCard {
+    margin-right: var(--hand-margin0);
+    transform: rotate(0deg); /* Apply transform (no actual change is needed) to ensure zIndex is correctly applied */
+}
+.player1 .card.handCard {
+    margin-right: var(--hand-margin1);
+    transform: rotate(0deg); /* Apply transform (no actual change is needed) to ensure zIndex is correctly applied */
 }
 
 .card.white {
@@ -233,7 +246,11 @@ button {
 }
 
 .card.tapped {
-    background-color: rgb(172, 185, 192);
+    transform: rotate(90deg);
+}
+.card:hover {
+    position: relative;
+    z-index: 999;
 }
 
 .card.attacker {

@@ -146,10 +146,10 @@ class Card {
             if (this.damage >= this.toughness) {
                 // This creature dies
                 this.cleanup(false);
-                this.location = Zone.Graveyard;
-                this.player.graveyardElement.appendChild(this.element);
-                this.player.permanents.splice(this.player.hand.indexOf(this), 1); //remove from permanents
-                this.player.graveyard.push(this); //add to graveyard
+                this.player.graveyardElement.appendChild(this.element); //Move element
+                this.player.permanents.splice(this.player.hand.indexOf(this), 1); //remove from permanents list
+                this.player.graveyard.push(this); //add to graveyard list
+                this.setLocation(Zone.Graveyard); //Change status variable and update UI
             }
             this.statElement.textContent = `${this.power}/${this.toughness - this.damage}`;
         }
@@ -180,6 +180,7 @@ class Card {
         
         this.element = document.createElement('div');
         this.element.classList.add('card');
+        this.element.classList.add(this.location + 'Card');
 
         //Determine the background color of the card based on its colors (or land colors)
         let classColors = Object.create(this.colors); //So it copies the color values, not the reference to the array
@@ -225,17 +226,18 @@ class Card {
         let imgSource = document.createElement('img');
         imgSource.src = this.imageURL;
         imgSource.style.display = 'none'; //Hide the image as it is used only as a source for the canvas 
-        image.appendChild(imgSource)
+        image.appendChild(imgSource);
 
         //The canvas displays a cropped version of the image
-        let canvas = document.createElement('canvas')
-        let ctx = canvas.getContext('2d')
+        let canvas = document.createElement('canvas');
+        let ctx = canvas.getContext('2d');
+        ctx.globalCompositeOperation='destination-over';
         imgSource.onload = () => {
             //(18,36), (205, 172) are original corners of the image
-            let scale = imgSource.width / 223
-            ctx.drawImage(imgSource, scale*18, scale*36, scale*(205-18), scale*(172-36), 0, 0, canvas.width, canvas.height)
+            let scale = imgSource.width / 223;
+            ctx.drawImage(imgSource, scale*18, scale*36, scale*(205-18), scale*(172-36), 0, 0, canvas.width, canvas.height);
         }
-        image.appendChild(canvas)
+        image.appendChild(canvas);
         this.element.appendChild(image);
 
         //The line that shows the type and subtype (and expansion symbol)
@@ -283,10 +285,10 @@ class Card {
                         //Put it onto the battlefield, if you haven't played one yet
                         if (!this.player.playedLand && this.player.canPlaySorcery()) {
                             this.player.playedLand = true;
-                            this.location = Zone.Battlefield;
-                            this.player.landsElement.appendChild(this.element);
-                            this.player.hand.splice(this.player.hand.indexOf(this), 1); //remove from hand
-                            this.player.lands.push(this); //add to lands
+                            this.player.landsElement.appendChild(this.element); //Move element
+                            this.player.hand.splice(this.player.hand.indexOf(this), 1); //remove from hand list
+                            this.player.lands.push(this); //add to lands list
+                            this.setLocation(Zone.Battlefield); //Change status and update UI
                         }
                         else {
                             console.log('cant play its '+this.player.action + ', ')
@@ -299,16 +301,16 @@ class Card {
                             //Ask for player to pay for this
                             this.player.payForCard(this, (success) => {
                                 if (success) {
-                                    //Add it to the stack
-                                    this.location = Zone.Stack;
                                     //Remove it from the hand
                                     this.player.hand.splice(this.player.hand.indexOf(this), 1);
+                                    //Add it to the stack
+                                    this.setLocation(Zone.Stack);
                                     //For when it resolves
                                     this.play = () => {
                                         //Play the creature, putting it onto the battlefield
-                                        this.location = Zone.Battlefield;
                                         this.player.permanentsElement.appendChild(this.element);
                                         this.player.permanents.push(this); //add to permanents
+                                        this.setLocation(Zone.Battlefield);
                                     }
                                     this.player.game.addToStack(this);
                                 }
@@ -338,10 +340,10 @@ class Card {
                                 //Ask for player to pay for this
                                 this.player.payForCard(this, (success) => {
                                     if (success) {
-                                        //Add it to the stack
-                                        this.location = Zone.Stack;
                                         //Remove it from the hand
                                         this.player.hand.splice(this.player.hand.indexOf(this), 1);
+                                        //Add it to the stack
+                                        this.setLocation(Zone.Stack);
                                         //For when it resolves
                                         this.play = () => {
                                             //Do what the card says
@@ -360,36 +362,14 @@ class Card {
                                             });
 
                                             //Once played, it goes directly to the graveyard (it's not a permanent)
-                                            this.location = Zone.Graveyard;
                                             this.player.graveyardElement.appendChild(this.element);
                                             this.player.graveyard.push(this); //add to graveyard
+                                            this.setLocation(Zone.Graveyard);
                                         }
                                         this.player.game.addToStack(this);
                                     }
                                 });
                             });
-                            
-                            //Simple spellcasting (no targets):
-                            // //Ask for player to pay for this
-                            // this.player.payForCard(this, (success) => {
-                            //     if (success) {
-                            //         //Add it to the stack
-                            //         this.location = Zone.Stack;
-                            //         //Remove it from the hand
-                            //         this.player.hand.splice(this.player.hand.indexOf(this), 1);
-                            //         //For when it resolves
-                            //         this.play = () => {
-                            //             //Do what the card says
-                            //             this.abilities.forEach(ability => ability(this));
-
-                            //             //Once played, it goes directly to the graveyard (it's not a permanent)
-                            //             this.location = Zone.Graveyard;
-                            //             this.player.graveyardElement.appendChild(this.element);
-                            //             this.player.graveyard.push(this); //add to graveyard
-                            //         }
-                            //         this.player.game.addToStack(this);
-                            //     }
-                            // });
                         }
                         break;
                     case 'unkown!':
@@ -517,6 +497,26 @@ class Card {
             break;
             default:
                 console.log(this.name + ': unkown card location '+this.location);
+        }
+    }
+
+    /**
+     * Move the card to a new location
+     * @param {Zone} location 
+     */
+    setLocation(location) {
+        let handChange = this.location === Zone.Hand || location === Zone.Hand;
+        console.log(`${this.location} + ${location} = ${handChange}`)
+
+        this.element.classList.remove(this.location + 'Card');
+        this.location = location;
+        this.element.classList.add(this.location + 'Card');
+
+        //Just in case
+        if (handChange) {
+            this.player.updateHandUI();
+        }
+        else {
         }
     }
 

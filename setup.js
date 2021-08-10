@@ -179,17 +179,17 @@ let bobDeck = makeDeck([
 let test = makeDeck([
     [ProdigalSorcerer, 20],
     [manaboost, 50],
-    [person, 20],
+    [person, 50],
     // [KariZev, 5],
     // [Plains, 5],
     // [Island, 5],
-    // [Swamp, 5],
+    // [Swamp, 50],
     // [Mountain, 5],
     // [Forest, 5],
     // [DarkRitual, 20],
     // [AncestralRecall, 20],
     // [LightningBolt, 40],
-    [GiantGrowth, 40],
+    // [GiantGrowth, 40],
 ])
 
 let game = new Game("Alex", test, 'Bob', bobDeck);

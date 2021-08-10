@@ -124,14 +124,15 @@ class Player {
 
         this.element = document.createElement('div');
         this.element.classList.add('player');
+        this.element.classList.add('player' + playerIndex); //For player specific CSS
         this.element.appendChild(mainElement);
         this.element.appendChild(this.handElement);
 
         this.library = [];
         for(let i = 0; i < this.deck.length; i++) { //Process all cards in the deck
-            this.deck[i].location = Zone.Library;
             this.libraryElement.appendChild(this.deck[i].element);
             this.library.push(this.deck[i]);
+            this.deck[i].setLocation(Zone.Library);
 
             this.deck[i].player = this; //Assign it's owner to this player
         }
@@ -144,6 +145,11 @@ class Player {
         
         this.lands = [];
         this.permanents = [];
+
+        //Use addEventListener and not just onload so multiple listeners can be added
+        window.addEventListener('load', event => {
+            this.updateHandUI();
+        });
         
     }
 
@@ -167,9 +173,31 @@ class Player {
     draw(numCards) {
         for(let i = 0; i < numCards; i++) {
             let cardToDraw = this.library.pop(); //remove from end (end = top of library)
-            cardToDraw.location = Zone.Hand;
             this.handElement.appendChild(cardToDraw.element);
             this.hand.push(cardToDraw);
+            cardToDraw.setLocation(Zone.Hand);
+        }
+        this.updateHandUI();
+    }
+
+    /**
+     * Update the hand UI by changing margins, making sure all of the cards fit perfectly on the hand bar.
+     */
+    updateHandUI() {
+        //Update drawing of cards to handle overlaying
+        for(let i = 0; i < this.hand.length; i++) {
+            this.hand[i].element.style.zIndex = i + 1;
+        }
+        //The first element is special, 
+        // this.hand[i].element.style.zIndex = i;
+        if (this.hand.length > 1) {
+            let totalWidth = this.handElement.offsetWidth;
+            let cardWidth = this.hand[0].element.offsetWidth;
+            let takenSpace = cardWidth * this.hand.length;
+            let neededSpace = takenSpace - totalWidth;
+            let margin = neededSpace > 0 ? -neededSpace / (this.hand.length - 1) : 0;
+            let prop = '--hand-margin' + this.playerIndex
+            document.documentElement.style.setProperty(prop, margin + 'px');
         }
     }
 
