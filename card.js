@@ -124,6 +124,19 @@ class Card {
     }
 
     /**
+     * Deal a specified damage to this card (creature or planeswalker). For prevention/protection effects, the source must be specified (TODO).
+     * @param {number} damage Damage dealt
+     * @param {*} source Source. This is an object with type of damage 'type' and the card 'card'.
+     * @param {boolean} update True if you want state based actions to update based on this damage.
+     */
+     dealDamage(damage, source, update) {
+        this.damage += damage;
+        if (update) {
+            this.update();
+        }
+    }
+
+    /**
      * Update this cards UI and checks if damage kills it.
      */
     update() {
@@ -136,7 +149,7 @@ class Card {
                 this.player.permanents.splice(this.player.hand.indexOf(this), 1); //remove from permanents
                 this.player.graveyard.push(this); //add to graveyard
             }
-            this.statElement.textContent = `${this.power} / ${this.toughness - this.damage}`;
+            this.statElement.textContent = `${this.power}/${this.toughness - this.damage}`;
         }
     }
 
@@ -314,7 +327,6 @@ class Card {
                             //Group all the target specs in one, so they can be assigned one by one all at once and dealt with all at once
 
                             let allTargetSpecifications = [].concat.apply([], this.abilities.map(ability => ability.targets).filter(targets => targets !== undefined));
-                            console.log(allTargetSpecifications)
                             this.player.getTargets(allTargetSpecifications, allTargets => {
                                 //Reset action
                                 this.player.game.players.forEach(player => player.action = ActionType.Play);
@@ -322,16 +334,12 @@ class Card {
                                 //Ask for player to pay for this
                                 this.player.payForCard(this, (success) => {
                                     if (success) {
-                                        console.log('yep played with:')
-                                        console.log(allTargets)
                                         //Add it to the stack
                                         this.location = Zone.Stack;
                                         //Remove it from the hand
                                         this.player.hand.splice(this.player.hand.indexOf(this), 1);
                                         //For when it resolves
                                         this.play = () => {
-                                            console.log('bout to play:')
-                                            console.log(allTargets)
                                             //Do what the card says
                                             let targetsIndex = 0;
                                             this.abilities.forEach(ability => {

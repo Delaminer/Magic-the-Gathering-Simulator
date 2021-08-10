@@ -209,23 +209,27 @@ class Game {
                         // Decrease how much damage is left to deal to other blockers (or trample to the player)
                         damageLeft -= damageToDeal;
                         // Deal the damage to the blocker
-                        blockers[index].damage += damageToDeal;
+                        // blockers[index].damage += damageToDeal;
+                        blockers[index].dealDamage(damageToDeal, {type: 'combat', card: attacker}, false);
 
                         // Take damage from the blocker
-                        attacker.damage += blockers[index].power;
+                        // attacker.damage += blockers[index].power;
+                        attacker.dealDamage(blockers[index].power, {type: 'combat', card: blockers[index]}, false);
 
                         index++;
                     }
                     // If there is damage left and this attacker has trample, deal the extra damage to the player
                     if (damageLeft > 0 && attacker.hasAbility('Trample')) {
                         //Deal damage to player
-                        blockingPlayer.life -= damageLeft;
+                        // blockingPlayer.life -= damageLeft;
+                        blockingPlayer.dealDamage(damageLeft, {type: 'combat', card: attacker}, false);
                         damageLeft = 0;
                     }
                 }
                 else {
                     //Deal damage to target player
-                    blockingPlayer.life -= attacker.power;
+                    // blockingPlayer.life -= attacker.power;
+                    blockingPlayer.dealDamage(attacker.power, {type: 'combat', card: attacker}, false);
                 }
 
             });

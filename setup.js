@@ -38,7 +38,7 @@ let person = new Card('Super Soldier', '{W}{U}{R}', 'Creature', 'Human Soldier',
 imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=391863&type=card'
 });
 
-let ritual = new Card('Dark Ritual', '{B}', 'Instant', '', 'Add {B}{B}{B} to your mana pool.', {
+let DarkRitual = new Card('Dark Ritual', '{B}', 'Instant', '', 'Add {B}{B}{B} to your mana pool.', {
     imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=221510&type=card',
     abilities: [
     //Add 3 black mana to your mana pool
@@ -67,6 +67,19 @@ let AncestralRecall = new Card('Ancestral Recall', '{U}', 'Instant', '', 'Target
         //When activated, target player draws three cards
         activate: (card, targets) => {
             targets[0].draw(3);
+        },
+    },
+]});
+let LightningBolt = new Card('LightningBolt', '{R}', 'Instant', '', 'Lightning Bolt deals 3 damage to any target.', {
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=442130&type=card',
+    abilities: [
+    //Deal three damage to any target
+    {
+        //Target: a player
+        targets: ['Any'],
+        //When activated, target player draws three cards
+        activate: (card, targets) => {
+            targets[0].dealDamage(3, {type: 'spell', card: card}, true);
         },
     },
 ]});
@@ -132,7 +145,7 @@ let alexDeck = makeDeck([
     [cat, 20],
     [rat, 20],
     // [bat, 20],
-    [ritual, 20],
+    [DarkRitual, 20],
 ])
 let bobDeck = makeDeck([
     [Plains, 40],
@@ -141,7 +154,7 @@ let bobDeck = makeDeck([
 ])
 
 let test = makeDeck([
-    [ProdigalSorcerer, 50],
+    [ProdigalSorcerer, 20],
     [manaboost, 50],
     [person, 20],
     [KariZev, 5],
@@ -150,8 +163,9 @@ let test = makeDeck([
     [Swamp, 5],
     [Mountain, 5],
     [Forest, 5],
-    [ritual, 20],
+    [DarkRitual, 20],
     [AncestralRecall, 20],
+    [LightningBolt, 40],
 ])
 
 let game = new Game("Alex", test, 'Bob', bobDeck);

@@ -180,8 +180,6 @@ class Player {
      * @param {Array} stack The current stack of the game.
      */
     updatePriority(newPriorityPlayer, stack) {
-        console.log('ran update priorirty for ' + this.name)
-        console.trace()
         //Get the values yourself if they are undefined
         if (newPriorityPlayer == undefined) newPriorityPlayer = this.game.getPriorityPlayer();
         if (stack == undefined) stack = this.game.stack;
@@ -262,7 +260,6 @@ class Player {
      * Control flow of the turn, mobing through phases and ultimately passing the turn.
      */
     progressTurn() {
-        console.log(this.name+': is progressTurn when PP='+this.game.getPriorityPlayer()+', pi='+this.playerIndex+', act='+this.action)
         if (this.game.getPriorityPlayer() == this.playerIndex) {
             if (this.action == ActionType.Play) {
                 //Pass priority, whether be resolving a spell or passing the turn
@@ -861,6 +858,25 @@ class Player {
             }
         });
         return blockers;
+    }
+
+    /**
+     * Deal a specified damage to this player. For prevention/protection effects, the source must be specified (TODO).
+     * @param {number} damage Damage dealt
+     * @param {*} source Source. This is an object with type of damage 'type' and the card 'card'.
+     * @param {boolean} update True if you want state based actions to update based on this damage.
+     */
+    dealDamage(damage, source, update) {
+        this.life -= damage;
+        if (update) {
+            //Update UI
+            this.lifeCounter.textContent = this.life;
+
+            if (this.life < 0) {
+                //Lose the game.
+                console.log(this.name + ' has lost the game.');
+            }
+        }
     }
     
     /**
