@@ -31,6 +31,8 @@ class Card {
 
         this.text = text.split('\n');
         this.abilities = [];
+        //These are called at the end of turn, for cleanup
+        this.endOfTurnEffects = [];
 
         //Add abilities depending on card type (definitely needs to be fixed)
         if (this.types.includes('Creature')) {
@@ -163,6 +165,8 @@ class Card {
             this.damage = 0;
         }
         //TODO: Clear Until EOT effects
+        this.endOfTurnEffects.forEach(effect => effect(this));
+        this.endOfTurnEffects = [];
 
         // Update UI (if requested)
         if (update)

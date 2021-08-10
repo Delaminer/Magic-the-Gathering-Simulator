@@ -70,7 +70,7 @@ let AncestralRecall = new Card('Ancestral Recall', '{U}', 'Instant', '', 'Target
         },
     },
 ]});
-let LightningBolt = new Card('LightningBolt', '{R}', 'Instant', '', 'Lightning Bolt deals 3 damage to any target.', {
+let LightningBolt = new Card('Lightning Bolt', '{R}', 'Instant', '', 'Lightning Bolt deals 3 damage to any target.', {
     imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=442130&type=card',
     abilities: [
     //Deal three damage to any target
@@ -80,6 +80,29 @@ let LightningBolt = new Card('LightningBolt', '{R}', 'Instant', '', 'Lightning B
         //When activated, target player draws three cards
         activate: (card, targets) => {
             targets[0].dealDamage(3, {type: 'spell', card: card}, true);
+        },
+    },
+]});
+let GiantGrowth = new Card('Giant Growth', '{G}', 'Instant', '', 'Target creature gets +3/+3 until end of turn.', {
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=442161&type=card',
+    abilities: [
+    //Deal three damage to any target
+    {
+        //Target: a player
+        targets: ['Creature'],
+        //When activated, target player draws three cards
+        activate: (card, targets) => {
+            //+3/+3 Effect
+            targets[0].power += 3;
+            targets[0].toughness += 3;
+            targets[0].update();
+
+            //Remove effect at the end of the turn
+            targets[0].endOfTurnEffects.push(() => {
+                targets[0].power -= 3;
+                targets[0].toughness -= 3;
+                targets[0].update();
+            })
         },
     },
 ]});
@@ -157,15 +180,16 @@ let test = makeDeck([
     [ProdigalSorcerer, 20],
     [manaboost, 50],
     [person, 20],
-    [KariZev, 5],
-    [Plains, 5],
-    [Island, 5],
-    [Swamp, 5],
-    [Mountain, 5],
-    [Forest, 5],
-    [DarkRitual, 20],
-    [AncestralRecall, 20],
-    [LightningBolt, 40],
+    // [KariZev, 5],
+    // [Plains, 5],
+    // [Island, 5],
+    // [Swamp, 5],
+    // [Mountain, 5],
+    // [Forest, 5],
+    // [DarkRitual, 20],
+    // [AncestralRecall, 20],
+    // [LightningBolt, 40],
+    [GiantGrowth, 40],
 ])
 
 let game = new Game("Alex", test, 'Bob', bobDeck);
