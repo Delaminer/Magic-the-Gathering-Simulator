@@ -34,17 +34,21 @@ class Card {
         //These are called at the end of turn, for cleanup
         this.endOfTurnEffects = [];
 
-        //Add abilities depending on card type (definitely needs to be fixed)
+        //Add creature properties
         if (this.types.includes('Creature')) {
             //Add creature data
             this.power = extra.power;
             this.toughness = extra.toughness;
             this.damage = 0;
             this.damagePrevention = 0;
+        }
+
+        //Get abilities differently for permanents and non-permanents
+        if (this.isPermanent()) {
             //Add basic abilities
             this.text.forEach(line => {
                 if (line.length > 0) //In case it is blank from the split
-                    this.abilities.push(line)
+                    this.abilities.push(line);
             });
             if (extra.abilities != undefined) {
                 //Add more abilities
@@ -53,7 +57,7 @@ class Card {
                 });
             }
         }
-        else if (this.types.includes('Instant') || this.types.includes('Sorcery')) {
+        else {
             //Directly add abilities from input
             this.abilities = extra.abilities;
             this.choice = extra.choice;
@@ -125,6 +129,13 @@ class Card {
             return 'Planeswalker';
         }
         return 'unkown!';
+    }
+    /**
+     * Gets whether or not this card is a permanent.
+     */
+    isPermanent() {
+        //Save comparisons by checking if it is NOT a permanent.
+        return !this.types.includes('Instant') && !this.types.includes('Sorcery');
     }
 
     /**
@@ -306,7 +317,8 @@ class Card {
                         }
                         break;
                     case 'Creature':
-                        //Play the creature spell
+                    case 'Artifact':
+                        //Play the permanent spell
                         //You must be able to play it at this time though, so check for that
                         if ((this.abilities.includes('Flash') && this.player.canPlayInstant()) || this.player.canPlaySorcery()) {
                             //Ask for player to pay for this

@@ -137,6 +137,71 @@ let GiantGrowth = new Card('Giant Growth', '{G}', 'Instant', '', 'Target creatur
         },
     },
 ]});
+let MoxPearl = new Card('Mox Pearl', '{0}', 'Artifact', '', '{T}: Add {W}.', {
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=383021&type=card',
+    abilities: [
+    {
+        //Mana ability: Add one mana to your mana pool
+        type: 'mana',
+        cost: { tap: true },
+        activate: (card) => {
+            card.player.mana['white']++;
+            card.player.updateMana();
+        },
+    },
+]});
+let MoxSapphire = new Card('Mox Sapphire', '{0}', 'Artifact', '', '{T}: Add {U}.', {
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=383023&type=card',
+    abilities: [
+    {
+        //Mana ability: Add one mana to your mana pool
+        type: 'mana',
+        cost: { tap: true },
+        activate: (card) => {
+            card.player.mana['blue']++;
+            card.player.updateMana();
+        },
+    },
+]});
+let MoxJet = new Card('Mox Jet', '{0}', 'Artifact', '', '{T}: Add {B}.', {
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=383020&type=card',
+    abilities: [
+    {
+        //Mana ability: Add one mana to your mana pool
+        type: 'mana',
+        cost: { tap: true },
+        activate: (card) => {
+            card.player.mana['black']++;
+            card.player.updateMana();
+        },
+    },
+]});
+let MoxRuby = new Card('Mox Ruby', '{0}', 'Artifact', '', '{T}: Add {R}.', {
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=383022&type=card',
+    abilities: [
+    {
+        //Mana ability: Add one mana to your mana pool
+        type: 'mana',
+        cost: { tap: true },
+        activate: (card) => {
+            card.player.mana['red']++;
+            card.player.updateMana();
+        },
+    },
+]});
+let MoxEmerald = new Card('Mox Emerald', '{0}', 'Artifact', '', '{T}: Add {G}.', {
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=383019&type=card',
+    abilities: [
+    {
+        //Mana ability: Add one mana to your mana pool
+        type: 'mana',
+        cost: { tap: true },
+        activate: (card) => {
+            card.player.mana['green']++;
+            card.player.updateMana();
+        },
+    },
+]});
 let ProdigalSorcerer = new Card('Prodigal Sorcerer', '{2}{U}', 'Creature', 'Human Wizard', 
 '{T}: Prodigal Sorcerer deals 1 damage to any target.', {power: 1, toughness: 1, 
     imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=413609&type=card',
@@ -208,20 +273,25 @@ let bobDeck = makeDeck([
 ])
 
 let test = makeDeck([
-    // [ProdigalSorcerer, 20],
-    // [manaboost, 50],
-    // [person, 50],
-    // [KariZev, 5],
-    // [Plains, 5],
-    // [Island, 5],
-    // [Swamp, 50],
-    // [Mountain, 5],
-    // [Forest, 5],
-    // [DarkRitual, 20],
-    // [AncestralRecall, 20],
-    // [LightningBolt, 40],
-    // [GiantGrowth, 40],
-    [HealingSalve, 50],
+    [ProdigalSorcerer, 5],
+    [manaboost, 5],
+    [person, 5],
+    [KariZev, 5],
+    [Plains, 5],
+    [Island, 5],
+    [Swamp, 5],
+    [Mountain, 5],
+    [Forest, 5],
+    [DarkRitual, 5],
+    [AncestralRecall, 5],
+    [LightningBolt, 5],
+    [GiantGrowth, 5],
+    [HealingSalve, 5],
+    [MoxPearl, 10],
+    [MoxSapphire, 10],
+    [MoxJet, 10],
+    [MoxRuby, 10],
+    [MoxEmerald, 10],
 ])
 
 let t2 = makeDeck([[HealingSalve, 50]])
