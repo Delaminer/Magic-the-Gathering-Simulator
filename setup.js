@@ -5,6 +5,7 @@ let makeDeck = (deck) => {
         for(let j = 0; j < playSet[1]; j++) {
             let card = Object.create(playSet[0]);
             card.element = card.getUI();
+            card.element.getCard = () => card;
             out.push(card);
         }
     });
@@ -202,6 +203,24 @@ let MoxEmerald = new Card('Mox Emerald', '{0}', 'Artifact', '', '{T}: Add {G}.',
         },
     },
 ]});
+let HonorOfThePure = new Card('Honor of the Pure', '{1}{W}', 'Enchantment', '', 'White creatures you control get +1/+1.', {
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=191058&type=card',
+    abilities: [
+    {
+        //Boost white creatures that you control
+
+        //This is static
+        type: 'static',
+        //Must be a creature, must be white, and you must be controlling it
+        valid: (card, sourceCard) => 
+            card.types.includes('Creature') && card.colors.includes('white') && sourceCard.player === card.player && card.location == Zone.Battlefield,
+        //Effect: boost power by 1, boost toughness by 1
+        effect: {
+            powerChange: 1,
+            toughnessChange: 1,
+        },
+    }
+]});
 let ProdigalSorcerer = new Card('Prodigal Sorcerer', '{2}{U}', 'Creature', 'Human Wizard', 
 '{T}: Prodigal Sorcerer deals 1 damage to any target.', {power: 1, toughness: 1, 
     imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=413609&type=card',
@@ -275,26 +294,33 @@ let bobDeck = makeDeck([
 let test = makeDeck([
     [ProdigalSorcerer, 5],
     [manaboost, 5],
-    [person, 5],
-    [KariZev, 5],
-    [Plains, 5],
-    [Island, 5],
-    [Swamp, 5],
-    [Mountain, 5],
-    [Forest, 5],
-    [DarkRitual, 5],
-    [AncestralRecall, 5],
-    [LightningBolt, 5],
-    [GiantGrowth, 5],
-    [HealingSalve, 5],
-    [MoxPearl, 10],
-    [MoxSapphire, 10],
-    [MoxJet, 10],
-    [MoxRuby, 10],
-    [MoxEmerald, 10],
+    [soldier, 5],
+    [HonorOfThePure, 5],
+    // [person, 5],
+    // [KariZev, 5],
+    // [Plains, 5],
+    // [Island, 5],
+    // [Swamp, 5],
+    // [Mountain, 5],
+    // [Forest, 5],
+    // [DarkRitual, 5],
+    // [AncestralRecall, 5],
+    // [LightningBolt, 5],
+    // [GiantGrowth, 5],
+    // [HealingSalve, 5],
+    // [MoxPearl, 10],
+    // [MoxSapphire, 10],
+    // [MoxJet, 10],
+    // [MoxRuby, 10],
+    // [MoxEmerald, 10],
 ])
 
-let t2 = makeDeck([[HealingSalve, 50]])
+let t2 = makeDeck([
+    [ProdigalSorcerer, 5],
+    [manaboost, 5],
+    [soldier, 5],
+    [HonorOfThePure, 5],
+])
 
 let game = new Game("Alex", test, 'Bob', t2);
 

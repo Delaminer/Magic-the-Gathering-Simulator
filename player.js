@@ -141,13 +141,13 @@ class Player {
         }
         this.shuffle();
         
-        this.graveyard = [];
-
-        this.hand = [];
-        this.draw(7);
-        
         this.lands = [];
         this.permanents = [];
+        this.graveyard = [];
+        this.hand = [];
+
+        this.draw(7);
+        
 
         //Use addEventListener and not just onload so multiple listeners can be added
         window.addEventListener('load', event => {
@@ -392,6 +392,9 @@ class Player {
                 this.mana[color] = 0;
             }
             this.updateMana();
+
+            //Clear temp stuff here as well, because it is also cleared at the end of the phase
+            this.temp = undefined;
         }
 
         // Update selection type
@@ -521,7 +524,6 @@ class Player {
                     //Allow spells to be played as normal
                     this.action = ActionType.Play;
                     //Let the card know it can be played
-                    console.log('plauyed')
                     callback(true);
                 }
             }

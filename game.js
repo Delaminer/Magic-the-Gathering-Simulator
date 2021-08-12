@@ -197,13 +197,13 @@ class Game {
                 let blockers = blockingPlayer.getBlockers(attacker);
                 if (blockers.length > 0) {
                     //Deal damage to blockers
-                    let damageLeft = attacker.power;
+                    let damageLeft = attacker.getPower();
                     let index = 0;
 
                     //Deal some damage to each blocker until each one receives damage, or there is no power left
                     while (damageLeft > 0 && index < blockers.length) {
                         // Determine how much damage is needed to kill this blocker
-                        let blockerHealthLeft = blockers[index].toughness - blockers[index].damage;
+                        let blockerHealthLeft = blockers[index].getToughness() - blockers[index].damage;
                         // Get how much damage the attacker will deal to this blocker
                         let damageToDeal = Math.min(damageLeft, blockerHealthLeft);
                         // Decrease how much damage is left to deal to other blockers (or trample to the player)
@@ -214,7 +214,7 @@ class Game {
 
                         // Take damage from the blocker
                         // attacker.damage += blockers[index].power;
-                        attacker.dealDamage(blockers[index].power, {type: 'combat', card: blockers[index]}, false);
+                        attacker.dealDamage(blockers[index].getPower(), {type: 'combat', card: blockers[index]}, false);
 
                         index++;
                     }
@@ -229,7 +229,7 @@ class Game {
                 else {
                     //Deal damage to target player
                     // blockingPlayer.life -= attacker.power;
-                    blockingPlayer.dealDamage(attacker.power, {type: 'combat', card: attacker}, false);
+                    blockingPlayer.dealDamage(attacker.getPower(), {type: 'combat', card: attacker}, false);
                 }
 
             });
@@ -385,6 +385,67 @@ class Game {
      */
     getBlockingPlayer() {
         return this.players[1 - this.currentPlayer];
+    }
+
+    /**
+     * Get the power of a creature right now.
+     * @param {Card} card The creature in subject. 
+     * @returns {number} The power of the creature.
+     */
+    getPower(card) {
+        //Players must be defined first
+        if (this.players == undefined)
+            return card.basePower;
+
+        console.log('checking')
+        let powerChange = 0;
+        //Get all of the static abilities in play, and check if this creature's power is changed by any of them.
+        this.players.forEach(player => {
+            player.permanents.forEach(permanent => {
+                permanent.abilities.filter(ability => ability.type == 'static').forEach(ability => {
+                    console.log('trying ability')
+                    //This is a static ability. Check if it is valid, and if it changes the power
+                    if (ability.valid(card, permanent)) {
+                        console.log('valid')
+                        //It is valid! Now change power if available
+                        if (ability.effect.powerChange != undefined) {
+                            powerChange += ability.effect.powerChange;
+                        }
+                    }
+                });
+            });
+        });
+        return card.basePower + powerChange;
+    }
+    /**
+     * Get the toughness of a creature right now.
+     * @param {Card} card The creature in subject. 
+     * @returns {number} The toughness of the creature.
+     */
+    getToughness(card) {
+        //Players must be defined first
+        if (this.players == undefined)
+            return card.baseToughness;
+
+        console.log('checking')
+        let toughnessChange = 0;
+        //Get all of the static abilities in play, and check if this creature's toughness is changed by any of them.
+        this.players.forEach(player => {
+            player.permanents.forEach(permanent => {
+                permanent.abilities.filter(ability => ability.type == 'static').forEach(ability => {
+                    console.log('trying ability')
+                    //This is a static ability. Check if it is valid, and if it changes the toughness
+                    if (ability.valid(card, permanent)) {
+                        console.log('valid')
+                        //It is valid! Now change toughness if available
+                        if (ability.effect.toughnessChange != undefined) {
+                            toughnessChange += ability.effect.toughnessChange;
+                        }
+                    }
+                });
+            });
+        });
+        return card.baseToughness + toughnessChange;
     }
 
 }

@@ -37,8 +37,8 @@ class Card {
         //Add creature properties
         if (this.types.includes('Creature')) {
             //Add creature data
-            this.power = extra.power;
-            this.toughness = extra.toughness;
+            this.basePower = extra.power;
+            this.baseToughness = extra.toughness;
             this.damage = 0;
             this.damagePrevention = 0;
         }
@@ -158,13 +158,37 @@ class Card {
             this.update();
         }
     }
+    
+    /**
+     * Gets the creature's power right now, with all damage and effects.
+     * @returns {number} The creature's power.
+     */
+    getPower() {
+        if (this.player != undefined && this.player.game != undefined) //They must be defined for this
+            return this.player.game.getPower(this);
+        
+        //Otherwise use the base power
+        return this.basePower;
+    }
+
+    /**
+     * Gets the creature's toughness right now, with all damage and effects.
+     * @returns {number} The creature's toughness.
+     */
+    getToughness() {
+        if (this.player != undefined && this.player.game != undefined) //They must be defined for this
+            return this.player.game.getToughness(this);
+        
+        //Otherwise use the base toughness
+        return this.baseToughness;
+    }
 
     /**
      * Update this cards UI and checks if damage kills it.
      */
     update() {
         if (this.types.includes('Creature')) {
-            if (this.damage >= this.toughness) {
+            if (this.damage >= this.getToughness()) {
                 // This creature dies
                 this.cleanup(false);
                 this.player.graveyardElement.appendChild(this.element); //Move element
@@ -172,7 +196,7 @@ class Card {
                 this.player.graveyard.push(this); //add to graveyard list
                 this.setLocation(Zone.Graveyard); //Change status variable and update UI
             }
-            this.statElement.textContent = `${this.power}/${this.toughness - this.damage}`;
+            this.statElement.textContent = `${this.getPower()}/${this.getToughness() - this.damage}`;
         }
     }
 
@@ -277,7 +301,7 @@ class Card {
         if (this.types.includes('Creature')) {
             let stats = document.createElement('span');
             stats.classList.add('stats');
-            stats.textContent = this.power + '/' + this.toughness;
+            stats.textContent = this.getPower() + '/' + this.getToughness();
             uiElement.appendChild(stats);
             this.statElement = stats; //For updating the values
         }
@@ -318,6 +342,7 @@ class Card {
                         break;
                     case 'Creature':
                     case 'Artifact':
+                    case 'Enchantment':
                         //Play the permanent spell
                         //You must be able to play it at this time though, so check for that
                         if ((this.abilities.includes('Flash') && this.player.canPlayInstant()) || this.player.canPlaySorcery()) {
@@ -334,6 +359,9 @@ class Card {
                                         this.player.permanentsElement.appendChild(this.element);
                                         this.player.permanents.push(this); //add to permanents
                                         this.setLocation(Zone.Battlefield);
+
+                                        //Update everything else
+                                        this.player.game.players.forEach(player => player.updatePermanents());
                                     }
                                     this.player.game.addToStack(this);
                                 }
@@ -558,6 +586,9 @@ class Card {
         this.element.classList.remove(this.location + 'Card');
         this.location = location;
         this.element.classList.add(this.location + 'Card');
+
+        //Update this UI, just in case
+        this.update()
 
         //Update hand if cards in hand changed
         if (handChange) {
