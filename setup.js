@@ -209,8 +209,8 @@ let bobDeck = makeDeck([
 
 let test = makeDeck([
     // [ProdigalSorcerer, 20],
-    [manaboost, 50],
-    [person, 50],
+    // [manaboost, 50],
+    // [person, 50],
     // [KariZev, 5],
     // [Plains, 5],
     // [Island, 5],
@@ -219,7 +219,7 @@ let test = makeDeck([
     // [Forest, 5],
     // [DarkRitual, 20],
     // [AncestralRecall, 20],
-    [LightningBolt, 40],
+    // [LightningBolt, 40],
     // [GiantGrowth, 40],
     [HealingSalve, 50],
 ])

@@ -167,21 +167,32 @@ class Player {
         this.choiceElement = choiceElement;
         this.choiceDialogue = dialogue;
         //Set up dialogue
+        this.choiceDialogue.cardDisplay = document.createElement('div'); //Blank element, it only holds the card
+        this.choiceDialogue.cardDisplay.classList.add('card-display');
+        this.choiceDialogue.appendChild(this.choiceDialogue.cardDisplay);
+
         this.choiceDialogue.top = document.createElement('div');
         this.choiceDialogue.top.classList.add('title');
         this.choiceDialogue.top.textContent = 'Welcome';
         this.choiceDialogue.appendChild(this.choiceDialogue.top);
+
         this.choiceDialogue.options = document.createElement('div');
         this.choiceDialogue.options.classList.add('options');
         this.choiceDialogue.appendChild(this.choiceDialogue.options);
+
+        this.choiceDialogue.controls = document.createElement('div'); //For UI management
+        this.choiceDialogue.controls.classList.add('controls');
+        this.choiceDialogue.appendChild(this.choiceDialogue.controls);
+
         this.choiceDialogue.submit = document.createElement('button');
         this.choiceDialogue.submit.classList.add('submit');
         this.choiceDialogue.submit.textContent = 'Submit';
-        this.choiceDialogue.appendChild(this.choiceDialogue.submit);
+        this.choiceDialogue.controls.appendChild(this.choiceDialogue.submit);
+
         this.choiceDialogue.cancel = document.createElement('button');
         this.choiceDialogue.cancel.classList.add('cancel');
         this.choiceDialogue.cancel.textContent = 'Cancel';
-        this.choiceDialogue.appendChild(this.choiceDialogue.cancel);
+        this.choiceDialogue.controls.appendChild(this.choiceDialogue.cancel);
 
         // this.choiceDisplayCard = document.createElement('div'); //Blank element so it can be removed later
         // this.choiceDialogue.appendChild(this.choiceDisplayCard);
@@ -907,30 +918,38 @@ class Player {
         let selections = choicesData.options.map(option => false);
         let validate = () => selections.filter(item => item).length == choicesData.choiceCount;
 
-        //Change title
-        this.choiceDialogue.top.textContent = card.name + ': ' + choicesData.command;
+        //Display card
+        this.choiceDialogue.cardDisplay.innerHTML = ''; //Clear previous card
+        let cardUI = card.getUI();
+        cardUI.onclick = () => {}; //This card does nothing, so disable its click
+        this.choiceDialogue.cardDisplay.appendChild(cardUI);
+
+        //Set title to the given command, so the player knows what to do
+        this.choiceDialogue.top.textContent = choicesData.command;
         //Remove old options
         this.choiceDialogue.options.innerHTML = '';
         //Add new ones
         choicesData.options.forEach((option, i) => {
-            let optionElement = document.createElement('button');
+            let optionElement = document.createElement('div');
+            let optionButton = document.createElement('button');
             optionElement.classList.add('option');
-            optionElement.textContent = option;
+            optionButton.textContent = option;
             //Add functionality
-            optionElement.onclick = () => {
+            optionButton.onclick = () => {
                 console.log('selected choice '+option+'/'+i);
                 selections[i] = !selections[i];
                 //Change CSS
                 let selected = selections[i] ? 'add' : 'remove'
                 optionElement.classList[selected]('selected');
                 //Change CSS for submit button
-                this.choiceDialogue.submit.classList[validate() ? 'add' : 'remove']('valid');
+                this.choiceDialogue.submit.disabled = !validate();
             };
+            optionElement.appendChild(optionButton);
             //Connect it to dialogue
             this.choiceDialogue.options.appendChild(optionElement);
         });
         //quick ui update
-        this.choiceDialogue.submit.classList[validate() ? 'add' : 'remove']('valid');
+        this.choiceDialogue.submit.disabled = !validate();
         //Update control buttons
         this.choiceDialogue.submit.onclick = () => {
             if (validate()) {
