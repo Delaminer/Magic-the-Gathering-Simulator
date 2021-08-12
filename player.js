@@ -33,6 +33,9 @@ class Player {
         };
         this.playedLand = false;
         this.deck = deck;
+        //For cleanup
+        this.endOfTurnEffects = [];
+        this.damagePrevention = 0;
 
         this.handElement = document.createElement('div');
         this.handElement.classList.add('hand');
@@ -150,6 +153,39 @@ class Player {
         window.addEventListener('load', event => {
             this.updateHandUI();
         });
+        
+        //Element for getting choices
+        let choiceElement = document.createElement('div');
+        choiceElement.classList.add('choices');
+        choiceElement.style.display = 'none';
+        let dialogue = document.createElement('div');
+        dialogue.classList.add('dialogue');
+        // dialogue.textContent = 'Sample text';
+        choiceElement.appendChild(dialogue);
+        
+        document.body.appendChild(choiceElement);
+        this.choiceElement = choiceElement;
+        this.choiceDialogue = dialogue;
+        //Set up dialogue
+        this.choiceDialogue.top = document.createElement('div');
+        this.choiceDialogue.top.classList.add('title');
+        this.choiceDialogue.top.textContent = 'Welcome';
+        this.choiceDialogue.appendChild(this.choiceDialogue.top);
+        this.choiceDialogue.options = document.createElement('div');
+        this.choiceDialogue.options.classList.add('options');
+        this.choiceDialogue.appendChild(this.choiceDialogue.options);
+        this.choiceDialogue.submit = document.createElement('button');
+        this.choiceDialogue.submit.classList.add('submit');
+        this.choiceDialogue.submit.textContent = 'Submit';
+        this.choiceDialogue.appendChild(this.choiceDialogue.submit);
+        this.choiceDialogue.cancel = document.createElement('button');
+        this.choiceDialogue.cancel.classList.add('cancel');
+        this.choiceDialogue.cancel.textContent = 'Cancel';
+        this.choiceDialogue.appendChild(this.choiceDialogue.cancel);
+
+        // this.choiceDisplayCard = document.createElement('div'); //Blank element so it can be removed later
+        // this.choiceDialogue.appendChild(this.choiceDisplayCard);
+
         
     }
 
@@ -389,6 +425,10 @@ class Player {
      * Cleanup end of turn effects and damage for this player and its permanents.
      */
     cleanup() {
+        //TODO: Clear Until EOT effects
+        this.endOfTurnEffects.forEach(effect => effect(this));
+        this.endOfTurnEffects = [];
+
         //Cleanup all effects
         this.permanents.forEach(permanent => permanent.cleanup(true));
     }
@@ -856,6 +896,71 @@ class Player {
     }
 
     /**
+     * Get a choice over something
+     * @param {Object} choicesData The choices available and the rules on which are allowed.
+     * @param {Function} choicesCallback This method will be called once the choices have been made, returning a list of the choice indices.
+     */
+    getChoices(card, choicesData, choicesCallback) {
+        this.choiceElement.style.display = 'block';
+        // this.choiceDialogue.textContent = card.name + ': Chose one.';
+        console.log('gettign choices')
+        let selections = choicesData.options.map(option => false);
+        let validate = () => selections.filter(item => item).length == choicesData.choiceCount;
+
+        //Change title
+        this.choiceDialogue.top.textContent = card.name + ': ' + choicesData.command;
+        //Remove old options
+        this.choiceDialogue.options.innerHTML = '';
+        //Add new ones
+        choicesData.options.forEach((option, i) => {
+            let optionElement = document.createElement('button');
+            optionElement.classList.add('option');
+            optionElement.textContent = option;
+            //Add functionality
+            optionElement.onclick = () => {
+                console.log('selected choice '+option+'/'+i);
+                selections[i] = !selections[i];
+                //Change CSS
+                let selected = selections[i] ? 'add' : 'remove'
+                optionElement.classList[selected]('selected');
+                //Change CSS for submit button
+                this.choiceDialogue.submit.classList[validate() ? 'add' : 'remove']('valid');
+            };
+            //Connect it to dialogue
+            this.choiceDialogue.options.appendChild(optionElement);
+        });
+        //quick ui update
+        this.choiceDialogue.submit.classList[validate() ? 'add' : 'remove']('valid');
+        //Update control buttons
+        this.choiceDialogue.submit.onclick = () => {
+            if (validate()) {
+                //Good selection, use it
+                console.log('using selection')
+                //hide this
+                this.choiceElement.style.display = 'none';
+                //Change selection to match format
+                choicesCallback(true, selections);
+            }
+        }
+        this.choiceDialogue.cancel.onclick = () => {
+            console.log('cancelled')
+            //hide this
+            this.choiceElement.style.display = 'none';
+            choicesCallback(false);
+        }
+
+        //TODO: display card
+        // //Remove old card
+        // this.choiceDialogue.removeChild(this.choiceDisplayCard);
+        // console.log('moveon')
+        // //Get new card
+        // this.choiceDisplayCard = card.getUI();
+        // //Add it to display
+        // this.choiceDialogue.appendChild(this.choiceDisplayCard);
+
+    }
+
+    /**
      * Gets if the specified card is currently attacking
      * @param {Card} card 
      * @returns {boolean} True if card is attacking
@@ -891,10 +996,18 @@ class Player {
     /**
      * Deal a specified damage to this player. For prevention/protection effects, the source must be specified (TODO).
      * @param {number} damage Damage dealt
-     * @param {*} source Source. This is an object with type of damage 'type' and the card 'card'.
+     * @param {*} source Source of the damage. This is an object with type of damage 'type' and the card 'card'.
      * @param {boolean} update True if you want state based actions to update based on this damage.
      */
     dealDamage(damage, source, update) {
+        //Prevent damage
+        if (this.damagePrevention > 0) {
+            //Either exhaust all of the damage to deal or the damage to prevent so neither goes negative
+            let reduction = Math.min(this.damagePrevention, damage);
+            damage -= reduction;
+            this.damagePrevention -= reduction;
+        }
+        
         this.life -= damage;
         if (update) {
             //Update UI
@@ -904,6 +1017,20 @@ class Player {
                 //Lose the game.
                 console.log(this.name + ' has lost the game.');
             }
+        }
+    }
+
+    /**
+     * Gain an amount of life.
+     * @param {number} amount Amount of life to gain
+     * @param {*} source Source of the life gain. This is an object with source of life gain 'type' and the card 'card'.
+     * @param {boolean} update True if you want state based actions to update based on this life gain.
+     */
+    gainLife(amount, source, update) {
+        this.life += amount;
+        if (update) {
+            //Update UI
+            this.lifeCounter.textContent = this.life;
         }
     }
     

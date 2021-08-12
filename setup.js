@@ -4,7 +4,7 @@ let makeDeck = (deck) => {
     deck.forEach(playSet => {
         for(let j = 0; j < playSet[1]; j++) {
             let card = Object.create(playSet[0]);
-            card.getUI();
+            card.element = card.getUI();
             out.push(card);
         }
     });
@@ -75,11 +75,42 @@ let LightningBolt = new Card('Lightning Bolt', '{R}', 'Instant', '', 'Lightning 
     abilities: [
     //Deal three damage to any target
     {
-        //Target: a player
+        //Target: anything
         targets: ['Any'],
-        //When activated, target player draws three cards
+        //When activated, deal 3 damage to the target
         activate: (card, targets) => {
             targets[0].dealDamage(3, {type: 'spell', card: card}, true);
+        },
+    },
+]});
+let HealingSalve = new Card('Healing Salve', '{W}', 'Instant', '', 
+    'Choose one — \n - Target player gains 3 life.\n - Prevent the next 3 damage that would be dealt to any target this turn.', {
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=394031&type=card',
+    choice: {choiceCount: 1, command: 'Chose one.', options: 
+        ['Target player gains 3 life.', 'Prevent the next 3 damage that would be dealt to any target this turn.']},
+    abilities: [
+    //Give 3 life to a player
+    {
+        //Target: a player
+        targets: ['Player'],
+        //When activated, target player draws three cards
+        activate: (card, targets) => {
+            targets[0].gainLife(3, {type: 'spell', card: card}, true);
+        },
+    },
+    //Prevent the next 3 damage dealt to any target this turn
+    {
+        //Target: anything
+        targets: ['Any'],
+        //When activated, give the target 3 prevention (until end of turn)
+        activate: (card, targets) => {
+            targets[0].damagePrevention += 3;
+            
+            //Remove effect at the end of the turn
+            targets[0].endOfTurnEffects.push(() => {
+                //Cannot be negative, so cap it at 0
+                targets[0].damagePrevention = Math.max(targets[0].damagePrevention - 3, 0);
+            })
         },
     },
 ]});
@@ -177,7 +208,7 @@ let bobDeck = makeDeck([
 ])
 
 let test = makeDeck([
-    [ProdigalSorcerer, 20],
+    // [ProdigalSorcerer, 20],
     [manaboost, 50],
     [person, 50],
     // [KariZev, 5],
@@ -188,11 +219,14 @@ let test = makeDeck([
     // [Forest, 5],
     // [DarkRitual, 20],
     // [AncestralRecall, 20],
-    // [LightningBolt, 40],
+    [LightningBolt, 40],
     // [GiantGrowth, 40],
+    [HealingSalve, 50],
 ])
 
-let game = new Game("Alex", test, 'Bob', bobDeck);
+let t2 = makeDeck([[HealingSalve, 50]])
+
+let game = new Game("Alex", test, 'Bob', t2);
 
 game.drawUI(document.getElementById('game'));
 

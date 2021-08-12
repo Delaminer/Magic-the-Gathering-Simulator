@@ -40,6 +40,7 @@ class Card {
             this.power = extra.power;
             this.toughness = extra.toughness;
             this.damage = 0;
+            this.damagePrevention = 0;
             //Add basic abilities
             this.text.forEach(line => {
                 if (line.length > 0) //In case it is blank from the split
@@ -55,6 +56,7 @@ class Card {
         else if (this.types.includes('Instant') || this.types.includes('Sorcery')) {
             //Directly add abilities from input
             this.abilities = extra.abilities;
+            this.choice = extra.choice;
         }
 
         //Add supertypes
@@ -63,7 +65,7 @@ class Card {
 
         this.location = Zone.Unkown; //Default location
         this.tapped = false;
-        this.getUI();
+        this.element = this.getUI();
         if (this.types.includes('Land')) {
             //Function that creates an ability to create a color of mana
             let mana = (color) => ({
@@ -132,6 +134,14 @@ class Card {
      * @param {boolean} update True if you want state based actions to update based on this damage.
      */
      dealDamage(damage, source, update) {
+        //Prevent damage
+        if (this.damagePrevention > 0) {
+            //Either exhaust all of the damage to deal or the damage to prevent so neither goes negative
+            let reduction = Math.min(this.damagePrevention, damage);
+            damage -= reduction;
+            this.damagePrevention -= reduction;
+        }
+
         this.damage += damage;
         if (update) {
             this.update();
@@ -178,9 +188,9 @@ class Card {
      */
     getUI() {
         
-        this.element = document.createElement('div');
-        this.element.classList.add('card');
-        this.element.classList.add(this.location + 'Card');
+        let uiElement = document.createElement('div');
+        uiElement.classList.add('card');
+        uiElement.classList.add(this.location + 'Card');
 
         //Determine the background color of the card based on its colors (or land colors)
         let classColors = Object.create(this.colors); //So it copies the color values, not the reference to the array
@@ -204,7 +214,7 @@ class Card {
             classColor = classColors[0];
         }
 
-        this.element.classList.add(classColor)
+        uiElement.classList.add(classColor)
         
         //Title: the name and cost of the card
         let title = document.createElement('div');
@@ -217,7 +227,7 @@ class Card {
         cost.classList.add('cost');
         cost.innerHTML = insertSymbols(this.cost.text);
         title.appendChild(cost);
-        this.element.appendChild(title);
+        uiElement.appendChild(title);
 
         let image = document.createElement('div');
         image.classList.add('image');
@@ -238,7 +248,7 @@ class Card {
             ctx.drawImage(imgSource, scale*18, scale*36, scale*(205-18), scale*(172-36), 0, 0, canvas.width, canvas.height);
         }
         image.appendChild(canvas);
-        this.element.appendChild(image);
+        uiElement.appendChild(image);
 
         //The line that shows the type and subtype (and expansion symbol)
         let type = document.createElement('div');
@@ -246,26 +256,27 @@ class Card {
         type.textContent = this.types.join(' ');
         if (this.subtypes.length > 0) //To avoid showing the blank hyphen, only display subtype if there is one
             type.textContent += ' - ' + this.subtypes.join(' ');
-        this.element.appendChild(type);
+        uiElement.appendChild(type);
 
         let text = document.createElement('div');
         text.classList.add('text');
         text.innerHTML = insertSymbols(this.text.join('<br>'));
-        this.element.appendChild(text);
+        uiElement.appendChild(text);
 
         if (this.types.includes('Creature')) {
             let stats = document.createElement('span');
             stats.classList.add('stats');
             stats.textContent = this.power + '/' + this.toughness;
-            this.element.appendChild(stats);
+            uiElement.appendChild(stats);
             this.statElement = stats; //For updating the values
         }
         
-        this.element.onclick = () => {
+        uiElement.onclick = () => {
             //Click the card
             this.click();
         };
 
+        return uiElement;
         
     }
 
@@ -324,52 +335,77 @@ class Card {
                         //It can be played if you can play a sorcery, or if its an instant and you can play one
                         if (this.player.canPlaySorcery() || (this.playType() === 'Instant' && this.player.canPlayInstant())) {
                             //Try to play the spell. Just like an ability, this is done in steps, in this order:
+                            //Make choices
                             //Select targets
                             //Pay for it
                             //Play it
 
-                            //Because a spell can have multiple abilities, each with its own targets, (although this has not been done yet),
-                            //Each one has to collect targets, then each one is played.
-                            //Group all the target specs in one, so they can be assigned one by one all at once and dealt with all at once
-
-                            let allTargetSpecifications = [].concat.apply([], this.abilities.map(ability => ability.targets).filter(targets => targets !== undefined));
-                            this.player.getTargets(allTargetSpecifications, allTargets => {
-                                //Reset action
-                                this.player.game.players.forEach(player => player.action = ActionType.Play);
+                            //Get choices. This determines which abilities to play. If no choice is required, play all of them.
+                            //Once choices are received, run this code:
+                            let receivedChoices = abilitiesChosen => {
                                 
-                                //Ask for player to pay for this
-                                this.player.payForCard(this, (success) => {
-                                    if (success) {
-                                        //Remove it from the hand
-                                        this.player.hand.splice(this.player.hand.indexOf(this), 1);
-                                        //Add it to the stack
-                                        this.setLocation(Zone.Stack);
-                                        //For when it resolves
-                                        this.play = () => {
-                                            //Do what the card says
-                                            let targetsIndex = 0;
-                                            this.abilities.forEach(ability => {
-                                                if (typeof ability === 'function') {
-                                                    ability(this);
-                                                }
-                                                else if (typeof ability === 'object') {
-                                                    //Get targets for this ability
-                                                    let targets = allTargets.slice(targetsIndex, ability.targets.length);
-                                                    ability.activate(this, targets);
-                                                    //increase the index counter
-                                                    targetsIndex += ability.targets.length;
-                                                }
-                                            });
 
-                                            //Once played, it goes directly to the graveyard (it's not a permanent)
-                                            this.player.graveyardElement.appendChild(this.element);
-                                            this.player.graveyard.push(this); //add to graveyard
-                                            this.setLocation(Zone.Graveyard);
+                                //Because a spell can have multiple abilities, each with its own targets, (although this has not been done yet),
+                                //Each one has to collect targets, then each one is played.
+                                //Group all the target specs in one, so they can be assigned one by one all at once and dealt with all at once
+
+                                let allTargetSpecifications = [].concat.apply([], abilitiesChosen
+                                                                        .map(ability => ability.targets) //Get the target specs
+                                                                        .filter(targets => targets !== undefined)); //Only those that need targets
+
+                                this.player.getTargets(allTargetSpecifications, allTargets => {
+                                    //Reset action
+                                    this.player.game.players.forEach(player => player.action = ActionType.Play);
+                                    
+                                    //Ask for player to pay for this
+                                    this.player.payForCard(this, (success) => {
+                                        if (success) {
+                                            //Remove it from the hand
+                                            this.player.hand.splice(this.player.hand.indexOf(this), 1);
+                                            //Add it to the stack
+                                            this.setLocation(Zone.Stack);
+                                            //For when it resolves
+                                            this.play = () => {
+                                                //Do what the card says
+                                                let targetsIndex = 0;
+                                                abilitiesChosen.forEach(ability => {
+                                                    if (typeof ability === 'function') {
+                                                        ability(this);
+                                                    }
+                                                    else if (typeof ability === 'object') {
+                                                        //Get targets for this ability
+                                                        let targets = allTargets.slice(targetsIndex, ability.targets.length);
+                                                        ability.activate(this, targets);
+                                                        //increase the index counter
+                                                        targetsIndex += ability.targets.length;
+                                                    }
+                                                });
+
+                                                //Once played, it goes directly to the graveyard (it's not a permanent)
+                                                this.player.graveyardElement.appendChild(this.element);
+                                                this.player.graveyard.push(this); //add to graveyard
+                                                this.setLocation(Zone.Graveyard);
+                                            }
+                                            this.player.game.addToStack(this);
                                         }
-                                        this.player.game.addToStack(this);
+                                    });
+                                });
+                            };
+
+                            //Now actually get the choices from the player
+                            if (this.choice) {
+                                this.player.getChoices(this, this.choice, (success, choices) => {
+                                    if (success) {
+                                        //Use the list of indices to choose which abilities to play
+                                        let abilitesToPlay = this.abilities.filter((item, index) => choices[index]);
+                                        receivedChoices(abilitesToPlay);
                                     }
                                 });
-                            });
+                            }
+                            else {
+                                //No choices are required, so play all of the abilites
+                                receivedChoices(this.abilities);
+                            }
                         }
                         break;
                     case 'unkown!':
@@ -506,17 +542,14 @@ class Card {
      */
     setLocation(location) {
         let handChange = this.location === Zone.Hand || location === Zone.Hand;
-        console.log(`${this.location} + ${location} = ${handChange}`)
 
         this.element.classList.remove(this.location + 'Card');
         this.location = location;
         this.element.classList.add(this.location + 'Card');
 
-        //Just in case
+        //Update hand if cards in hand changed
         if (handChange) {
             this.player.updateHandUI();
-        }
-        else {
         }
     }
 
