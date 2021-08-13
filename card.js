@@ -137,27 +137,6 @@ class Card {
         //Save comparisons by checking if it is NOT a permanent.
         return !this.types.includes('Instant') && !this.types.includes('Sorcery');
     }
-
-    /**
-     * Deal a specified damage to this card (creature or planeswalker). For prevention/protection effects, the source must be specified (TODO).
-     * @param {number} damage Damage dealt
-     * @param {*} source Source. This is an object with type of damage 'type' and the card 'card'.
-     * @param {boolean} update True if you want state based actions to update based on this damage.
-     */
-     dealDamage(damage, source, update) {
-        //Prevent damage
-        if (this.damagePrevention > 0) {
-            //Either exhaust all of the damage to deal or the damage to prevent so neither goes negative
-            let reduction = Math.min(this.damagePrevention, damage);
-            damage -= reduction;
-            this.damagePrevention -= reduction;
-        }
-
-        this.damage += damage;
-        if (update) {
-            this.update();
-        }
-    }
     
     /**
      * Gets the creature's power right now, with all damage and effects.
@@ -189,20 +168,53 @@ class Card {
     update() {
         if (this.types.includes('Creature')) {
             if (this.damage >= this.getToughness()) {
-                // This creature dies
-                this.cleanup(false);
-                this.player.graveyardElement.appendChild(this.element); //Move element
-                this.player.permanents.splice(this.player.hand.indexOf(this), 1); //remove from permanents list
-                this.player.graveyard.push(this); //add to graveyard list
-                this.setLocation(Zone.Graveyard); //Change status variable and update UI
+                // Lethal damage: Destroy this creature
+                this.destroy({type: 'lethal', source: this}, false);
+            }
+            else {
+
             }
             this.statElement.textContent = `${this.getPower()}/${this.getToughness() - this.damage}`;
         }
     }
 
     /**
+     * Deal a specified damage to this card (creature or planeswalker). For prevention/protection effects, the source must be specified (TODO).
+     * @param {number} damage Damage dealt
+     * @param {*} source Source. This is an object with type of damage 'type' and the card 'card'.
+     * @param {boolean} update True if you want state based actions to update based on this damage.
+     */
+     dealDamage(damage, source, update) {
+        //Prevent damage
+        if (this.damagePrevention > 0) {
+            //Either exhaust all of the damage to deal or the damage to prevent so neither goes negative
+            let reduction = Math.min(this.damagePrevention, damage);
+            damage -= reduction;
+            this.damagePrevention -= reduction;
+        }
+
+        this.damage += damage;
+        if (update) {
+            this.update();
+        }
+    }
+    
+    /**
+     * Destroy this permanent!
+     * @param {*} source The source of the effect. Specify how, and if it wasn't a state based action, from what card.
+     * @param {boolean} update Whether you want state based actions to update based on this (should always be on?)
+     */
+    destroy(source, update) {
+        this.cleanup(update);
+        this.player.graveyardElement.appendChild(this.element); //Move element
+        this.player.permanents.splice(this.player.hand.indexOf(this), 1); //remove from permanents list
+        this.player.graveyard.push(this); //add to graveyard list
+        this.setLocation(Zone.Graveyard); //Change status variable and update UI
+    }
+
+    /**
      * Cleanup all damage and temporary effects from the creature during the cleanup phase.
-     * @param {boolean} update Whether or not to all update()
+     * @param {boolean} update Whether or not to call update()
      */
     cleanup(update) {
         //Clear damage and 'until end of turn' effects

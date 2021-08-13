@@ -149,10 +149,10 @@ class Player {
         this.draw(7);
         
 
-        //Use addEventListener and not just onload so multiple listeners can be added
-        window.addEventListener('load', event => {
-            this.updateHandUI();
-        });
+        //Change hand UI to keep the cards on one line
+        //Use .bind(this) to ensure the function still runs as a part of this object
+        window.addEventListener('load', this.updateHandUI.bind(this));
+        window.addEventListener('resize', this.updateHandUI.bind(this));
         
         //Element for getting choices
         let choiceElement = document.createElement('div');
@@ -860,6 +860,18 @@ class Player {
                             case 'Creature':
                                 //Card must be a creature
                                 test = (target, isPlayer) => !isPlayer && target.types.includes('Creature');
+                                break;
+                            case 'Land':
+                                //Card must be a land
+                                test = (target, isPlayer) => !isPlayer && target.types.includes('Land');
+                                break;
+                            case 'Artifact':
+                                //Card must be an artifact
+                                test = (target, isPlayer) => !isPlayer && target.types.includes('Artifact');
+                                break;
+                            case 'Enchantment':
+                                //Card must be an artifact
+                                test = (target, isPlayer) => !isPlayer && target.types.includes('Enchantment');
                                 break;
                             case 'Player':
                                 //Target must be a player

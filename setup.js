@@ -79,11 +79,17 @@ let bobDeck = makeDeck([
 ])
 
 let test = makeDeck([
-    ['Prodigal Sorcerer', 5],
-    [manaboost, 5],
-    [soldier, 5],
-    ['Falkenrath Reaver', 10],
-    ['Honor of the Pure', 5],
+    // ['Prodigal Sorcerer', 5],
+    // [manaboost, 5],
+    // [soldier, 5],
+    // ['Stone Rain', 10],
+    // ['Forest', 10],
+    // ['Honor of the Pure', 5],
+    ['Mountain', 10],
+    ['Abrade', 10],
+    ['Mox Ruby', 10],
+    ['Mox Pearl', 10],
+    [soldier, 10],
     // [person, 5],
     // ['KariZev', 5],
     // ['Plains', 5],
@@ -104,10 +110,13 @@ let test = makeDeck([
 ])
 
 let t2 = makeDeck([
-    ['Prodigal Sorcerer', 5],
-    [manaboost, 5],
-    [soldier, 5],
-    ['Honor of the Pure', 5],
+    ['Mountain', 10],
+    ['Abrade', 10],
+    ['Mox Ruby', 10],
+    ['Mox Pearl', 10],
+    [soldier, 10],
+    [manaboost, 10],
+    ['Honor of the Pure', 1],
 ])
 
 let game = new Game("Alex", test, 'Bob', t2);

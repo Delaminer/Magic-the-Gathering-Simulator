@@ -229,3 +229,37 @@ Database['Forest'] = new Card('Forest', '', 'Land', 'Forest', '{G}', {supertypes
 Database['Falkenrath Reaver'] = new Card('Falkenrath Reaver', '{1}{R}', 'Creature', 'Vampire', '', {
     power: 2, toughness: 2, imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=414425&type=card',
 });
+Database['Stone Rain'] = new Card('Stone Rain', '{2}{R}', 'Sorcery', '', 'Destroy target land.', {
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=517595&type=card',
+    abilities: [
+    //Destroy a land
+    {
+        //Target: a land
+        targets: ['Land'],
+        //When activated, deal 3 damage to the target
+        activate: (card, targets) => {
+            targets[0].destroy({type: 'destroy', card: card}, true);
+        },
+    },
+]});
+Database['Abrade'] = new Card('Abrade', '{1}{R}', 'Instant', '', 
+'Choose one — \n - Abrade deals 3 damage to target creature.\n - Destroy target artifact.', {
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=430772&type=card',
+    choice: {choiceCount: 1, command: 'Choose one.', options:
+        ['Abrade deals 3 damage to target creature.', 'Destroy target artifact.']},
+    abilities: [
+    //Deal 3 damage to a creature
+    {
+        targets: ['Creature'],
+        activate: (card, targets) => {
+            targets[0].dealDamage(3, {type: 'spell', card: card}, true);
+        },
+    },
+    //Destroy an artifact
+    {
+        targets: ['Artifact'],
+        activate: (card, targets) => {
+            targets[0].destroy({type: 'destroy', card: card}, true);
+        },
+    },
+]});
