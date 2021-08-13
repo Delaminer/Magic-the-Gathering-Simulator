@@ -68,7 +68,6 @@ class Game {
 
         if (autoPassPlayer != undefined) {
             //If a player wanted to AutoPass, let them (has to be after every player gets updated)
-            console.log('this player is autopassing: ' +autoPassPlayer.name)
             autoPassPlayer.progressTurn();
         }
     }
@@ -397,16 +396,13 @@ class Game {
         if (this.players == undefined)
             return card.basePower;
 
-        console.log('checking')
         let powerChange = 0;
         //Get all of the static abilities in play, and check if this creature's power is changed by any of them.
         this.players.forEach(player => {
             player.permanents.forEach(permanent => {
                 permanent.abilities.filter(ability => ability.type == 'static').forEach(ability => {
-                    console.log('trying ability')
                     //This is a static ability. Check if it is valid, and if it changes the power
                     if (ability.valid(card, permanent)) {
-                        console.log('valid')
                         //It is valid! Now change power if available
                         if (ability.effect.powerChange != undefined) {
                             powerChange += ability.effect.powerChange;
@@ -427,16 +423,13 @@ class Game {
         if (this.players == undefined)
             return card.baseToughness;
 
-        console.log('checking')
         let toughnessChange = 0;
         //Get all of the static abilities in play, and check if this creature's toughness is changed by any of them.
         this.players.forEach(player => {
             player.permanents.forEach(permanent => {
                 permanent.abilities.filter(ability => ability.type == 'static').forEach(ability => {
-                    console.log('trying ability')
                     //This is a static ability. Check if it is valid, and if it changes the toughness
                     if (ability.valid(card, permanent)) {
-                        console.log('valid')
                         //It is valid! Now change toughness if available
                         if (ability.effect.toughnessChange != undefined) {
                             toughnessChange += ability.effect.toughnessChange;
