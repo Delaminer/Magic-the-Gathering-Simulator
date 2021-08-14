@@ -3,6 +3,9 @@ class Card {
     /**
      * Create a card object. This constructor does not do everything,
      * the constructor defines the card, but not the individualized card.
+     * 
+     * Note: you can put all of these variables in an array (as 1 parameter)
+     * 
      * @param {string} name Name of the card.
      * @param {ManaCost} cost Cost of the card.
      * @param {string} type Types this card has separated by spaces.
@@ -11,6 +14,9 @@ class Card {
      * @param {any} extra Extra attributes, defined in a JSON style.
      */
     constructor(name, cost, type, subtype, text, extra) {
+        if (cost == undefined) {
+            [name, cost, type, subtype, text, extra] = name;
+        }
         this.name = name;
         this.cost = new ManaCost(cost);
         //Determine the colors of this card based on its cost
@@ -56,6 +62,8 @@ class Card {
                     this.abilities.push(ability);
                 });
             }
+            //Allow for attachments
+            this.attachments = [];
         }
         else {
             //Directly add abilities from input
@@ -100,6 +108,7 @@ class Card {
                 this.abilities.push(mana('green'));
             }
         }
+        this.element.onmove = () => this.update()
     }
 
     /**
@@ -171,10 +180,32 @@ class Card {
                 // Lethal damage: Destroy this creature
                 this.destroy({type: 'lethal', source: this}, false);
             }
-            else {
-
-            }
             this.statElement.textContent = `${this.getPower()}/${this.getToughness() - this.damage}`;
+        }
+        if (this.isPermanent()) {
+            //Update all effects for permanents
+
+            //Attachments:
+            if (this.attachments.length > 0) {
+                let thisPosition = this.element.getBoundingClientRect();
+                //If an equipment moves, resulting in this card moving, the new positions also have to be updated
+                let leftSide = thisPosition.left;// - thisPosition.width;
+                this.attachments.forEach((attachment, index) => {
+                    if (attachment.element.style.position != 'absolute' && attachment.element.getBoundingClientRect().left < thisPosition.left) {
+                        //It is to the left and will be shifted
+                        console.log('it is at '+attachment.element.getBoundingClientRect().left + " when i am at "+thisPosition.left)
+                        leftSide -= thisPosition.width;
+                    }
+                });
+                console.log(this.id+': update: this has '+this.attachments.length)
+                this.attachments.forEach((attachment, index) => {
+                    attachment.element.style.position = 'absolute';
+                    attachment.element.style.left = leftSide + 'px';
+                    // attachment.element.style.left = '0px';
+                    attachment.element.style.top = thisPosition.top - 30*index - 30 + 'px';
+                    attachment.element.style.zIndex = this.element.style.zIndex - 1 - index;
+                });
+            }
         }
     }
 
@@ -373,7 +404,7 @@ class Card {
                                         this.setLocation(Zone.Battlefield);
 
                                         //Update everything else
-                                        this.player.game.players.forEach(player => player.updatePermanents());
+                                        this.player.game.update();
                                     }
                                     this.player.game.addToStack(this);
                                 }
@@ -605,6 +636,53 @@ class Card {
         //Update hand if cards in hand changed
         if (handChange) {
             this.player.updateHandUI();
+        }
+    }
+
+    /**
+     * Attach a card to this permanent.
+     * @param {Card} card The card being attached (usually an Aura or Equipment)
+     * @param {boolean} update Runs this.update() if true.
+     */
+    attach(card, update) {
+        if (!this.isPermanent()) {
+            console.log(this.name+': Card.attach() ran on a non-permanent!');
+            return;
+        }
+
+        //Add the attachment
+        this.attachments.push(card);
+        console.log(this.id+': attached: '+this.attachments)
+        
+        //Update if requested
+        if (update)
+            this.update();
+    }
+    /**
+     * Remove a card attached to this one
+     * @param {Card} card The card being removed (usually an Aura or Equipment)
+     * @param {boolean} update Runs this.update() if true.
+     */
+    detach(card, update) {
+        if (!this.isPermanent()) {
+            console.log(this.name+': Card.detach() ran on a non-permanent!');
+            return;
+        }
+
+        let index = this.attachments.indexOf(card);
+        if (index > -1) {
+            //Remove the attachment
+            console.log('Deatching at index '+index)
+            this.attachments.splice(index, 1);
+            console.log('detached: '+this.attachments)
+            console.log(this.attachments)
+            //Update if requested
+            if (update)
+                this.update();
+        }
+        else {
+            console.log(this.name + ': Card.detach() ran on a card (' + card.name + ') not already attached to it!');
+            return;
         }
     }
 

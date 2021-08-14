@@ -46,6 +46,11 @@ button {
     margin-bottom: 5px;
 }
 
+.sidebar .mana button.color {
+    width: 100px;
+    height: 40px;
+}
+
 
 .lands, .permanents {
     border: solid thin green;
@@ -156,6 +161,20 @@ button {
 .player1 .card.handCard {
     margin-right: var(--hand-margin1);
     transform: rotate(0deg); /* Apply transform (no actual change is needed) to ensure zIndex is correctly applied */
+}
+.card.battlefieldCard {
+    position: relative;
+}
+.card.attached {
+    position: absolute !important;
+    bottom: 30px;
+}
+.card.tapped {
+    transform: rotate(90deg);
+}
+.card:hover {
+    position: relative;
+    z-index: 200 !important;
 }
 
 .card.white {
@@ -306,13 +325,6 @@ button {
     padding-right: 5px;
 }
 
-.card.tapped {
-    transform: rotate(90deg);
-}
-.card:hover {
-    position: relative;
-    z-index: 200;
-}
 
 .card.attacker {
     background-color: rgb(247, 157, 157);

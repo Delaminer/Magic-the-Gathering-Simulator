@@ -1,4 +1,5 @@
-
+let id = 0;
+let db = {};
 let makeDeck = (deck) => {
     let out = [];
     deck.forEach(playSet => {
@@ -15,8 +16,9 @@ let makeDeck = (deck) => {
         }
 
         for(let j = 0; j < playSet[1]; j++) {
-
-            let card = Object.create(cardBase);
+            let card = new Card(cardBase);
+            card.id = id++;
+            db[card.id] = card;
             card.element = card.getUI();
             card.element.getCard = () => card;
             out.push(card);
@@ -25,10 +27,10 @@ let makeDeck = (deck) => {
     return out;
 }
 
-let soldier = new Card('Weary Soldier', '{W}', 'Creature', 'Human Soldier', 'Vigilance', {power: 3, toughness: 2});
-let bat = new Card('High Flier', '{B}{B}', 'Creature', 'Bat Horror', 'Vigilance', {power: 6, toughness: 1});
-let cat = new Card('Catty kitten', '{B}', 'Creature', 'Cat', '', {power: 1, toughness: 2});
-let rat = new Card('Heel Rat', '{B}{B}', 'Creature', 'Rat', 'Flying\n{1}{B}, {T}: Tap target creature.', {power: 1, toughness: 1, abilities: [
+let soldier = ['Weary Soldier', '{W}', 'Creature', 'Human Soldier', 'Vigilance', {power: 3, toughness: 2}];
+let bat = ['High Flier', '{B}{B}', 'Creature', 'Bat Horror', 'Vigilance', {power: 6, toughness: 1}];
+let cat = ['Catty kitten', '{B}', 'Creature', 'Cat', '', {power: 1, toughness: 2}];
+let rat = ['Heel Rat', '{B}{B}', 'Creature', 'Rat', 'Flying\n{1}{B}, {T}: Tap target creature.', {power: 1, toughness: 1, abilities: [
     {
         //Tapping ability:
         //T: Tap target creature.
@@ -47,12 +49,12 @@ let rat = new Card('Heel Rat', '{B}{B}', 'Creature', 'Rat', 'Flying\n{1}{B}, {T}
             targets[0].element.classList.add('tapped');
         },
     },
-]});
-let person = new Card('Super Soldier', '{W}{U}{R}', 'Creature', 'Human Soldier', '', {power: 5, toughness: 4,
+]}];
+let person = ['Super Soldier', '{W}{U}{R}', 'Creature', 'Human Soldier', '', {power: 5, toughness: 4,
 imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=391863&type=card'
-});
+}];
 
-let manaboost = new Card('Mana Boost', '{0}', 'Sorcery', '', 'Add twenty {W}{U}{B}{R}{G}.', {
+let manaboost = ['Mana Boost', '{0}', 'Sorcery', '', 'Add twenty {W}{U}{B}{R}{G}.', {
     imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=476467&type=card',
     abilities: [
     (card) => {
@@ -60,7 +62,7 @@ let manaboost = new Card('Mana Boost', '{0}', 'Sorcery', '', 'Add twenty {W}{U}{
             card.player.mana[color] += 20;
         card.player.updateMana();
     }
-]});
+]}];
 
 let alexDeck = makeDeck([
     ['Swamp', 20],
@@ -80,16 +82,18 @@ let bobDeck = makeDeck([
 
 let test = makeDeck([
     // ['Prodigal Sorcerer', 5],
-    // [manaboost, 5],
+    [manaboost, 5],
+    ['Darksteel Axe', 5],
     // [soldier, 5],
     // ['Stone Rain', 10],
     // ['Forest', 10],
     // ['Honor of the Pure', 5],
-    ['Mountain', 10],
-    ['Abrade', 10],
-    ['Mox Ruby', 10],
-    ['Mox Pearl', 10],
-    [soldier, 10],
+    // ['Mountain', 10],
+    // ['Abrade', 10],
+    // ['Mox Ruby', 10],
+    // ['Mox Pearl', 10],
+    ['Savannah Lions', 10],
+    // [soldier, 10],
     // [person, 5],
     // ['KariZev', 5],
     // ['Plains', 5],

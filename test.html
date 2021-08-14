@@ -1,0 +1,58 @@
+
+<!DOCTYPE <!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            .blue { background-color: rgb(145, 145, 238); }
+            .red { background-color: rgb(229, 155, 155); }
+            .yellow { background-color: rgb(224, 229, 155); }
+            .card {
+                width: 100px;
+                height: 150px;
+                border-radius: 10px;
+                border: solid thick black;
+                position: relative;
+                display: inline-block;
+
+            }
+            .attached {
+                position: absolute;
+                /* top: -20px; */
+                /* z-index: -1; */
+                /* background-color: khaki; */
+                /* left: 100px; */
+                /* top: -20px; */
+            }
+            .card:hover {
+                background-color: rgb(132, 180, 132);
+            }
+        </style>
+    </head>
+    <body>
+        <div style="margin: 90px; border: solid thick red">
+
+            <div id='a' class='card blue' style=" z-index: 3;">
+                A
+            </div>
+            
+            <div id='b' class='card red attached' style='z-index: 2;'>B</div>
+            <div id='c' class='card yellow' style='z-index: 2;'>C</div>
+            <script>
+                console.log('hi')
+                let base = document.getElementById('a').getBoundingClientRect();
+                attached = document.getElementById('b');
+                attached.style.left = base.left + 'px';
+                attached.style.top = base.top - 20 + 'px';
+            </script>
+        </div>
+    </body>
+</html>

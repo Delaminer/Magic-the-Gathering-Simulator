@@ -233,10 +233,8 @@ class Player {
     updateHandUI() {
         //Update drawing of cards to handle overlaying
         for(let i = 0; i < this.hand.length; i++) {
-            this.hand[i].element.style.zIndex = i + 1;
+            this.hand[i].element.style.zIndex = i + 20;
         }
-        //The first element is special, 
-        // this.hand[i].element.style.zIndex = i;
         if (this.hand.length > 1) {
             let totalWidth = this.handElement.offsetWidth;
             let cardWidth = this.hand[0].element.offsetWidth;

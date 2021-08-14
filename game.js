@@ -235,7 +235,7 @@ class Game {
             //Update UI Life total
             blockingPlayer.lifeCounter.textContent = blockingPlayer.life;
             //Update each card (there could be a better way to do this)
-            this.players.forEach(player => player.updatePermanents());
+            this.update();
         }
         else if (this.phase == TurnStep.PostcombatMain) {
             //Stop attacking and blocking, each has a different way of doing so
@@ -276,6 +276,13 @@ class Game {
         }
         //Update players
         this.updatePlayers(this.currentPlayer, player => player.updateTurn(true));
+    }
+
+    /**
+     * Update everything in the game
+     */
+    update() {
+        this.players.forEach(player => player.updatePermanents());
     }
 
     /**
