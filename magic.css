@@ -47,8 +47,8 @@ button {
 }
 
 .sidebar .mana button.color {
-    width: 100px;
-    height: 40px;
+    /* width: 100px; */
+    /* height: 40px; */
 }
 
 
@@ -71,6 +71,20 @@ button {
 }
 .stack > .title {
     background-color: gray;
+}
+
+.stack-ability {
+    user-select: none;
+    width: 213px;
+    height: 301px;
+    display: inline-block;
+    vertical-align: top;
+    border: solid thick black;
+    border-radius: 10px;
+    background-color: white;
+    text-align: left;
+
+    font-size: 11px;
 }
 
 .choices {
@@ -136,8 +150,6 @@ button {
 .card {
     user-select: none;
     width: 213px;
-    /* height: 210px; */
-    /* min-height: 170px; */
     height: 301px;
     display: inline-block;
     vertical-align: top;

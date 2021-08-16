@@ -275,28 +275,58 @@ Database['Darksteel Axe'] = ['Darksteel Axe', '{1}', 'Artifact', 'Equipment',
             powerChange: 2,
         },
     },
-    {
+    new ActivatedAbility({
         //Equip - This is an activated ability
-        type: 'activated',
+        restrictions: 'sorcery-speed',
         cost: { colorless: 2 },
         targets: ['Creature'],
         activate: (card, targets) => {
 
             //Detach old creature if it was already attached
             if (card.attached) {
-                console.log('detached from '+card.attached.id)
                 card.attached.detach(card, false);
             }
-            console.log('attaching to '+targets[0].id)
 
             //Attach to the creature
             card.attached = targets[0];
             targets[0].attach(card, false);
 
+            //Attach listner to auto-detach
+            targets[0].addTrigger('leave-battlefield', () => true, (attachmentCreature) => {
+                //Detach from card
+                card.attached.detach(card, false);
+                //Reset this UI
+                card.element.style.position = 'initial';
+                //Update the game
+                card.player.game.update();
+            });
+
             //Update everything
             targets[0].player.game.update();
         },
-    }
+    }),
+    // {
+    //     //Equip - This is an activated ability
+    //     type: 'activated',
+    //     cost: { colorless: 2 },
+    //     targets: ['Creature'],
+    //     activate: (card, targets) => {
+
+    //         //Detach old creature if it was already attached
+    //         if (card.attached) {
+    //             console.log('detached from '+card.attached.id)
+    //             card.attached.detach(card, false);
+    //         }
+    //         console.log('attaching to '+targets[0].id)
+
+    //         //Attach to the creature
+    //         card.attached = targets[0];
+    //         targets[0].attach(card, false);
+
+    //         //Update everything
+    //         targets[0].player.game.update();
+    //     },
+    // },
 ]}];
 Database['Savannah Lions'] = ['Savannah Lions', '{W}', 'Creature', 'Cat', '', {power: 2, toughness: 1, 
     imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=442022&type=card',
