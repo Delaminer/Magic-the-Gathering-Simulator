@@ -862,69 +862,10 @@ class Player {
 
             //Loop through the targets specified, getting each one in order
             targetSpecifications.forEach(targetSpec => {
-                //For validation, a validate function
+                //Get a function that validates a target
                 let validate = validateTarget(targetSpec);
 
-                // if (typeof targetSpec == 'string') {
-                //     //targetSpec is a string of identifiers
-                //     let identifiers = targetSpec.split(' ');
-                //     //Each identifier corresponds to a test
-                //     let tests = [];
-                //     //For each identifier, add a check for it
-                //     identifiers.forEach(identifier => {
-                //         //Create a test depending on what is needed
-                //         // let test = (target, isPlayer) => validTarget(identifier, target, isPlayer);
-
-                //         let test = () => true;
-                //         switch(identifier) {
-                //             case 'Creature':
-                //                 //Card must be a creature
-                //                 test = (target, isPlayer) => !isPlayer && target.types.includes('Creature');
-                //                 break;
-                //             case 'Land':
-                //                 //Card must be a land
-                //                 test = (target, isPlayer) => !isPlayer && target.types.includes('Land');
-                //                 break;
-                //             case 'Artifact':
-                //                 //Card must be an artifact
-                //                 test = (target, isPlayer) => !isPlayer && target.types.includes('Artifact');
-                //                 break;
-                //             case 'Enchantment':
-                //                 //Card must be an artifact
-                //                 test = (target, isPlayer) => !isPlayer && target.types.includes('Enchantment');
-                //                 break;
-                //             case 'Player':
-                //                 //Target must be a player
-                //                 test = (target, isPlayer) => isPlayer;
-                //                 break;
-                //             case 'Any':
-                //                 //Target must be a player or creature (or planeswalker TODO)
-                //                 test = (target, isPlayer) => isPlayer || target.types.includes('Creature');
-                //                 break;
-                //             default:
-                //                 console.log('Unkown identifier ' + identifier);
-                //         }
-                //         //Add this test to the list that need to be tested
-
-                //         tests.push(test);
-                //     });
-
-                //     //The target is valid if all tests pass (this is essentially a giant AND gate)
-                //     validate = (target, isPlayer) => {
-                //         for (let i in tests) {
-                //             //All tests must return true
-                //             if (!tests[i](target, isPlayer)) return false;
-                //         }
-                //         //All tests succeeded
-                //         return true;
-                //     }
-                // }
-                // else {
-                //     //targetSpec is a function that validates for you
-                //     validate = targetSpec;
-                // }
-
-                //With this validation function generated, let's now assign it to the player (using temp).
+                //Assign it to the player (using temp).
                 this.temp.targets.push({
                     //We are adding an object containing both the validation checker and the final target
                     
@@ -980,35 +921,24 @@ class Player {
             //Connect it to dialogue
             this.choiceDialogue.options.appendChild(optionElement);
         });
-        //quick ui update
+        //Check if no selection is a valid selection and update the submit button's UI
         this.choiceDialogue.submit.disabled = !validate();
         //Update control buttons
         this.choiceDialogue.submit.onclick = () => {
             if (validate()) {
-                //Good selection, use it
-                console.log('using selection')
-                //hide this
+                //Use the selection
+                //Hide the choice prompt
                 this.choiceElement.style.display = 'none';
                 //Change selection to match format
                 choicesCallback(true, selections);
             }
         }
         this.choiceDialogue.cancel.onclick = () => {
-            console.log('cancelled')
-            //hide this
+            //Cancel the selection
+            //Hide the choice prompt
             this.choiceElement.style.display = 'none';
             choicesCallback(false);
         }
-
-        //TODO: display card
-        // //Remove old card
-        // this.choiceDialogue.removeChild(this.choiceDisplayCard);
-        // console.log('moveon')
-        // //Get new card
-        // this.choiceDisplayCard = card.getUI();
-        // //Add it to display
-        // this.choiceDialogue.appendChild(this.choiceDisplayCard);
-
     }
 
     /**

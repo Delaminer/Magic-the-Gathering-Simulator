@@ -24,6 +24,10 @@
                 display: inline-block;
 
             }
+            .card.special {
+                /* border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; */
+                border-radius: 10px 10px 50% 50% / 10px 10px 30% 30%;
+            }
             .attached {
                 position: absolute;
                 /* top: -20px; */
@@ -40,19 +44,19 @@
     <body>
         <div style="margin: 90px; border: solid thick red">
 
-            <div id='a' class='card blue' style=" z-index: 3;">
+            <div id='a' class='card blue special' style=" z-index: 3;">
                 A
             </div>
             
-            <div id='b' class='card red attached' style='z-index: 2;'>B</div>
+            <div id='b' class='card red' style='z-index: 2;'>B</div>
             <div id='c' class='card yellow' style='z-index: 2;'>C</div>
-            <script>
+            <!-- <script>
                 console.log('hi')
                 let base = document.getElementById('a').getBoundingClientRect();
                 attached = document.getElementById('b');
                 attached.style.left = base.left + 'px';
                 attached.style.top = base.top - 20 + 'px';
-            </script>
+            </script> -->
         </div>
     </body>
 </html>

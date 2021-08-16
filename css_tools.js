@@ -44,6 +44,12 @@ const removeLine = (line) => {
 const replaceTerms = [
     {ours: '{T}', theirs: '{tap}'},
 ];
+
+/**
+ * Insert Magic the Gathering symbols into text with HTML.
+ * @param {string} text The text to display, with symbols typed in as {W} style icons.
+ * @returns 
+ */
 const insertSymbols = (text) => {
     //Replace EVERYTHING in between {}, hoping the Gatherer has a resource for it.
     //Because they don't follow the same system as we do, some things need to be replaced, like tap (we use T, they use tap).

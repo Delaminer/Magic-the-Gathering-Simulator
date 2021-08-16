@@ -175,7 +175,7 @@ Database['Prodigal Sorcerer'] = ['Prodigal Sorcerer', '{2}{U}', 'Creature', 'Hum
     new ActivatedAbility({
         //Tapping ability:
         //T: Deal 1 damage to any target
-        
+        text: 'Prodigal Sorcerer deals 1 damage to any target.',
         //The only cost is to tap this creature
         cost: { tap: true },
         //Requires 1 target (a creature)
@@ -270,6 +270,7 @@ Database['Darksteel Axe'] = ['Darksteel Axe', '{1}', 'Artifact', 'Equipment',
     },
     new ActivatedAbility({
         //Equip - This is an activated ability
+        text: 'Equip',
         restrictions: 'sorcery-speed',
         cost: { mana: '2' },
         targets: ['Creature'],

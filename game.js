@@ -151,16 +151,29 @@ class Game {
         if (isAbility) {
             //It is an ability
             let ability = item;
-            
             //Generate a UI for this ability
-            let element = sourceCard.element.cloneNode(true);
+            let element = sourceCard.element.cloneNode(true)
             //Change type line to say ability
             element.getElementsByClassName('type')[0].textContent = 'Ability';
             //Remove the mana cost
             element.getElementsByClassName('cost')[0].remove();
             //Change the text to say only that of the ability (and no mana cost!)
-
-            //
+            if (ability.text) {
+                element.getElementsByClassName('text')[0].innerHTML = insertSymbols(ability.text);
+            }
+            //Remove tapped CSS
+            element.classList.remove('tapped');
+            //Clear positioning adjustments
+            element.style.top = '0px';
+            element.style.left = '0px';
+            element.style.position = 'relative';
+            //Remove stats if present
+            let stats = element.getElementsByClassName('stats');
+            if (stats.length > 0) stats[0].remove();
+            //Draw image from original image
+            element.getElementsByTagName('canvas')[0].getContext('2d').drawImage(sourceCard.element.getElementsByTagName('canvas')[0], 0, 0);
+            //Add custom CSS (for things like custom shaped cards)
+            element.classList.add('stack-ability');
 
 
             this.stackElement.body.appendChild(element);

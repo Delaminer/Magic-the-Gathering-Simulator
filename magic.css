@@ -79,18 +79,13 @@ button {
     background-color: gray;
 }
 
-.stack-ability {
-    user-select: none;
-    width: 213px;
-    height: 301px;
-    display: inline-block;
-    vertical-align: top;
-    border: solid thick black;
-    border-radius: 10px;
-    background-color: white;
-    text-align: left;
+.card.stack-ability {
+    border-radius: 10px 10px 70% 70% / 10px 10px 30% 30%;
+}
 
-    font-size: 11px;
+.card.card.stack-ability .text {
+    height: 35%;
+    border-radius: 0px 0px 70% 70% / 0px 0px 80% 80%;
 }
 
 .choices {

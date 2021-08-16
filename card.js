@@ -189,6 +189,10 @@ class Card {
                 //If an equipment moves, resulting in this card moving, the new positions also have to be updated
                 let leftSide = thisPosition.left;// - thisPosition.width;
                 this.attachments.forEach((attachment, index) => {
+                    if (attachment.element.style.position != 'absolute') {
+                        //Minor fix to reset possible UI issues with things changing position styles
+                        setTimeout(() => this.player.game.update(), 100);
+                    }
                     if (attachment.element.style.position != 'absolute' && attachment.element.getBoundingClientRect().left < thisPosition.left) {
                         //It is to the left and will be shifted
                         leftSide -= thisPosition.width;
@@ -197,7 +201,6 @@ class Card {
                 this.attachments.forEach((attachment, index) => {
                     attachment.element.style.position = 'absolute';
                     attachment.element.style.left = leftSide + 'px';
-                    // attachment.element.style.left = '0px';
                     attachment.element.style.top = thisPosition.top - 30*index - 30 + 'px';
                     attachment.element.style.zIndex = this.element.style.zIndex - 1 - index;
                 });
