@@ -96,8 +96,19 @@ class Game {
 
                 //Remove it from the stack
                 this.stack.pop();
-                //Play it
-                stackItem.card.play();
+
+                //Resolve it either as a spell or ability
+                if (stackItem.isAbility) {
+                    //Activate it
+                    stackItem.activate();
+                    //Remove the UI
+                    stackItem.element.remove();
+                }
+                else {
+                    //Play it
+                    stackItem.card.play();
+                }
+
                 //Update player UI
                 this.updatePlayers(this.getPriorityPlayer());
             }
@@ -131,17 +142,54 @@ class Game {
 
     /**
      * Add a spell or ability to the stack
-     * @param {Card} card 
+     * @param {*} item Either a Card being cast or an Ability being activated or triggered
+     * @param {boolean} isAbility True if the item being added is an ability 
+     * @param {Card} sourceCard For abilities, this is the source of the card
+     * @param {Function} abilityFunction This function is ran when the ability is activated  
      */
-    addToStack(card) {
-        //Add the card to the stack, and give priority to the active player
-        this.stack.push({
-            card: card,
-            owner: this.getPriorityPlayer(),
-            priority: this.currentPlayer,
-        });
-        //Move the card's UI to the stack parent
-        this.stackElement.body.appendChild(card.element);
+    addToStack(item, isAbility, sourceCard, abilityActivate) {
+        if (isAbility) {
+            //It is an ability
+            let ability = item;
+            
+            //Generate a UI for this ability
+            let element = sourceCard.element.cloneNode(true);
+            //Change type line to say ability
+            element.getElementsByClassName('type')[0].textContent = 'Ability';
+            //Remove the mana cost
+            element.getElementsByClassName('cost')[0].remove();
+            //Change the text to say only that of the ability (and no mana cost!)
+
+            //
+
+
+            this.stackElement.body.appendChild(element);
+
+            //Add the ability to the stack, and give priority to the active player
+            this.stack.push({
+                isAbility: true,
+                ability: ability,
+                source: sourceCard,
+                activate: abilityActivate,
+                owner: this.getPriorityPlayer(),
+                priority: this.currentPlayer,
+                element: element, //So it can easily be deleted later
+            });
+        }
+        else {
+            //It is a card, not an ability
+            let card = item;
+
+            //Add the card to the stack, and give priority to the active player
+            this.stack.push({
+                isAbility: false,
+                card: card,
+                owner: this.getPriorityPlayer(),
+                priority: this.currentPlayer,
+            });
+            //Move the card's UI to the stack parent
+            this.stackElement.body.appendChild(card.element);
+        }
 
         //Notify players of the change in priority
         this.updatePlayers(this.currentPlayer);

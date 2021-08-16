@@ -14,27 +14,27 @@ Database['Ancestral Recall'] = ['Ancestral Recall', '{U}', 'Instant', '', 'Targe
     imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=95&type=card',
     abilities: [
     //Target player draws three cards
-    {
+    new SpellAbility({
         //Target: a player
         targets: ['Player'],
         //When activated, target player draws three cards
         activate: (card, targets) => {
             targets[0].draw(3);
         },
-    },
+    }),
 ]}];
 Database['Lightning Bolt'] = ['Lightning Bolt', '{R}', 'Instant', '', 'Lightning Bolt deals 3 damage to any target.', {
     imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=442130&type=card',
     abilities: [
     //Deal three damage to any target
-    {
+    new SpellAbility({
         //Target: anything
         targets: ['Any'],
         //When activated, deal 3 damage to the target
         activate: (card, targets) => {
             targets[0].dealDamage(3, {type: 'spell', card: card}, true);
         },
-    },
+    }),
 ]}];
 Database['Healing Salve'] = ['Healing Salve', '{W}', 'Instant', '', 
     'Choose one — \n - Target player gains 3 life.\n - Prevent the next 3 damage that would be dealt to any target this turn.', {
@@ -43,16 +43,16 @@ Database['Healing Salve'] = ['Healing Salve', '{W}', 'Instant', '',
         ['Target player gains 3 life.', 'Prevent the next 3 damage that would be dealt to any target this turn.']},
     abilities: [
     //Give 3 life to a player
-    {
+    new SpellAbility({
         //Target: a player
         targets: ['Player'],
         //When activated, target player draws three cards
         activate: (card, targets) => {
             targets[0].gainLife(3, {type: 'spell', card: card}, true);
         },
-    },
+    }),
     //Prevent the next 3 damage dealt to any target this turn
-    {
+    new SpellAbility({
         //Target: anything
         targets: ['Any'],
         //When activated, give the target 3 prevention (until end of turn)
@@ -65,13 +65,13 @@ Database['Healing Salve'] = ['Healing Salve', '{W}', 'Instant', '',
                 targets[0].damagePrevention = Math.max(targets[0].damagePrevention - 3, 0);
             })
         },
-    },
+    }),
 ]}];
 Database['Giant Growth'] = ['Giant Growth', '{G}', 'Instant', '', 'Target creature gets +3/+3 until end of turn.', {
     imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=442161&type=card',
     abilities: [
     //Deal three damage to any target
-    {
+    new SpellAbility({
         //Target: a player
         targets: ['Creature'],
         //When activated, target player draws three cards
@@ -88,72 +88,67 @@ Database['Giant Growth'] = ['Giant Growth', '{G}', 'Instant', '', 'Target creatu
                 targets[0].update();
             })
         },
-    },
+    }),
 ]}];
 Database['Mox Pearl'] = ['Mox Pearl', '{0}', 'Artifact', '', '{T}: Add {W}.', {
     imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=383021&type=card',
     abilities: [
-    {
-        //Mana ability: Add one mana to your mana pool
-        type: 'mana',
+    new ManaAbility({
+        //Mana ability: Add one white mana to your mana pool
         cost: { tap: true },
         activate: (card) => {
             card.player.mana['white']++;
             card.player.updateMana();
         },
-    },
+    }),
 ]}];
 Database['Mox Sapphire'] = ['Mox Sapphire', '{0}', 'Artifact', '', '{T}: Add {U}.', {
     imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=383023&type=card',
     abilities: [
-    {
-        //Mana ability: Add one mana to your mana pool
-        type: 'mana',
+    new ManaAbility({
+        //Mana ability: Add one blue mana to your mana pool
         cost: { tap: true },
         activate: (card) => {
             card.player.mana['blue']++;
             card.player.updateMana();
         },
-    },
+    }),
 ]}];
 Database['Mox Jet'] = ['Mox Jet', '{0}', 'Artifact', '', '{T}: Add {B}.', {
     imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=383020&type=card',
     abilities: [
-    {
-        //Mana ability: Add one mana to your mana pool
-        type: 'mana',
+    new ManaAbility({
+        //Mana ability: Add one black mana to your mana pool
         cost: { tap: true },
         activate: (card) => {
             card.player.mana['black']++;
             card.player.updateMana();
         },
-    },
+    }),
 ]}];
 Database['Mox Ruby'] = ['Mox Ruby', '{0}', 'Artifact', '', '{T}: Add {R}.', {
     imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=383022&type=card',
     abilities: [
-    {
-        //Mana ability: Add one mana to your mana pool
-        type: 'mana',
+    new ManaAbility({
+        //Mana ability: Add one red mana to your mana pool
         cost: { tap: true },
         activate: (card) => {
             card.player.mana['red']++;
             card.player.updateMana();
         },
-    },
+    }),
 ]}];
 Database['Mox Emerald'] = ['Mox Emerald', '{0}', 'Artifact', '', '{T}: Add {G}.', {
     imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=383019&type=card',
     abilities: [
-    {
-        //Mana ability: Add one mana to your mana pool
-        type: 'mana',
+    new ManaAbility({
+        //Mana ability: Add one green mana to your mana pool
         cost: { tap: true },
         activate: (card) => {
             card.player.mana['green']++;
             card.player.updateMana();
         },
-    },
+    }),
 ]}];
 Database['Honor of the Pure'] = ['Honor of the Pure', '{1}{W}', 'Enchantment', '', 'White creatures you control get +1/+1.', {
     imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=191058&type=card',
@@ -177,12 +172,10 @@ Database['Prodigal Sorcerer'] = ['Prodigal Sorcerer', '{2}{U}', 'Creature', 'Hum
 '{T}: Prodigal Sorcerer deals 1 damage to any target.', {power: 1, toughness: 1, 
     imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=413609&type=card',
     abilities: [
-    {
+    new ActivatedAbility({
         //Tapping ability:
         //T: Deal 1 damage to any target
         
-        //This is an activated ability
-        type: 'activated',
         //The only cost is to tap this creature
         cost: { tap: true },
         //Requires 1 target (a creature)
@@ -191,7 +184,7 @@ Database['Prodigal Sorcerer'] = ['Prodigal Sorcerer', '{2}{U}', 'Creature', 'Hum
         activate: (card, targets) => {
             targets[0].dealDamage(1, {type: 'activated-ability', card: card}, true);
         },
-    },
+    }),
 ]}];
 Database['Kari Zev, Skyship Raider'] = ['Kari Zev, Skyship Raider', '{1}{R}', 'Creature', 'Human Pirate', 
 'First strike, menace\n' + 'Whenever Kari Zev, Skyship Raider attacks, create Ragavan, a legendary 2/1 red Monkey creature token. '+
@@ -222,14 +215,14 @@ Database['Stone Rain'] = ['Stone Rain', '{2}{R}', 'Sorcery', '', 'Destroy target
     imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=517595&type=card',
     abilities: [
     //Destroy a land
-    {
+    new SpellAbility({
         //Target: a land
         targets: ['Land'],
         //When activated, deal 3 damage to the target
         activate: (card, targets) => {
             targets[0].destroy({type: 'destroy', card: card}, true);
         },
-    },
+    }),
 ]}];
 Database['Abrade'] = ['Abrade', '{1}{R}', 'Instant', '', 
 'Choose one — \n - Abrade deals 3 damage to target creature.\n - Destroy target artifact.', {
@@ -238,19 +231,19 @@ Database['Abrade'] = ['Abrade', '{1}{R}', 'Instant', '',
         ['Abrade deals 3 damage to target creature.', 'Destroy target artifact.']},
     abilities: [
     //Deal 3 damage to a creature
-    {
+    new SpellAbility({
         targets: ['Creature'],
         activate: (card, targets) => {
             targets[0].dealDamage(3, {type: 'spell', card: card}, true);
         },
-    },
+    }),
     //Destroy an artifact
-    {
+    new SpellAbility({
         targets: ['Artifact'],
         activate: (card, targets) => {
             targets[0].destroy({type: 'destroy', card: card}, true);
         },
-    },
+    }),
 ]}];
 Database['Darksteel Axe'] = ['Darksteel Axe', '{1}', 'Artifact', 'Equipment', 
     'Indestructible\nEquipped creature gets +2/+0.\nEquip {2}', {
@@ -278,7 +271,7 @@ Database['Darksteel Axe'] = ['Darksteel Axe', '{1}', 'Artifact', 'Equipment',
     new ActivatedAbility({
         //Equip - This is an activated ability
         restrictions: 'sorcery-speed',
-        cost: { colorless: 2 },
+        cost: { mana: '2' },
         targets: ['Creature'],
         activate: (card, targets) => {
 
@@ -295,6 +288,7 @@ Database['Darksteel Axe'] = ['Darksteel Axe', '{1}', 'Artifact', 'Equipment',
             targets[0].addTrigger('leave-battlefield', () => true, (attachmentCreature) => {
                 //Detach from card
                 card.attached.detach(card, false);
+                card.attached = undefined;
                 //Reset this UI
                 card.element.style.position = 'initial';
                 //Update the game
@@ -305,28 +299,6 @@ Database['Darksteel Axe'] = ['Darksteel Axe', '{1}', 'Artifact', 'Equipment',
             targets[0].player.game.update();
         },
     }),
-    // {
-    //     //Equip - This is an activated ability
-    //     type: 'activated',
-    //     cost: { colorless: 2 },
-    //     targets: ['Creature'],
-    //     activate: (card, targets) => {
-
-    //         //Detach old creature if it was already attached
-    //         if (card.attached) {
-    //             console.log('detached from '+card.attached.id)
-    //             card.attached.detach(card, false);
-    //         }
-    //         console.log('attaching to '+targets[0].id)
-
-    //         //Attach to the creature
-    //         card.attached = targets[0];
-    //         targets[0].attach(card, false);
-
-    //         //Update everything
-    //         targets[0].player.game.update();
-    //     },
-    // },
 ]}];
 Database['Savannah Lions'] = ['Savannah Lions', '{W}', 'Creature', 'Cat', '', {power: 2, toughness: 1, 
     imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=442022&type=card',

@@ -219,6 +219,10 @@ class Player {
      */
     draw(numCards) {
         for(let i = 0; i < numCards; i++) {
+            if (this.library.length < 1) {
+                console.log(`${this.name} tried to draw a card from an empty library. ${this.name} lost the game!`);
+            }
+
             let cardToDraw = this.library.pop(); //remove from end (end = top of library)
             this.handElement.appendChild(cardToDraw.element);
             this.hand.push(cardToDraw);
@@ -257,7 +261,7 @@ class Player {
         if (newPriorityPlayer == undefined) newPriorityPlayer = this.game.getPriorityPlayer();
         if (stack == undefined) stack = this.game.stack;
 
-        //All status include's the turn state at the top, so determine it here
+        //All status includes the turn state at the top, so determine it here
         //Begin with whose turn it is (say either 'Yours' or 'Opponents')
         let turnStatus = (this.game.currentPlayer == this.playerIndex) ? 'Your ' : (this.game.players[this.game.currentPlayer].name + '\'s ')
         //Then the phase of the turn
@@ -274,16 +278,25 @@ class Player {
         this.turnStatus.textContent = turnStatus;
 
         //Note: priority is swapped for the declare blockers step
-        let declaringBlockers = (this.game.phase == TurnStep.DeclareBlockers) && (this.action == ActionType.Block || this.action == ActionType.BlockTarget);
+        let declaringBlockers = (this.game.phase == TurnStep.DeclareBlockers) && 
+                                (this.action == ActionType.Block || this.action == ActionType.BlockTarget);
 
         if ((newPriorityPlayer == this.playerIndex) ^ declaringBlockers) {
             //My priority!
             if (stack.length > 0) {
                 //Decide whether or not to let the top spell on the stack resolves
                 let stackItem = stack[stack.length - 1];
-                let source = stackItem.owner == this.playerIndex ? 'You' : this.game.players[stackItem.owner].name;
-                this.moveStatus.innerText = `${source} played ${stackItem.card.name}.`;
-                this.moveControl.textContent = 'Resolve';
+                //Change UI depending on if the item is an ability or a spell
+                if (stackItem.isAbility) {
+                    let source = stackItem.owner == this.playerIndex ? 'Your' : (this.game.players[stackItem.owner].name + '\'s');
+                    this.moveStatus.innerText = `${source} ${stackItem.source.name} ability has been activated.`;
+                    this.moveControl.textContent = 'Resolve';
+                }
+                else {
+                    let source = stackItem.owner == this.playerIndex ? 'You' : this.game.players[stackItem.owner].name;
+                    this.moveStatus.innerText = `${source} played ${stackItem.card.name}.`;
+                    this.moveControl.textContent = 'Resolve';
+                }
             }
             else {
                 //Decide whether or not to pass priority on the turn (pass turn)
@@ -301,11 +314,11 @@ class Player {
             //Note: I have chosen to make it so you cannot pass the first main phase (just in case)
             if (!this.canDoAnything() && !(this.game.phase == TurnStep.PrecombatMain && this.canPlaySorcery())) {
                 //Pass priority! This is done by returning true, so the game knows once everything has been updated, this player can AutoPass
-                console.log(this.name + ' chose to autopass')
+                console.log(this.name + ' chose to autopass');
                 return true;
             }
             else {
-                console.log('not autopassing')
+                console.log(this.name + ' chose not to autopass.');
             }
 
         }
@@ -313,8 +326,15 @@ class Player {
             //Not my priority
             if (stack.length > 0) {
                 let stackItem = stack[stack.length - 1];
-                let source = stackItem.owner == this.playerIndex ? 'You' : this.game.players[stackItem.owner].name;
-                this.moveStatus.innerText = `${source} played ${stackItem.card.name}.`;
+                //Change UI depending on if the item is an ability or a spell
+                if (stackItem.isAbility) {
+                    let source = stackItem.owner == this.playerIndex ? 'Your' : (this.game.players[stackItem.owner].name + '\'s');
+                    this.moveStatus.innerText = `${source} ${stackItem.source.name} ability has been activated.`;
+                }
+                else {
+                    let source = stackItem.owner == this.playerIndex ? 'You' : this.game.players[stackItem.owner].name;
+                    this.moveStatus.innerText = `${source} played ${stackItem.card.name}.`;
+                }
             }
             else {
                 this.moveStatus.innerText = `Waiting for ${this.game.players[newPriorityPlayer].name}.`;
@@ -843,64 +863,66 @@ class Player {
             //Loop through the targets specified, getting each one in order
             targetSpecifications.forEach(targetSpec => {
                 //For validation, a validate function
-                let validate;
+                let validate = validateTarget(targetSpec);
 
-                if (typeof targetSpec == 'string') {
-                    //targetSpec is a string of identifiers
-                    let identifiers = targetSpec.split(' ');
-                    //Each identifier corresponds to a test
-                    let tests = [];
-                    //For each identifier, add a check for it
-                    identifiers.forEach(identifier => {
-                        //Create a test depending on what is needed
-                        let test = () => true;
-                        switch(identifier) {
-                            case 'Creature':
-                                //Card must be a creature
-                                test = (target, isPlayer) => !isPlayer && target.types.includes('Creature');
-                                break;
-                            case 'Land':
-                                //Card must be a land
-                                test = (target, isPlayer) => !isPlayer && target.types.includes('Land');
-                                break;
-                            case 'Artifact':
-                                //Card must be an artifact
-                                test = (target, isPlayer) => !isPlayer && target.types.includes('Artifact');
-                                break;
-                            case 'Enchantment':
-                                //Card must be an artifact
-                                test = (target, isPlayer) => !isPlayer && target.types.includes('Enchantment');
-                                break;
-                            case 'Player':
-                                //Target must be a player
-                                test = (target, isPlayer) => isPlayer;
-                                break;
-                            case 'Any':
-                                //Target must be a player or creature (or planeswalker TODO)
-                                test = (target, isPlayer) => isPlayer || target.types.includes('Creature');
-                                break;
-                            default:
-                                console.log('Unkown identifier ' + identifier);
-                        }
-                        //Add this test to the list that need to be tested
+                // if (typeof targetSpec == 'string') {
+                //     //targetSpec is a string of identifiers
+                //     let identifiers = targetSpec.split(' ');
+                //     //Each identifier corresponds to a test
+                //     let tests = [];
+                //     //For each identifier, add a check for it
+                //     identifiers.forEach(identifier => {
+                //         //Create a test depending on what is needed
+                //         // let test = (target, isPlayer) => validTarget(identifier, target, isPlayer);
 
-                        tests.push(test);
-                    });
+                //         let test = () => true;
+                //         switch(identifier) {
+                //             case 'Creature':
+                //                 //Card must be a creature
+                //                 test = (target, isPlayer) => !isPlayer && target.types.includes('Creature');
+                //                 break;
+                //             case 'Land':
+                //                 //Card must be a land
+                //                 test = (target, isPlayer) => !isPlayer && target.types.includes('Land');
+                //                 break;
+                //             case 'Artifact':
+                //                 //Card must be an artifact
+                //                 test = (target, isPlayer) => !isPlayer && target.types.includes('Artifact');
+                //                 break;
+                //             case 'Enchantment':
+                //                 //Card must be an artifact
+                //                 test = (target, isPlayer) => !isPlayer && target.types.includes('Enchantment');
+                //                 break;
+                //             case 'Player':
+                //                 //Target must be a player
+                //                 test = (target, isPlayer) => isPlayer;
+                //                 break;
+                //             case 'Any':
+                //                 //Target must be a player or creature (or planeswalker TODO)
+                //                 test = (target, isPlayer) => isPlayer || target.types.includes('Creature');
+                //                 break;
+                //             default:
+                //                 console.log('Unkown identifier ' + identifier);
+                //         }
+                //         //Add this test to the list that need to be tested
 
-                    //The target is valid if all tests pass (this is essentially a giant AND gate)
-                    validate = (target, isPlayer) => {
-                        for (let i in tests) {
-                            //All tests must return true
-                            if (!tests[i](target, isPlayer)) return false;
-                        }
-                        //All tests succeeded
-                        return true;
-                    }
-                }
-                else {
-                    //targetSpec is a function that validates for you
-                    validate = targetSpec;
-                }
+                //         tests.push(test);
+                //     });
+
+                //     //The target is valid if all tests pass (this is essentially a giant AND gate)
+                //     validate = (target, isPlayer) => {
+                //         for (let i in tests) {
+                //             //All tests must return true
+                //             if (!tests[i](target, isPlayer)) return false;
+                //         }
+                //         //All tests succeeded
+                //         return true;
+                //     }
+                // }
+                // else {
+                //     //targetSpec is a function that validates for you
+                //     validate = targetSpec;
+                // }
 
                 //With this validation function generated, let's now assign it to the player (using temp).
                 this.temp.targets.push({
@@ -926,7 +948,6 @@ class Player {
     getChoices(card, choicesData, choicesCallback) {
         this.choiceElement.style.display = 'block';
         // this.choiceDialogue.textContent = card.name + ': Chose one.';
-        console.log('gettign choices')
         let selections = choicesData.options.map(option => false);
         let validate = () => selections.filter(item => item).length == choicesData.choiceCount;
 
@@ -948,7 +969,6 @@ class Player {
             optionButton.textContent = option;
             //Add functionality
             optionButton.onclick = () => {
-                console.log('selected choice '+option+'/'+i);
                 selections[i] = !selections[i];
                 //Change CSS
                 let selected = selections[i] ? 'add' : 'remove'
@@ -1107,5 +1127,22 @@ class Player {
                 break;
         }
         return false;
+    }
+
+    /**
+     * Trigger an event
+     * @param {string} eventName Name of the event
+     * @param {Card} source Source of the event
+     */
+    triggerEvent(eventName, source) {
+        if (this.triggers == undefined || this.triggers[eventName] == undefined) {
+            //No triggers for this event.
+            return;
+        }
+        this.triggers[eventName].forEach(trigger => {
+            if (trigger.validateEvent(source)) {
+                trigger.triggeredFunction(source);
+            }
+        });
     }
 }

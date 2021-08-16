@@ -1,3 +1,7 @@
+const colors = ['white', 'blue', 'black', 'red', 'green'];
+const colorSymbols = ['colorless', 'white', 'blue', 'black', 'red', 'green'];
+const colorSymbolsMap = [['colorless', 'C'], ['white', 'W'], ['blue', 'U'], ['black', 'B'], ['red', 'R'], ['green', 'G']];
+
 class ManaCost {
     /**
      * 
@@ -92,6 +96,10 @@ const calculateCost = (cost) => {
                     i = end - 1;
             }
         }
+        //Replace cost.text to show the better format.
+        costs.text = `{${costs.any}}`;
+        for(let [color, symbol] of colorSymbolsMap)
+            costs.text += `{${symbol}}`.repeat(costs[color]);
     }
     return costs;
 }
@@ -136,4 +144,122 @@ const canPayCost = (mana, cost) => {
     }
 
     return true;
+}
+
+// /**
+//  * Checks if it is valid
+//  * @param {string} targetType The classification of the target 
+//  * @param {*} target The player or card being targeted
+//  * @param {*} isPlayer Optional - Whether or not the target is a player
+//  * @returns 
+//  */
+// const validTarget = (targetType, target, isPlayer) => {
+//     if (isPlayer == undefined) {
+//         //Find it yourself using instanceof
+//         isPlayer = target instanceof Player;
+//     }
+//     switch(identifier) {
+//         case 'Creature':
+//             //Card must be a creature
+//             return !isPlayer && target.types.includes('Creature');
+//         case 'Land':
+//             //Card must be a land
+//             return !isPlayer && target.types.includes('Land');
+//         case 'Artifact':
+//             //Card must be an artifact
+//             return !isPlayer && target.types.includes('Artifact');
+//         case 'Enchantment':
+//             //Card must be an artifact
+//             return !isPlayer && target.types.includes('Enchantment');
+//         case 'Player':
+//             //Target must be a player
+//             return isPlayer;
+//         case 'Any':
+//             //Target must be a player or creature (or planeswalker TODO)
+//             return isPlayer || target.types.includes('Creature');
+//         default:
+//             console.log('Unkown identifier ' + identifier);
+//     }
+//     return false;
+// }
+
+const validateTarget = (targetSpec) => {
+    if (typeof targetSpec == 'string') {
+        //targetSpec is a string of identifiers
+        let identifiers = targetSpec.split(' ');
+        //Each identifier corresponds to a test
+        let tests = [];
+
+        //Because the zone should not have to always be specified, default the zone to HAVE TO BE on the battlefield.
+        //This means it will make sure it is on the battlefield, even if you don't specify that.
+        //This can be overidden with other specifications
+        let zone = Zone.Battlefield;
+        if (targetSpec.includes('ZoneBattlefield')) {
+            zone = Zone.Battlefield;
+        }
+        else if (targetSpec.includes('ZoneGraveyard')) {
+            zone = Zone.Graveyard;
+        }
+        //Add a check for the zone, unless specified not to check
+        if (!targetSpec.includes('ZoneAny')) {
+            //Valid if you are in the correct zone or you are a player
+            tests.push((target, isPlayer) => isPlayer || target.location == zone);            
+        }
+
+        //For each identifier, add a check for it
+        identifiers.forEach(identifier => {
+            //Skip Zone specifiers
+            if (identifier.includes('Zone')) return;
+
+            //Create a test depending on what is needed
+            // let test = (target, isPlayer) => validTarget(identifier, target, isPlayer);
+
+            let test = () => true;
+            switch(identifier) {
+                case 'Creature':
+                    //Card must be a creature
+                    test = (target, isPlayer) => !isPlayer && target.types.includes('Creature');
+                    break;
+                case 'Land':
+                    //Card must be a land
+                    test = (target, isPlayer) => !isPlayer && target.types.includes('Land');
+                    break;
+                case 'Artifact':
+                    //Card must be an artifact
+                    test = (target, isPlayer) => !isPlayer && target.types.includes('Artifact');
+                    break;
+                case 'Enchantment':
+                    //Card must be an artifact
+                    test = (target, isPlayer) => !isPlayer && target.types.includes('Enchantment');
+                    break;
+                case 'Player':
+                    //Target must be a player
+                    test = (target, isPlayer) => isPlayer;
+                    break;
+                case 'Any':
+                    //Target must be a player or creature (or planeswalker TODO)
+                    test = (target, isPlayer) => isPlayer || target.types.includes('Creature');
+                    break;
+                default:
+                    console.log('Unkown identifier ' + identifier);
+            }
+
+            //Add this test to the list that need to be tested
+            tests.push(test);
+        });
+
+        //The target is valid if all tests pass (this is essentially a giant AND gate)
+        return (target, isPlayer) => {
+            for (let i in tests) {
+                //All tests must return true
+                if (!tests[i](target, isPlayer)) return false;
+            }
+            //All tests succeeded
+            return true;
+        }
+    }
+    else {
+        //targetSpec is a function that validates for you
+        return targetSpec;
+    }
 }

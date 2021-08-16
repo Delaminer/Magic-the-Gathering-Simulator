@@ -18,6 +18,12 @@ button {
     
 }
 
+.sidebar {
+    background-color: white;
+    position: relative;
+    z-index: 190;
+}
+
 /* Move control button */
 .sidebar button.control {
     width: 100px;

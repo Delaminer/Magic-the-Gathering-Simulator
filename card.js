@@ -51,13 +51,13 @@ class Card {
 
         //Get abilities differently for permanents and non-permanents
         if (this.isPermanent()) {
-            //Add basic abilities
-            this.text.forEach(line => {
-                if (line.length > 0) //In case it is blank from the split
-                    this.abilities.push(line);
-            });
+            // //Add basic abilities
+            // this.text.forEach(line => {
+            //     if (line.length > 0) //In case it is blank from the split
+            //         this.abilities.push(line);
+            // });
             if (extra.abilities != undefined) {
-                //Add more abilities
+                //Add abilities
                 extra.abilities.forEach(ability => {
                     this.abilities.push(ability);
                 });
@@ -80,9 +80,7 @@ class Card {
         this.element = this.getUI();
         if (this.types.includes('Land')) {
             //Function that creates an ability to create a color of mana
-            let mana = (color) => ({
-                //This is a mana ability
-                type: 'mana',
+            let mana = (color) => new ManaAbility({
                 //The only cost is to tap the land
                 cost: { tap: true },
                 //When activated, add one colored mana to the player's mana pool
@@ -193,11 +191,9 @@ class Card {
                 this.attachments.forEach((attachment, index) => {
                     if (attachment.element.style.position != 'absolute' && attachment.element.getBoundingClientRect().left < thisPosition.left) {
                         //It is to the left and will be shifted
-                        console.log('it is at '+attachment.element.getBoundingClientRect().left + " when i am at "+thisPosition.left)
                         leftSide -= thisPosition.width;
                     }
                 });
-                console.log(this.id+': update: this has '+this.attachments.length)
                 this.attachments.forEach((attachment, index) => {
                     attachment.element.style.position = 'absolute';
                     attachment.element.style.left = leftSide + 'px';
@@ -319,7 +315,7 @@ class Card {
         //The canvas displays a cropped version of the image
         let canvas = document.createElement('canvas');
         let ctx = canvas.getContext('2d');
-        ctx.globalCompositeOperation='destination-over';
+        ctx.globalCompositeOperation = 'destination-over';
         imgSource.onload = () => {
             //(18,36), (205, 172) are original corners of the image
             let scale = imgSource.width / 223;
@@ -406,7 +402,7 @@ class Card {
                                         //Update everything else
                                         this.player.game.update();
                                     }
-                                    this.player.game.addToStack(this);
+                                    this.player.game.addToStack(this, false);
                                 }
                             });
                         }
@@ -469,7 +465,7 @@ class Card {
                                                 this.player.graveyard.push(this); //add to graveyard
                                                 this.setLocation(Zone.Graveyard);
                                             }
-                                            this.player.game.addToStack(this);
+                                            this.player.game.addToStack(this, false);
                                         }
                                     });
                                 });
@@ -511,10 +507,10 @@ class Card {
                             //Get a list of activated or mana abilities
                             let abilitiesToActivate = [];
                             this.abilities.forEach(ability => {
-                                //Check if ability is a mana ability or an activated ability.
-                                //A mana abilitiy can be activated in Pay or Play mode.
-                                //An activated ability can only be activated in Play mode (because it uses the stack).
-                                if (typeof ability === 'object' && (ability.type === 'mana' || (ability.type === 'activated' && this.player.action == ActionType.Play))) {
+                                //Check if the ability can be activated/played and if it can right now
+                                if (ability.canPlay != undefined && 
+                                    ability.canPlay(undefined, this.player.action, this.player.canPlaySorcery(), this.tapped)) {
+                                    //This can be played
                                     abilitiesToActivate.push(ability);
                                 }
                             });
@@ -563,13 +559,21 @@ class Card {
                                                         this.element.classList.add('tapped');
                                                     }
 
-                                                    //Abilities receive the input (card, targets)
-                                                    ability.activate(this, targets);
+                                                    //If the ability is a mana ability, play it.
+                                                    //If it's an activated ability, put it onto the stack
+                                                    if (ability.type === 'mana') {
+                                                        //Play it right away
+                                                        ability.activate(this, targets);
+                                                    }
+                                                    else {
+                                                        //Add the ability to the stack
+                                                        this.player.game.addToStack(ability, true, this, () => ability.activate(this, targets));
+                                                    }
                                                 }
                                             }
 
                                             if (ability.cost.mana != undefined) {
-                                                //Ask the player to pay
+                                                //Ask the player to pay for the ability
                                                 this.player.pay(this, new ManaCost(ability.cost.mana), onPayReceived);
                                             }
                                             else {
@@ -625,17 +629,30 @@ class Card {
      */
     setLocation(location) {
         let handChange = this.location === Zone.Hand || location === Zone.Hand;
+        let leftBattlefield = this.location === Zone.Battlefield && location !== Zone.Battlefield;
 
         this.element.classList.remove(this.location + 'Card');
         this.location = location;
         this.element.classList.add(this.location + 'Card');
 
         //Update this UI, just in case
-        this.update()
+        this.update();
 
         //Update hand if cards in hand changed
         if (handChange) {
             this.player.updateHandUI();
+        }
+
+        //Trigger events
+        if (leftBattlefield) {
+            //Triggers must exist and triggers for leave-battlefield must exist
+            if (this.triggers && this.triggers['leave-battlefield']) {
+                this.triggers['leave-battlefield'].forEach(trigger => {
+                    if (trigger.validateEvent(this)) {
+                        trigger.triggeredFunction(this);
+                    }
+                });
+            }
         }
     }
 
@@ -652,7 +669,6 @@ class Card {
 
         //Add the attachment
         this.attachments.push(card);
-        console.log(this.id+': attached: '+this.attachments)
         
         //Update if requested
         if (update)
@@ -672,10 +688,7 @@ class Card {
         let index = this.attachments.indexOf(card);
         if (index > -1) {
             //Remove the attachment
-            console.log('Deatching at index '+index)
             this.attachments.splice(index, 1);
-            console.log('detached: '+this.attachments)
-            console.log(this.attachments)
             //Update if requested
             if (update)
                 this.update();
@@ -702,19 +715,24 @@ class Card {
      * @returns {boolean} True if there is an ability this card can play
      */
     canPlayAbility(mana) {
-        for(let i in this.abilities) {
-            let ability = this.abilities[i];
+        for(let ability of this.abilities) {
             //Must be a non-keyword ability and either an activated ability or mana ability.
-            if (typeof ability == 'object' && (ability.type == 'activated' || ability.type == 'mana')) {
-                //First check the tapping cost (either this is untapped or it does not cost a tap)
-                if (!this.tapped || !ability.cost.tap) {
-                    //Tapping is good, now check for mana
-                    if (ability.cost.mana == undefined || canPayCost(mana, ability.cost.mana)) {
-                        //The cost can be paid, so this ability can be played! Return true!
-                        return true;
-                    }
-                }
+
+            //Use the convient canPlay method on the ability (if it has one)
+            if (ability.canPlay != undefined && ability.canPlay(mana, this.player.action, this.player.canPlaySorcery(), this.tapped)) {
+                //This can be played
+                return true;
             }
+            // if (typeof ability == 'object' && (ability.type == 'activated' || ability.type == 'mana')) {
+            //     //First check the tapping cost (either this is untapped or it does not cost a tap)
+            //     if (!this.tapped || !ability.cost.tap) {
+            //         //Tapping is good, now check for mana
+            //         if (ability.cost.mana == undefined || canPayCost(mana, ability.cost.mana)) {
+            //             //The cost can be paid, so this ability can be played! Return true!
+            //             return true;
+            //         }
+            //     }
+            // }
         }
         //No abilities are able to be played, so return false.
         return false;
@@ -735,5 +753,16 @@ class Card {
             default: //All sorcery-like spells: Creatures, Sorceries, Enchantments, Artifacts, Planeswalkers, etc
                 return this.player.canPlaySorcery() && canPayCost(mana, this.cost);
         }
+    }
+
+    
+    addTrigger(eventName, validateEvent, triggeredFunction) {
+        if (this.triggers == undefined) {
+            this.triggers = {};
+        }
+        if (this.triggers[eventName] == undefined) {
+            this.triggers[eventName] = [];
+        }
+        this.triggers[eventName].push({validateEvent: validateEvent, triggeredFunction: triggeredFunction});
     }
 }
