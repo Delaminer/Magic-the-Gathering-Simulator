@@ -86,12 +86,12 @@ let test = makeDeck([
     [manaboost, 3],
     ['Darksteel Axe', 4],
     ['Bonesplitter', 2],
+    ['Abrade', 4],
     // [soldier, 5],
     // ['Stone Rain', 10],
     // ['Forest', 10],
     // ['Honor of the Pure', 3],
     // ['Mountain', 10],
-    ['Abrade', 4],
     // ['Mox Ruby', 10],
     // ['Mox Pearl', 10],
     // ['Savannah Lions', 3],
@@ -118,14 +118,11 @@ let test = makeDeck([
 ])
 
 let t2 = makeDeck([
-    ['Mountain', 10],
-    ['Abrade', 10],
-    ['Mox Ruby', 10],
-    ['Lightning Bolt', 10],
-    ['Mox Pearl', 10],
-    [soldier, 10],
-    [manaboost, 10],
-    ['Honor of the Pure', 1],
+    ['Prodigal Sorcerer', 4],
+    [manaboost, 3],
+    ['Darksteel Axe', 4],
+    ['Bonesplitter', 2],
+    ['Abrade', 4],
 ])
 
 let game = new Game("Alex", test, 'Bob', t2);

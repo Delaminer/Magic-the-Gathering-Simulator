@@ -1,3 +1,10 @@
+/* Disable scrollbar */
+::-webkit-scrollbar,
+::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb:hover {
+    display: none;
+}
+
 .game {
     border: black solid thin;
     /* box-sizing: border-box; */

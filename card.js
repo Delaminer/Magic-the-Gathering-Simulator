@@ -187,7 +187,8 @@ class Card {
             if (this.attachments.length > 0) {
                 let thisPosition = this.element.getBoundingClientRect();
                 //If an equipment moves, resulting in this card moving, the new positions also have to be updated
-                let leftSide = thisPosition.left;// - thisPosition.width;
+                let leftSide = thisPosition.left;
+                let topSide = thisPosition.top + window.scrollY; //Add scrollY so absolute position is correctly determined
                 this.attachments.forEach((attachment, index) => {
                     if (attachment.element.style.position != 'absolute') {
                         //Minor fix to reset possible UI issues with things changing position styles
@@ -201,7 +202,7 @@ class Card {
                 this.attachments.forEach((attachment, index) => {
                     attachment.element.style.position = 'absolute';
                     attachment.element.style.left = leftSide + 'px';
-                    attachment.element.style.top = thisPosition.top - 30*index - 30 + 'px';
+                    attachment.element.style.top = topSide - 30*index - 30 + 'px';
                     attachment.element.style.zIndex = this.element.style.zIndex - 1 - index;
                 });
             }
@@ -237,7 +238,6 @@ class Card {
     destroy(source, update) {
         //Only destroy this if it doesn't have indestructible
         if (!this.hasAbility(Keyword.Indestructible)) {
-            console.log(this.name+'#'+this.id+' has been destroyed.');
             this.cleanup(update);
             this.player.graveyardElement.appendChild(this.element); //Move element
             this.player.permanents.splice(this.player.permanents.indexOf(this), 1); //remove from permanents list
@@ -367,10 +367,10 @@ class Card {
     click() {
         switch(this.location) {
             case Zone.Library:
-                console.log('uhhhh, im in the library how\'d you click me?')
+                console.log(this.name + ': uhhhh, im in the library how\'d you click me?');
                 break;
             case Zone.Hand:
-                console.log('playing '+this.name);
+                console.log('Playing ' + this.name + ' from hand.');
                 //Play the card
                 switch(this.playType()) {
                     case 'Land':
@@ -383,7 +383,7 @@ class Card {
                             this.setLocation(Zone.Battlefield); //Change status and update UI
                         }
                         else {
-                            console.log('cant play its '+this.player.action + ', ')
+                            console.log('Cant play a land right now.');
                         }
                         break;
                     case 'Creature':
@@ -475,7 +475,7 @@ class Card {
                                             this.player.game.addToStack(this, false);
                                         }
                                     });
-                                });
+                                }, this);
                             };
 
                             //Now actually get the choices from the player
@@ -510,7 +510,7 @@ class Card {
                         //Activate an ability (if you have priority)
                         if (this.player.game.getPriorityPlayer() == this.player.playerIndex) {
                             //You have priority, play an ability (of your choice)
-                            console.log('Ability yeah!');
+                            console.log(this.name + ': trying to activate any abilities!');
                             //Get a list of activated or mana abilities
                             let abilitiesToActivate = [];
                             this.abilities.forEach(ability => {
@@ -587,7 +587,7 @@ class Card {
                                                 //No payment necessary, run the method immediately
                                                 onPayReceived(true);
                                             }
-                                        });
+                                        }, this);
                                     }
                                 }
                             }
@@ -654,16 +654,9 @@ class Card {
         if (leftBattlefield) {
             //Triggers must exist and triggers for leave-battlefield must exist
             if (this.triggers && this.triggers['leave-battlefield']) {
-                console.log(this.n+' has '+this.triggers['leave-battlefield'].length+' death triggers.')
-                // this.triggers['leave-battlefield'].forEach((trigger, index) => {
-                //     console.log(this.n+': trigger '+index)
-                //     if (trigger.validateEvent(this)) {
-                //         trigger.triggeredFunction(this);
-                //     }
-                // });
-                for(let tid in this.triggers['leave-battlefield']) {
-                    let trigger = this.triggers['leave-battlefield'][tid];
-                    console.log(this.n+': trigger '+tid)
+                for(let triggerID in this.triggers['leave-battlefield']) {
+                    //Get the trigger from the ID
+                    let trigger = this.triggers['leave-battlefield'][triggerID];
                     if (trigger.validateEvent(this)) {
                         trigger.triggeredFunction(this);
                     }
@@ -786,18 +779,27 @@ class Card {
      * @param {Function} triggeredFunction The function that is ran when the event occurs.
      * @returns The reference to the trigger, so it can be removed later.
      */
-    addTrigger(eventName, validateEvent, triggeredFunction, tid) {
+    addTrigger(eventName, validateEvent, triggeredFunction) {
+        //First intialize the trigger database and collection for this event if needed
         if (this.triggers == undefined) {
             this.triggers = {};
         }
         if (this.triggers[eventName] == undefined) {
             this.triggers[eventName] = {};
         }
+
+        //Make a random ID for this trigger (the trigger itself cannot be used as the ID, a lot of problems have arisen from trying that)
+        let triggerID = Math.floor(Math.random() * 1000).toString();
+        //Make sure the ID isn't already taken
+        while (this.triggers[eventName][triggerID]) triggerID = Math.floor(Math.random() * 1000).toString();
+
+        //Create a trigger object with the two functions givem
         let trigger = {validateEvent: validateEvent, triggeredFunction: triggeredFunction};
-        
-        // this.triggers[eventName].push(trigger);
-        this.triggers[eventName][tid] = trigger;
-        return tid; //So it can be removed by the user later
+
+        //Register the trigger
+        this.triggers[eventName][triggerID] = trigger;
+        //Return the ID to the user
+        return triggerID;
     }
     /**
      * Remove a trigger for an event
@@ -805,16 +807,8 @@ class Card {
      * @param {*} trigger The trigger to be removed.
      */
     removeTrigger(eventName, trigger) {
+        //The trigger must exist to delete it
         if (this.triggers && this.triggers[eventName] && this.triggers[eventName][trigger]) {
-            // let index = this.triggers[eventName].indexOf(trigger);
-            // if (index > -1) {
-            //     //Remove it
-            //     this.triggers[eventName].splice(index, 1);
-            //     console.log('trigger removed')
-            // }
-            // else {
-            //     console.log('trigger not found')
-            // }
             delete this.triggers[eventName][trigger];
         }
     }

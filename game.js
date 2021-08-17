@@ -469,7 +469,6 @@ class Game {
         this.players.forEach(player => {
             player.permanents.forEach(permanent => {
                 permanent.abilities.filter(ability => ability.type == 'static').forEach(ability => {
-                    console.log('ability for '+permanent.name+'#'+permanent.id)
                     //This is a static ability. Check if it is valid, and if it changes the power
                     if (ability.valid(card, permanent)) {
                         //It is valid! Now change power if available

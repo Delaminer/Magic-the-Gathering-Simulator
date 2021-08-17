@@ -33,6 +33,8 @@ const calculateCost = (cost) => {
         'green': 0,
         'text': cost //for ease of use
     }
+    if (cost.length < 1) return costs;
+
     if (cost.includes('{')) {
         //Special format
         //Convert a string of terms seperated with {} to an array of each term
@@ -187,10 +189,14 @@ const canPayCost = (mana, cost) => {
  * Get a function that checks if a target is valid following a set of specifications.
  * @param {string} targetSpec The specifications for the target, either as a function returning a target's validity, 
  * or a string of qualifications the target must meet.
+ * @param {Card} sourceCard The card requesting a target. Used for determing the target's relation to the source's player.
  * @returns {Function} A function that when given a target and whether or not it is a player, return it's validity.
  */
-const validateTarget = (targetSpec) => {
+const validateTarget = (targetSpec, sourceCard) => {
     if (typeof targetSpec == 'string') {
+        //Get the controlling player to determine if a target is controlled by them or an opponent
+        let controllingPlayer = sourceCard.player;
+
         //targetSpec is a string of identifiers
         let identifiers = targetSpec.split(' ');
         //Each identifier corresponds to a test
@@ -222,6 +228,14 @@ const validateTarget = (targetSpec) => {
 
             let test = () => true;
             switch(identifier) {
+                case 'Control':
+                    //Must be either a player or card's controller must be the source player
+                    test = (target, isPlayer) => isPlayer || target.player == controllingPlayer;
+                    break;
+                case 'OpponentControl':
+                    //Must be either a player or card's controller must not be the source player
+                    test = (target, isPlayer) => isPlayer || target.player != controllingPlayer;
+                    break;
                 case 'Creature':
                     //Card must be a creature
                     test = (target, isPlayer) => !isPlayer && target.types.includes('Creature');
@@ -241,6 +255,10 @@ const validateTarget = (targetSpec) => {
                 case 'Player':
                     //Target must be a player
                     test = (target, isPlayer) => isPlayer;
+                    break;
+                case 'Opponent':
+                    //Target must be a player and not the controlling player
+                    test = (target, isPlayer) => isPlayer && target != controllingPlayer;
                     break;
                 case 'Any':
                     //Target must be a player or creature (or planeswalker TODO)

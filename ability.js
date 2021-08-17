@@ -32,7 +32,7 @@ class Ability {
             //Make sure at least one target is legal
             let legalTargets = 0;
             for(let i in targets) {
-                if (validateTarget(this.targets[i])(targets[i], targets[i] instanceof Player)) {
+                if (validateTarget(this.targets[i], card)(targets[i], targets[i] instanceof Player)) {
                     //It is valid
                     legalTargets++;
                     break;
@@ -55,7 +55,7 @@ class Ability {
      * @returns 
      */
     canPlay(mana, action, sorcerySpeed, tapped) {
-        console.log('Can play ran on base level Ability class, this must be overrided for abilities of type '+this.type);
+        console.log('Ability.canPlay() ran on base level Ability class, this must be overrided for abilities of type '+this.type);
         return (this.type === 'mana' || (this.type === 'activated' && action == ActionType.Play)) &&
                 //Check for timing restrictions.
                 (!this.restrictions || sorcerySpeed || !this.restrictions.includes('sorcery-speed')) &&
@@ -121,4 +121,89 @@ class KeywordAbility {
         this.type = 'keyword';
         this.keyword = keyword;
     }
+}
+
+/**
+ * Create the Equip and Equipped Creature
+ * @param {*} cost 
+ * @param {*} effect 
+ * @param {*} triggers 
+ * @returns 
+ */
+const Equip = (cost, effect, triggers) => {
+    return ([
+        {
+            //Boost equipped creature
+            type: 'static',
+            valid: (card, sourceCard) => 
+                sourceCard.attached == card && card.types.includes('Creature') && 
+                sourceCard.player == card.player && card.location == Zone.Battlefield,
+            //Effect: boost power by 2
+            effect: effect,
+        },
+        new ActivatedAbility({
+            //Equip - This is an activated ability
+            text: 'Equip',
+            restrictions: 'sorcery-speed',
+            cost: cost,
+            targets: ['Creature Control'],
+            activate: (card, targets) => {
+                //Make sure the equip target is still legal (the ability should be countered if this is the case, but add this check just in case)
+                if (!validateTarget('Creature', card)(targets[0], false)) {
+                    //The target has been invalidated
+                    return;
+                }
+                //If the equipment is destroyed before equipping resolves, cancel it (not all abilities fizzle when the source dies, but this does)
+                if (card.location != Zone.Battlefield) {
+                    return;
+                }
+    
+                //Detach old creature if it was already attached
+                if (card.attached) {
+                    //Detach it
+                    card.attached.detach(card, false);
+                    //Remove old listeners - for when the creature dies and for when the artifact dies
+                    card.attached.removeTrigger('leave-battlefield', card.attachTrigger);
+                    card.removeTrigger('leave-battlefield', card.deathTrigger);
+                }
+    
+                //Attach to the creature
+                card.attached = targets[0];
+                targets[0].attach(card, false);
+    
+                //Attach listener to auto-detach when the creature dies and save the reference
+                card.attachTrigger = targets[0].addTrigger('leave-battlefield', () => true, () => {
+                    //Detach from card
+                    card.attached.detach(card, false);
+                    //Remove listeners - for when the creature dies and for when the artifact dies
+                    card.attached.removeTrigger('leave-battlefield', card.attachTrigger);
+                    card.removeTrigger('leave-battlefield', card.deathTrigger);
+                    //Remove reference
+                    card.attached = undefined;
+                    //Reset this UI
+                    card.element.style.position = 'initial';
+                    //Update the game
+                    card.player.game.update();
+                });
+    
+                //Attach listener to auto-detach when the artifact dies and save the reference
+                card.deathTrigger = card.addTrigger('leave-battlefield', () => true, () => {
+                    //Detach from card
+                    card.attached.detach(card, false);
+                    //Remove listeners - for when the creature dies and for when the artifact dies
+                    card.attached.removeTrigger('leave-battlefield', card.attachTrigger);
+                    card.removeTrigger('leave-battlefield', card.deathTrigger);
+                    //Remove reference
+                    card.attached = undefined;
+                    //Reset this UI
+                    card.element.style.position = 'initial';
+                    //Update the game
+                    card.player.game.update();
+                });
+    
+                //Update everything
+                targets[0].player.game.update();
+            },
+        }),
+    ]);
 }

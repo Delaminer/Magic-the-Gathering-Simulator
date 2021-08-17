@@ -837,9 +837,11 @@ class Player {
     /**
      * Give something a set of targets.
      * @param {Array} targetSpecifications This array specifies how many targets are needed and what qualities do they have to have.
-     * @param {Function} receiveTargetsCallback This method will be called once all targets have been obtained, returning an array of targets that follow the specs.
+     * @param {Function} receiveTargetsCallback This method will be called once all targets have been obtained, 
+     * returning an array of targets that follow the specs.
+     * @param {Card} sourceCard The card that is requesting the targets.
      */
-    getTargets(targetSpecifications, receiveTargetsCallback) {
+    getTargets(targetSpecifications, receiveTargetsCallback, sourceCard) {
         if (targetSpecifications == undefined || targetSpecifications.length == 0) {
             //There are no specifications, so callback right away with no targets
             receiveTargetsCallback([]);
@@ -863,7 +865,7 @@ class Player {
             //Loop through the targets specified, getting each one in order
             targetSpecifications.forEach(targetSpec => {
                 //Get a function that validates a target
-                let validate = validateTarget(targetSpec);
+                let validate = validateTarget(targetSpec, sourceCard);
 
                 //Assign it to the player (using temp).
                 this.temp.targets.push({
