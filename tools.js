@@ -183,6 +183,12 @@ const canPayCost = (mana, cost) => {
 //     return false;
 // }
 
+/**
+ * Get a function that checks if a target is valid following a set of specifications.
+ * @param {string} targetSpec The specifications for the target, either as a function returning a target's validity, 
+ * or a string of qualifications the target must meet.
+ * @returns {Function} A function that when given a target and whether or not it is a player, return it's validity.
+ */
 const validateTarget = (targetSpec) => {
     if (typeof targetSpec == 'string') {
         //targetSpec is a string of identifiers

@@ -1,3 +1,23 @@
+/**
+ * Create an ability using data! It uses the type specified to create an ability of the same type.
+ * @param {*} data The data for the ability
+ * @returns {Ability} The ability, or the original data.
+ */
+const CreateAbility = (data) => {
+    //Use the data to determine the type of the ability, then create an instance of that ability and return it!
+    if (data.type) {
+        switch(data.type) {
+            case 'activated':
+                return new ActivatedAbility(data);
+            case 'mana':
+                return new ManaAbility(data);
+            case 'spell':
+                return new SpellAbility(data);
+        }
+    }
+    return data;
+}
+
 class Ability {
     constructor(data) {
         for(let variable in data) {
@@ -83,5 +103,22 @@ class SpellAbility extends Ability {
     constructor(data) {
         super(data);
         this.type = 'spell';
+    }
+}
+
+const Keyword  = {
+    Trample: 'Trample',
+    Deathtouch: 'Deathtouch',
+    Indestructible: 'Indestructible',
+}
+
+class KeywordAbility {
+    /**
+     * Create a keyword ability. Very simple.
+     * @param {Keyword} keyword The keyword.
+     */
+    constructor(keyword) {
+        this.type = 'keyword';
+        this.keyword = keyword;
     }
 }

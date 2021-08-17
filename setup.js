@@ -18,6 +18,7 @@ let makeDeck = (deck) => {
         for(let j = 0; j < playSet[1]; j++) {
             let card = new Card(cardBase);
             card.id = id++;
+            card.n = card.name+'#'+card.id;
             db[card.id] = card;
             card.element = card.getUI();
             card.element.getCard = () => card;
@@ -27,7 +28,7 @@ let makeDeck = (deck) => {
     return out;
 }
 
-let soldier = ['Weary Soldier', '{W}', 'Creature', 'Human Soldier', 'Vigilance', {power: 3, toughness: 2}];
+let soldier = ['Weary Soldier', '{W}', 'Creature', 'Human Soldier', 'Vigilance', {power: 3, toughness: 2, abilities: []}];
 let bat = ['High Flier', '{B}{B}', 'Creature', 'Bat Horror', 'Vigilance', {power: 6, toughness: 1}];
 let cat = ['Catty kitten', '{B}', 'Creature', 'Cat', '', {power: 1, toughness: 2}];
 let rat = ['Heel Rat', '{B}{B}', 'Creature', 'Rat', 'Flying\n{1}{B}, {T}: Tap target creature.', {power: 1, toughness: 1, abilities: [
@@ -81,20 +82,21 @@ let bobDeck = makeDeck([
 ])
 
 let test = makeDeck([
-    ['Prodigal Sorcerer', 3],
+    ['Prodigal Sorcerer', 4],
     [manaboost, 3],
     ['Darksteel Axe', 4],
+    ['Bonesplitter', 2],
     // [soldier, 5],
     // ['Stone Rain', 10],
     // ['Forest', 10],
     // ['Honor of the Pure', 3],
     // ['Mountain', 10],
-    // ['Abrade', 10],
+    ['Abrade', 4],
     // ['Mox Ruby', 10],
     // ['Mox Pearl', 10],
     // ['Savannah Lions', 3],
     // ['Lightning Bolt', 2],
-    ['Healing Salve', 2],
+    // ['Healing Salve', 2],
     // [soldier, 10],
     // [person, 5],
     // ['KariZev', 5],
@@ -104,7 +106,7 @@ let test = makeDeck([
     // ['Mountain', 5],
     // ['Forest', 5],
     // ['DarkRitual', 5],
-    ['Ancestral Recall', 3],
+    ['Ancestral Recall', 5],
     // ['LightningBolt', 5],
     // ['GiantGrowth', 5],
     // ['HealingSalve', 5],

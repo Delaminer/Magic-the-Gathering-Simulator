@@ -52,12 +52,6 @@ button {
     margin-bottom: 5px;
 }
 
-.sidebar .mana button.color {
-    /* width: 100px; */
-    /* height: 40px; */
-}
-
-
 .lands, .permanents {
     border: solid thin green;
     min-height: 30px;
@@ -143,9 +137,6 @@ button {
 }
 .choices .dialogue .submit.valid {
     background-color: blue;
-}
-.choices .dialogue .card-display {
-    /* margin-top: 50px; */
 }
 
 .card {

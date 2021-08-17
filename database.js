@@ -241,6 +241,7 @@ Database['Abrade'] = ['Abrade', '{1}{R}', 'Instant', '',
     new SpellAbility({
         targets: ['Artifact'],
         activate: (card, targets) => {
+            console.log('destroying '+targets[0].name+'#'+targets[0].id)
             targets[0].destroy({type: 'destroy', card: card}, true);
         },
     }),
@@ -249,15 +250,8 @@ Database['Darksteel Axe'] = ['Darksteel Axe', '{1}', 'Artifact', 'Equipment',
     'Indestructible\nEquipped creature gets +2/+0.\nEquip {2}', {
     imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=489920&type=card',
     abilities: [
-    // {
-    //     //Indestructible?
-    //     type: 'mana',
-    //     cost: { tap: true },
-    //     activate: (card) => {
-    //         card.player.mana['green']++;
-    //         card.player.updateMana();
-    //     },
-    // },
+    //It has indestructible
+    new KeywordAbility(Keyword.Indestructible),
     {
         //Boost equipped creature
         type: 'static',
@@ -275,26 +269,139 @@ Database['Darksteel Axe'] = ['Darksteel Axe', '{1}', 'Artifact', 'Equipment',
         cost: { mana: '2' },
         targets: ['Creature'],
         activate: (card, targets) => {
+            //Make sure the equip target is still legal (the ability should be countered if this is the case, but add this check just in case)
+            if (!validateTarget('Creature')(targets[0], false)) {
+                //The target has been invalidated
+                return;
+            }
+            //If the equipment is destroyed before equipping resolves, cancel it (not all abilities fizzle when the source dies, but this does)
+            if (card.location != Zone.Battlefield) {
+                return;
+            }
 
             //Detach old creature if it was already attached
             if (card.attached) {
+                //Detach it
                 card.attached.detach(card, false);
+                //Remove old listeners - for when the creature dies and for when the artifact dies
+                card.attached.removeTrigger('leave-battlefield', card.attachTrigger);
+                card.removeTrigger('leave-battlefield', card.deathTrigger);
             }
 
             //Attach to the creature
             card.attached = targets[0];
             targets[0].attach(card, false);
 
-            //Attach listner to auto-detach
-            targets[0].addTrigger('leave-battlefield', () => true, (attachmentCreature) => {
+            //Attach listener to auto-detach when the creature dies and save the reference
+            card.attachTrigger = targets[0].addTrigger('leave-battlefield', () => true, () => {
+                console.log(card.n+': DA lost equipped creature '+card.attached.n)
                 //Detach from card
                 card.attached.detach(card, false);
+                //Remove listeners - for when the creature dies and for when the artifact dies
+                card.attached.removeTrigger('leave-battlefield', card.attachTrigger);
+                card.removeTrigger('leave-battlefield', card.deathTrigger);
+                //Remove reference
                 card.attached = undefined;
                 //Reset this UI
                 card.element.style.position = 'initial';
                 //Update the game
                 card.player.game.update();
-            });
+            }, card.n);
+
+            //Attach listener to auto-detach when the artifact dies and save the reference
+            card.deathTrigger = card.addTrigger('leave-battlefield', () => true, () => {
+                //Detach from card
+                card.attached.detach(card, false);
+                //Remove listeners - for when the creature dies and for when the artifact dies
+                card.attached.removeTrigger('leave-battlefield', card.attachTrigger);
+                card.removeTrigger('leave-battlefield', card.deathTrigger);
+                //Remove reference
+                card.attached = undefined;
+                //Reset this UI
+                card.element.style.position = 'initial';
+                //Update the game
+                card.player.game.update();
+            }, card.n);
+
+            //Update everything
+            targets[0].player.game.update();
+        },
+    }),
+]}];
+Database['Bonesplitter'] = ['Bonesplitter', '{1}', 'Artifact', 'Equipment', 
+    'Equipped creature gets +2/+0.\nEquip {1}', {
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=500938&type=card',
+    abilities: [
+    {
+        //Boost equipped creature
+        type: 'static',
+        valid: (card, sourceCard) => 
+            sourceCard.attached == card && card.types.includes('Creature') && card.location == Zone.Battlefield,
+        //Effect: boost power by 2
+        effect: {
+            powerChange: 2,
+        },
+    },
+    new ActivatedAbility({
+        //Equip - This is an activated ability
+        text: 'Equip',
+        restrictions: 'sorcery-speed',
+        cost: { mana: '1' },
+        targets: ['Creature'],
+        activate: (card, targets) => {
+            //Make sure the equip target is still legal (the ability should be countered if this is the case, but add this check just in case)
+            if (!validateTarget('Creature')(targets[0], false)) {
+                //The target has been invalidated
+                return;
+            }
+            //If the equipment is destroyed before equipping resolves, cancel it (not all abilities fizzle when the source dies, but this does)
+            if (card.location != Zone.Battlefield) {
+                return;
+            }
+
+            //Detach old creature if it was already attached
+            if (card.attached) {
+                //Detach it
+                card.attached.detach(card, false);
+                //Remove old listeners - for when the creature dies and for when the artifact dies
+                card.attached.removeTrigger('leave-battlefield', card.attachTrigger);
+                card.removeTrigger('leave-battlefield', card.deathTrigger);
+            }
+
+            //Attach to the creature
+            card.attached = targets[0];
+            targets[0].attach(card, false);
+
+            //Attach listener to auto-detach when the creature dies and save the reference
+            card.attachTrigger = targets[0].addTrigger('leave-battlefield', () => true, () => {
+                console.log(card.n+': BS lost equipped creature '+card.attached.n)
+                //Detach from card
+                card.attached.detach(card, false);
+                //Remove listeners - for when the creature dies and for when the artifact dies
+                card.attached.removeTrigger('leave-battlefield', card.attachTrigger);
+                card.removeTrigger('leave-battlefield', card.deathTrigger);
+                //Remove reference
+                card.attached = undefined;
+                //Reset this UI
+                card.element.style.position = 'initial';
+                //Update the game
+                card.player.game.update();
+            }, card.n);
+
+            //Attach listener to auto-detach when the artifact dies and save the reference
+            card.deathTrigger = card.addTrigger('leave-battlefield', () => true, () => {
+                //Detach from card
+                card.attached.detach(card, false);
+                //Remove listeners - for when the creature dies and for when the artifact dies
+                card.attached.removeTrigger('leave-battlefield', card.attachTrigger);
+                card.removeTrigger('leave-battlefield', card.deathTrigger);
+                //Remove reference
+                card.attached = undefined;
+                //Reset this UI
+                card.element.style.position = 'initial';
+                //Update the game
+                card.player.game.update();
+            }, card.n);
 
             //Update everything
             targets[0].player.game.update();

@@ -59,7 +59,7 @@ class Card {
             if (extra.abilities != undefined) {
                 //Add abilities
                 extra.abilities.forEach(ability => {
-                    this.abilities.push(ability);
+                    this.abilities.push(CreateAbility(ability));
                 });
             }
             //Allow for attachments
@@ -235,11 +235,15 @@ class Card {
      * @param {boolean} update Whether you want state based actions to update based on this (should always be on?)
      */
     destroy(source, update) {
-        this.cleanup(update);
-        this.player.graveyardElement.appendChild(this.element); //Move element
-        this.player.permanents.splice(this.player.hand.indexOf(this), 1); //remove from permanents list
-        this.player.graveyard.push(this); //add to graveyard list
-        this.setLocation(Zone.Graveyard); //Change status variable and update UI
+        //Only destroy this if it doesn't have indestructible
+        if (!this.hasAbility(Keyword.Indestructible)) {
+            console.log(this.name+'#'+this.id+' has been destroyed.');
+            this.cleanup(update);
+            this.player.graveyardElement.appendChild(this.element); //Move element
+            this.player.permanents.splice(this.player.permanents.indexOf(this), 1); //remove from permanents list
+            this.player.graveyard.push(this); //add to graveyard list
+            this.setLocation(Zone.Graveyard); //Change status variable and update UI
+        }
     }
 
     /**
@@ -650,11 +654,20 @@ class Card {
         if (leftBattlefield) {
             //Triggers must exist and triggers for leave-battlefield must exist
             if (this.triggers && this.triggers['leave-battlefield']) {
-                this.triggers['leave-battlefield'].forEach(trigger => {
+                console.log(this.n+' has '+this.triggers['leave-battlefield'].length+' death triggers.')
+                // this.triggers['leave-battlefield'].forEach((trigger, index) => {
+                //     console.log(this.n+': trigger '+index)
+                //     if (trigger.validateEvent(this)) {
+                //         trigger.triggeredFunction(this);
+                //     }
+                // });
+                for(let tid in this.triggers['leave-battlefield']) {
+                    let trigger = this.triggers['leave-battlefield'][tid];
+                    console.log(this.n+': trigger '+tid)
                     if (trigger.validateEvent(this)) {
                         trigger.triggeredFunction(this);
                     }
-                });
+                }
             }
         }
     }
@@ -709,7 +722,14 @@ class Card {
      * @returns {boolean} True if this card has the specified ability
      */
     hasAbility(ability) {
-        return this.abilities.includes(ability);
+        return (
+            //Only get keyword abilities
+            this.abilities.filter(ability => ability.type == 'keyword')
+            //Get the keyword
+            .map(ability => ability.keyword)
+            //This list of keywords must include the ability
+            .includes(ability)
+        );
     }
 
     /**
@@ -759,13 +779,43 @@ class Card {
     }
 
     
-    addTrigger(eventName, validateEvent, triggeredFunction) {
+    /**
+     * Add a trigger to a card for when an event occurs
+     * @param {string} eventName The name of the event.
+     * @param {Function} validateEvent Runs to check if the event is valid (used for specifying the event more in-depth)
+     * @param {Function} triggeredFunction The function that is ran when the event occurs.
+     * @returns The reference to the trigger, so it can be removed later.
+     */
+    addTrigger(eventName, validateEvent, triggeredFunction, tid) {
         if (this.triggers == undefined) {
             this.triggers = {};
         }
         if (this.triggers[eventName] == undefined) {
-            this.triggers[eventName] = [];
+            this.triggers[eventName] = {};
         }
-        this.triggers[eventName].push({validateEvent: validateEvent, triggeredFunction: triggeredFunction});
+        let trigger = {validateEvent: validateEvent, triggeredFunction: triggeredFunction};
+        
+        // this.triggers[eventName].push(trigger);
+        this.triggers[eventName][tid] = trigger;
+        return tid; //So it can be removed by the user later
+    }
+    /**
+     * Remove a trigger for an event
+     * @param {string} eventName The name of the event.
+     * @param {*} trigger The trigger to be removed.
+     */
+    removeTrigger(eventName, trigger) {
+        if (this.triggers && this.triggers[eventName] && this.triggers[eventName][trigger]) {
+            // let index = this.triggers[eventName].indexOf(trigger);
+            // if (index > -1) {
+            //     //Remove it
+            //     this.triggers[eventName].splice(index, 1);
+            //     console.log('trigger removed')
+            // }
+            // else {
+            //     console.log('trigger not found')
+            // }
+            delete this.triggers[eventName][trigger];
+        }
     }
 }
