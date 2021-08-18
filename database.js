@@ -279,3 +279,28 @@ Database['Nature\'s Blessing'] = ['Nature\'s Blessing', '{2}{G}', 'Enchantment',
     abilities: [
         ...EnchantmentAura('Creature', { powerChange: 2, toughnessChange: 2, }),
 ]}];
+
+Database['Phantom Warrior'] = ['Phantom Warrior', '{1}{U}{U}', 'Creature', 'Illusion Warrior', 'Phantom Warrior can\'t be blocked.', {power: 2, toughness: 2, 
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=446097&type=card', abilities: [new KeywordAbility(Keyword.Unblockable),],
+}];
+Database['Bog Imp'] = ['Bog Imp', '{1}{B}', 'Creature', 'Imp', 'Flying', {power: 1, toughness: 1, 
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=83010&type=card', abilities: [new KeywordAbility(Keyword.Flying),],
+}];
+Database['Giant Spider'] = ['Giant Spider', '{3}{G}', 'Creature', 'Spider', 'Reach', {power: 2, toughness: 4, abilities: [new KeywordAbility(Keyword.Reach),],
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/8/0/80996b0d-cd44-445e-96de-677e0018255c.jpg?1562302899',
+}];
+Database['Severed Legion'] = ['Severed Legion', '{1}{B}{B}', 'Creature', 'Zombie', 'Fear', {power: 2, toughness: 2, 
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=129693&type=card', abilities: [new KeywordAbility(Keyword.Fear),],
+}];
+Database['Bladetusk Boar'] = ['Bladetusk Boar', '{3}{R}', 'Creature', 'Boar', 'Intimidate', {power: 3, toughness: 2, 
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=380379&type=card', abilities: [new KeywordAbility(Keyword.Intimidate),],
+}];
+Database['Dauthi Marauder'] = ['Dauthi Marauder', '{2}{B}', 'Creature', 'Dauthi Minion', 'Shadow', {power: 3, toughness: 1, 
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=397395&type=card', abilities: [new KeywordAbility(Keyword.Shadow),],
+}];
+Database['Furtive Homunculus'] = ['Furtive Homunculus', '{1}{U}', 'Creature', 'Homunculus', 'Skulk', {power: 2, toughness: 1, 
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=409807&type=card', abilities: [new KeywordAbility(Keyword.Skulk),],
+}];
+Database['Memnite'] = ['Memnite', '{0}', 'Artifact Creature', 'Construct', '', {power: 1, toughness: 1, 
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=194078&type=card', 
+}];

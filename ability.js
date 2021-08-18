@@ -111,11 +111,28 @@ class SpellAbility extends Ability {
 }
 
 const Keyword  = {
-    Trample: 'Trample',
     Deathtouch: 'Deathtouch',
-    Indestructible: 'Indestructible',
-    Vigilance: 'Vigilance',
-    Flash: 'Flash',
+    Defender: 'Defender', //added
+    DoubleStrike: 'Double Strike',
+    Fear: 'Fear', //added
+    FirstStrike: 'First Strike',
+    Flash: 'Flash', //added
+    Flying: 'Flying', //added
+    Haste: 'Haste',
+    Hexproof: 'Hexproof',
+    Indestructible: 'Indestructible', //added
+    Infect: 'Infect',
+    Intimidate: 'Intimidate', //added
+    Lifelink: 'Lifelink',
+    Menace: 'Menace',
+    Reach: 'Reach', //added
+    Shadow: 'Shadow', //added
+    Shroud: 'Shroud',
+    Skulk: 'Skulk', //added
+    Trample: 'Trample', //added
+    Unblockable: 'Unblockable', //added
+    Wither: 'Wither',
+    Vigilance: 'Vigilance', //added
 }
 
 class KeywordAbility {

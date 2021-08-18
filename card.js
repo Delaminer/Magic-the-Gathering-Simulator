@@ -170,6 +170,46 @@ class Card {
     }
 
     /**
+     * Determine whether or not a specified blocker can block this attacker
+     * @param {Card} blocker The blocker trying to block this attacker.
+     * @return {boolean} True if this creature can be blocked by the blocker.
+     */
+    validBlocker(blocker) {
+        //No blockers can block unblockable creatures
+        if (this.hasAbility(Keyword.Unblockable)) return false;
+
+        //Check Flying - it must have either flying or reach to block
+        if (this.hasAbility(Keyword.Flying) && !(blocker.hasAbility(Keyword.Flying) || blocker.hasAbility(Keyword.Reach))) return false;
+
+        //Check Fear - must be black or an artifact to block
+        if (!blocker.colors.includes('black') && !blocker.types.includes('Artifact') && this.hasAbility(Keyword.Fear)) return false;
+
+        //Check Intimidate - must share a color or be an artifact to block
+        if(!(this.colors.filter(color => blocker.colors.includes(color)).length > 0) && 
+            !blocker.types.includes('Artifact') && this.hasAbility(Keyword.Intimidate)) return false;
+
+        //Check Shadow - must have Shadow if this has it, or cannot have it if this doesn't have it in order to block
+        if(this.hasAbility(Keyword.Shadow) != blocker.hasAbility(Keyword.Shadow)) return false;
+
+        //Check Skulk - Must have a lesser or equal power to block
+        if(this.hasAbility(Keyword.Skulk) && (blocker.getPower() > this.getPower())) return false;
+
+        //All checks pass, return a success
+        return true;
+    }
+
+    /**
+     * Determine whether or not this creature can attack.
+     * @return {boolean} True if this creature can attack.
+     */
+    validAttacker() {
+        //Right now, it is only restricted if it has defender
+        if (this.hasAbility(Keyword.Defender)) return false;
+
+        return true;
+    }
+
+    /**
      * Update this cards UI and checks if damage kills it.
      */
     update() {
@@ -655,7 +695,7 @@ class Card {
                         this.player.selectTarget(this, false);
                         break;
                     case ActionType.Attack:
-                        if (this.types.includes('Creature')) //Must be a creature that can attack
+                        if (this.types.includes('Creature') && this.validAttacker()) //Must be a creature that can attack
                             this.player.selectAttacker(this);
                         break;
                     case ActionType.Block:
@@ -828,7 +868,7 @@ class Card {
             case 'Instant':
                 return this.player.canPlayInstant() && canPayCost(mana, this.cost);
             default: //All sorcery-like spells: Creatures, Sorceries, Enchantments, Artifacts, Planeswalkers, etc
-                return this.player.canPlaySorcery() && canPayCost(mana, this.cost);
+                return (this.player.canPlaySorcery() || (this.hasAbility(Keyword.Flash) && this.player.canPlayInstant())) && canPayCost(mana, this.cost);
         }
     }
 

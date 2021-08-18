@@ -32,6 +32,9 @@ class Game {
         this.turn = 0;
         this.players = [this.player1, this.player2];
         this.stack = [];
+
+        //Add an update on page resize so UI doesn't break
+        window.addEventListener('resize', () => this.update());
     }
 
     /**

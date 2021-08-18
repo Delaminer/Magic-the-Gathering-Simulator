@@ -752,7 +752,7 @@ class Player {
                 // This was not, so switch to this one.
 
                 // First remove the old one
-                this.temp.classList.remove('blocker');
+                this.temp.element.classList.remove('blocker');
 
                 console.log(`${card.name} is now blocking instead of ${this.temp.name}.`);
 
@@ -775,7 +775,8 @@ class Player {
      */
     selectBlockTarget(card) {
         // There has to be an unassigned blocker for this card to be targeted
-        if (this.temp != undefined) {
+        //The blocker also has to be legally allowed to block the target
+        if (this.temp != undefined && card.validBlocker(this.temp)) {
             //Assign my temp blocker to block this card
             //Draw line as well connecting the two
 
