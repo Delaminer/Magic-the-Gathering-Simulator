@@ -845,18 +845,32 @@ class Player {
     getTargets(targetSpecifications, receiveTargetsCallback, sourceCard) {
         if (targetSpecifications == undefined || targetSpecifications.length == 0) {
             //There are no specifications, so callback right away with no targets
-            receiveTargetsCallback([]);
+            receiveTargetsCallback([], true);
         }
         else {
             //All players are now in Target mode as targets have to be specified.
             this.game.players.forEach(player => player.action = ActionType.Target);
+
+            //Rewrite the callback so that original text and functions are restored
+            let original = {
+                status: this.moveStatus.textContent,
+                control: this.moveControl.textContent,
+                d: () => {console.log('click'); this.moveControl.click();},
+            }
+            let newCallback = (a, b) => {
+                // this.moveStatus.textContent = original.status;
+                // this.moveControl.textContent = original.control;
+                // this.moveControl.onclick = () => original.d();
+                this.updatePriority();
+                receiveTargetsCallback(a, b);
+            }
 
             //Set up the player's temp storage to handle target selection.
             //Whenever a player selects a target, it will be added to temp, and once they have all been assigned,
             //the callback will be called.
             this.temp = {
                 //Callback
-                callback: receiveTargetsCallback,
+                callback: targets => newCallback(targets, true),
                 //Targets
                 targets: [],
                 //How many targets have already been specified
@@ -881,6 +895,13 @@ class Player {
 
             //Update UI showing that a target needs to be specified.
             this.moveStatus.textContent = 'Please select a target.';
+
+            //Change what the control button does (it cancels selecting a target)
+            this.moveControl.textContent = 'Cancel';
+            this.moveControl.onclick = () => { //Cancel selecting targets
+                //Let the card know it was cancelled
+                newCallback([], false);
+            };
         }
     }
 

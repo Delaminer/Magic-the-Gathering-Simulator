@@ -450,38 +450,39 @@ class Card {
                                 targetsNeeded = [].concat.apply([], targetsNeeded);
 
                                 //Get targets
-                                this.player.getTargets(targetsNeeded, allTargets => {
+                                this.player.getTargets(targetsNeeded, (allTargets, targetsSuccess) => {
                                     //Reset action after getting targets
                                     this.player.game.players.forEach(player => player.action = ActionType.Play);
-
-
-                                    //Pay and play the spell just like normal, except use the targets to play the spell after
-                                    this.player.payForCard(this, (success) => {
-                                        if (success) {
-                                            //Remove it from the hand
-                                            this.player.hand.splice(this.player.hand.indexOf(this), 1);
-                                            //Add it to the stack
-                                            this.setLocation(Zone.Stack);
-                                            //For when it resolves
-                                            this.play = () => {
-                                                //Play the creature, putting it onto the battlefield
-                                                this.player.permanentsElement.appendChild(this.element);
-                                                this.player.permanents.push(this); //add to permanents
-                                                this.setLocation(Zone.Battlefield);
-                                                //Play the spells
-                                                let targetsIndex = 0;
-                                                spellsOnCast.forEach(ability => {
-                                                    let targets = allTargets.slice(targetsIndex, ability.targets.length);
-                                                    ability.activate(this, targets);
-                                                    targetsIndex += ability.targets.length;
-                                                });
-        
-                                                //Update everything else
-                                                this.player.game.update();
+                                    if (targetsSuccess) {
+    
+                                        //Pay and play the spell just like normal, except use the targets to play the spell after
+                                        this.player.payForCard(this, (success) => {
+                                            if (success) {
+                                                //Remove it from the hand
+                                                this.player.hand.splice(this.player.hand.indexOf(this), 1);
+                                                //Add it to the stack
+                                                this.setLocation(Zone.Stack);
+                                                //For when it resolves
+                                                this.play = () => {
+                                                    //Play the creature, putting it onto the battlefield
+                                                    this.player.permanentsElement.appendChild(this.element);
+                                                    this.player.permanents.push(this); //add to permanents
+                                                    this.setLocation(Zone.Battlefield);
+                                                    //Play the spells
+                                                    let targetsIndex = 0;
+                                                    spellsOnCast.forEach(ability => {
+                                                        let targets = allTargets.slice(targetsIndex, ability.targets.length);
+                                                        ability.activate(this, targets);
+                                                        targetsIndex += ability.targets.length;
+                                                    });
+            
+                                                    //Update everything else
+                                                    this.player.game.update();
+                                                }
+                                                this.player.game.addToStack(this, false);
                                             }
-                                            this.player.game.addToStack(this, false);
-                                        }
-                                    });
+                                        });
+                                    }
                                 }, this);
                             }
                             else {
@@ -536,42 +537,43 @@ class Card {
                                                                         .map(ability => ability.targets) //Get the target specs
                                                                         .filter(targets => targets !== undefined)); //Only those that need targets
 
-                                this.player.getTargets(allTargetSpecifications, allTargets => {
+                                this.player.getTargets(allTargetSpecifications, (allTargets, targetsSuccess) => {
                                     //Reset action
                                     this.player.game.players.forEach(player => player.action = ActionType.Play);
-                                    
-                                    //Ask for player to pay for this
-                                    this.player.payForCard(this, (success) => {
-                                        if (success) {
-                                            //Remove it from the hand
-                                            this.player.hand.splice(this.player.hand.indexOf(this), 1);
-                                            //Add it to the stack
-                                            this.setLocation(Zone.Stack);
-                                            //For when it resolves
-                                            this.play = () => {
-                                                //Do what the card says
-                                                let targetsIndex = 0;
-                                                abilitiesChosen.forEach(ability => {
-                                                    if (typeof ability === 'function') {
-                                                        ability(this);
-                                                    }
-                                                    else if (typeof ability === 'object') {
-                                                        //Get targets for this ability
-                                                        let targets = allTargets.slice(targetsIndex, ability.targets.length);
-                                                        ability.activate(this, targets);
-                                                        //increase the index counter
-                                                        targetsIndex += ability.targets.length;
-                                                    }
-                                                });
-
-                                                //Once played, it goes directly to the graveyard (it's not a permanent)
-                                                this.player.graveyardElement.appendChild(this.element);
-                                                this.player.graveyard.push(this); //add to graveyard
-                                                this.setLocation(Zone.Graveyard);
+                                    if (targetsSuccess) {
+                                        //Ask for player to pay for this
+                                        this.player.payForCard(this, (success) => {
+                                            if (success) {
+                                                //Remove it from the hand
+                                                this.player.hand.splice(this.player.hand.indexOf(this), 1);
+                                                //Add it to the stack
+                                                this.setLocation(Zone.Stack);
+                                                //For when it resolves
+                                                this.play = () => {
+                                                    //Do what the card says
+                                                    let targetsIndex = 0;
+                                                    abilitiesChosen.forEach(ability => {
+                                                        if (typeof ability === 'function') {
+                                                            ability(this);
+                                                        }
+                                                        else if (typeof ability === 'object') {
+                                                            //Get targets for this ability
+                                                            let targets = allTargets.slice(targetsIndex, ability.targets.length);
+                                                            ability.activate(this, targets);
+                                                            //increase the index counter
+                                                            targetsIndex += ability.targets.length;
+                                                        }
+                                                    });
+    
+                                                    //Once played, it goes directly to the graveyard (it's not a permanent)
+                                                    this.player.graveyardElement.appendChild(this.element);
+                                                    this.player.graveyard.push(this); //add to graveyard
+                                                    this.setLocation(Zone.Graveyard);
+                                                }
+                                                this.player.game.addToStack(this, false);
                                             }
-                                            this.player.game.addToStack(this, false);
-                                        }
-                                    });
+                                        });
+                                    }
                                 }, this);
                             };
 
@@ -642,47 +644,51 @@ class Card {
                                         //We know the tapping situation is under control, now lets get the targets.
 
                                         //Get targets from the user
-                                        this.player.getTargets(ability.targets, (targets) => {
-                                            //Targets have been obtained, now pay for the ability (if necessary)
-
-                                            //Once paid for, this function will run
-                                            let onPayReceived = (paid) => {
-                                                //Reset text
-                                                this.player.updatePriority();
-                                                //Reset play mode
-                                                this.player.game.players.forEach(player => player.action = ActionType.Play);
-                                                this.player.action = originalAction;
-
-                                                //Must have been paid to play the ability
-                                                if (paid) {
-                                                    //Payment received, activate the ability.
-
-                                                    //First, if the ability, requires a tap, tap it.
-                                                    if (ability.cost.tap) {
-                                                        this.tapped = true;
-                                                        this.element.classList.add('tapped');
-                                                    }
-
-                                                    //If the ability is a mana ability, play it.
-                                                    //If it's an activated ability, put it onto the stack
-                                                    if (ability.type === 'mana') {
-                                                        //Play it right away
-                                                        ability.activate(this, targets);
-                                                    }
-                                                    else {
-                                                        //Add the ability to the stack
-                                                        this.player.game.addToStack(ability, true, this, () => ability.activate(this, targets));
+                                        this.player.getTargets(ability.targets, (targets, targetsSuccess) => {
+                                            //Reset play mode
+                                            this.player.game.players.forEach(player => player.action = ActionType.Play);
+                                            if (targetsSuccess) {
+                                                //Targets have been obtained, now pay for the ability (if necessary)
+    
+                                                //Once paid for, this function will run
+                                                let onPayReceived = (paid) => {
+                                                    //Reset text
+                                                    this.player.updatePriority();
+                                                    //Reset play mode
+                                                    this.player.game.players.forEach(player => player.action = ActionType.Play);
+                                                    this.player.action = originalAction;
+    
+                                                    //Must have been paid to play the ability
+                                                    if (paid) {
+                                                        //Payment received, activate the ability.
+    
+                                                        //First, if the ability, requires a tap, tap it.
+                                                        if (ability.cost.tap) {
+                                                            this.tapped = true;
+                                                            this.element.classList.add('tapped');
+                                                        }
+    
+                                                        //If the ability is a mana ability, play it.
+                                                        //If it's an activated ability, put it onto the stack
+                                                        if (ability.type === 'mana') {
+                                                            //Play it right away
+                                                            ability.activate(this, targets);
+                                                        }
+                                                        else {
+                                                            //Add the ability to the stack
+                                                            this.player.game.addToStack(ability, true, this, () => ability.activate(this, targets));
+                                                        }
                                                     }
                                                 }
-                                            }
-
-                                            if (ability.cost.mana != undefined) {
-                                                //Ask the player to pay for the ability
-                                                this.player.pay(this, new ManaCost(ability.cost.mana), onPayReceived);
-                                            }
-                                            else {
-                                                //No payment necessary, run the method immediately
-                                                onPayReceived(true);
+    
+                                                if (ability.cost.mana != undefined) {
+                                                    //Ask the player to pay for the ability
+                                                    this.player.pay(this, new ManaCost(ability.cost.mana), onPayReceived);
+                                                }
+                                                else {
+                                                    //No payment necessary, run the method immediately
+                                                    onPayReceived(true);
+                                                }
                                             }
                                         }, this);
                                     }

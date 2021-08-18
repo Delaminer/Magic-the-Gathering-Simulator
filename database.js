@@ -1,7 +1,7 @@
 const Database = {};
 
 Database['Dark Ritual'] = ['Dark Ritual', '{B}', 'Instant', '', 'Add {B}{B}{B} to your mana pool.', {
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=221510&type=card',
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/e/b/ebb6664d-23ca-456e-9916-afcd6f26aa7f.jpg?1559591495',
     abilities: [
     //Add 3 black mana to your mana pool
     (card) => {
@@ -11,7 +11,7 @@ Database['Dark Ritual'] = ['Dark Ritual', '{B}', 'Instant', '', 'Add {B}{B}{B} t
 ]}];
 
 Database['Ancestral Recall'] = ['Ancestral Recall', '{U}', 'Instant', '', 'Target player draws three cards.', {
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=95&type=card',
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/7/0/70e7ddf2-5604-41e7-bb9d-ddd03d3e9d0b.jpg?1559591549',
     abilities: [
     //Target player draws three cards
     new SpellAbility({
@@ -24,7 +24,7 @@ Database['Ancestral Recall'] = ['Ancestral Recall', '{U}', 'Instant', '', 'Targe
     }),
 ]}];
 Database['Lightning Bolt'] = ['Lightning Bolt', '{R}', 'Instant', '', 'Lightning Bolt deals 3 damage to any target.', {
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=442130&type=card',
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/e/3/e3285e6b-3e79-4d7c-bf96-d920f973b122.jpg?1562442158',
     abilities: [
     //Deal three damage to any target
     new SpellAbility({
@@ -38,7 +38,7 @@ Database['Lightning Bolt'] = ['Lightning Bolt', '{R}', 'Instant', '', 'Lightning
 ]}];
 Database['Healing Salve'] = ['Healing Salve', '{W}', 'Instant', '', 
     'Choose one — \n - Target player gains 3 life.\n - Prevent the next 3 damage that would be dealt to any target this turn.', {
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=394031&type=card',
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/0/f/0ff82aba-9022-4eff-a6dc-67365360d646.jpg?1561771079',
     choice: {choiceCount: 1, command: 'Chose one.', options: 
         ['Target player gains 3 life.', 'Prevent the next 3 damage that would be dealt to any target this turn.']},
     abilities: [
@@ -68,7 +68,7 @@ Database['Healing Salve'] = ['Healing Salve', '{W}', 'Instant', '',
     }),
 ]}];
 Database['Giant Growth'] = ['Giant Growth', '{G}', 'Instant', '', 'Target creature gets +3/+3 until end of turn.', {
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=442161&type=card',
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/6/b/6b712e6e-eb48-4a71-b95d-ce343966b236.jpg?1562436546',
     abilities: [
     //Deal three damage to any target
     new SpellAbility({
@@ -91,7 +91,7 @@ Database['Giant Growth'] = ['Giant Growth', '{G}', 'Instant', '', 'Target creatu
     }),
 ]}];
 Database['Mox Pearl'] = ['Mox Pearl', '{0}', 'Artifact', '', '{T}: Add {W}.', {
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=383021&type=card',
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/e/d/ed0216a0-c5c9-4a99-b869-53e4d0256326.jpg?1614638847',
     abilities: [
     new ManaAbility({
         //Mana ability: Add one white mana to your mana pool
@@ -103,7 +103,7 @@ Database['Mox Pearl'] = ['Mox Pearl', '{0}', 'Artifact', '', '{T}: Add {W}.', {
     }),
 ]}];
 Database['Mox Sapphire'] = ['Mox Sapphire', '{0}', 'Artifact', '', '{T}: Add {U}.', {
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=383023&type=card',
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/e/a/ea1feac0-d3a7-45eb-9719-1cdaf51ea0b6.jpg?1614638862',
     abilities: [
     new ManaAbility({
         //Mana ability: Add one blue mana to your mana pool
@@ -115,7 +115,7 @@ Database['Mox Sapphire'] = ['Mox Sapphire', '{0}', 'Artifact', '', '{T}: Add {U}
     }),
 ]}];
 Database['Mox Jet'] = ['Mox Jet', '{0}', 'Artifact', '', '{T}: Add {B}.', {
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=383020&type=card',
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/5/f/5f6927e1-c580-483a-8e2a-6e2deb74800e.jpg?1614638844',
     abilities: [
     new ManaAbility({
         //Mana ability: Add one black mana to your mana pool
@@ -127,7 +127,7 @@ Database['Mox Jet'] = ['Mox Jet', '{0}', 'Artifact', '', '{T}: Add {B}.', {
     }),
 ]}];
 Database['Mox Ruby'] = ['Mox Ruby', '{0}', 'Artifact', '', '{T}: Add {R}.', {
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=383022&type=card',
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/4/5/45fd6e91-df76-497f-b642-33dc3d5f6a5a.jpg?1614638852',
     abilities: [
     new ManaAbility({
         //Mana ability: Add one red mana to your mana pool
@@ -139,7 +139,7 @@ Database['Mox Ruby'] = ['Mox Ruby', '{0}', 'Artifact', '', '{T}: Add {R}.', {
     }),
 ]}];
 Database['Mox Emerald'] = ['Mox Emerald', '{0}', 'Artifact', '', '{T}: Add {G}.', {
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=383019&type=card',
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/a/c/aced2c55-7543-4076-bcdd-36c4d649b8ae.jpg?1614638841',
     abilities: [
     new ManaAbility({
         //Mana ability: Add one green mana to your mana pool
@@ -151,7 +151,7 @@ Database['Mox Emerald'] = ['Mox Emerald', '{0}', 'Artifact', '', '{T}: Add {G}.'
     }),
 ]}];
 Database['Honor of the Pure'] = ['Honor of the Pure', '{1}{W}', 'Enchantment', '', 'White creatures you control get +1/+1.', {
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=191058&type=card',
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/6/5/650a6831-c352-4ca7-9f8f-43ea99a1cf33.jpg?1562645338',
     abilities: [
     {
         //Boost white creatures that you control
@@ -170,7 +170,7 @@ Database['Honor of the Pure'] = ['Honor of the Pure', '{1}{W}', 'Enchantment', '
 ]}];
 Database['Prodigal Sorcerer'] = ['Prodigal Sorcerer', '{2}{U}', 'Creature', 'Human Wizard', 
 '{T}: Prodigal Sorcerer deals 1 damage to any target.', {power: 1, toughness: 1, 
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=413609&type=card',
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/5/0/50aef269-55f9-4d84-8bc5-29e794297f11.jpg?1580014085',
     abilities: [
     new ActivatedAbility({
         //Tapping ability:
@@ -190,29 +190,29 @@ Database['Kari Zev, Skyship Raider'] = ['Kari Zev, Skyship Raider', '{1}{R}', 'C
 'First strike, menace\n' + 'Whenever Kari Zev, Skyship Raider attacks, create Ragavan, a legendary 2/1 red Monkey creature token. '+
 'Ragavan enters the battlefield tapped and attacking. Exile that token at end of combat.', {
     supertypes: 'Legendary', power: 1, toughness: 3, 
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=423754&type=card', abilities: [],
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/7/2/72495879-39ce-449d-ad2f-ef32ea46f3aa.jpg?1576381833', abilities: [],
 }];
 
 Database['Plains'] = ['Plains', '', 'Land', 'Plains', '{W}', {supertypes: 'Basic', 
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?type=card&multiverseid=488462', 
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/0/d/0d4e5bc1-f0c3-4ea7-a549-c36d932103b1.jpg?1594737777', 
 }];
 Database['Island'] = ['Island', '', 'Land', 'Island', '{U}', {supertypes: 'Basic', 
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?type=card&multiverseid=488464', 
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/f/c/fc9a66a1-367c-4035-a22e-00fab55be5a0.jpg?1594737796', 
 }];
 Database['Swamp'] = ['Swamp', '', 'Land', 'Swamp', '{B}', {supertypes: 'Basic', 
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?type=card&multiverseid=488467', 
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/3/0/30b3d647-3546-4ade-b395-f2370750a7a6.jpg?1594737824', 
 }];
 Database['Mountain'] = ['Mountain', '', 'Land', 'Mountain', '{R}', {supertypes: 'Basic', 
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?type=card&multiverseid=488470', 
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/b/9/b92c8925-ecfc-4ece-b83a-f12e98a938ab.jpg?1594737848', 
 }];
 Database['Forest'] = ['Forest', '', 'Land', 'Forest', '{G}', {supertypes: 'Basic', 
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?type=card&multiverseid=488474', 
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/a/4/a4df3e89-610c-4f42-a93a-e694342307cc.jpg?1594737893', 
 }];
 Database['Falkenrath Reaver'] = ['Falkenrath Reaver', '{1}{R}', 'Creature', 'Vampire', '', {
-    power: 2, toughness: 2, imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=414425&type=card',
+    power: 2, toughness: 2, imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/d/7/d7b5913e-a103-4e4a-9281-8b88c1fb746e.jpg?1562201358',
 }];
 Database['Stone Rain'] = ['Stone Rain', '{2}{R}', 'Sorcery', '', 'Destroy target land.', {
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=517595&type=card',
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/d/2/d2334c10-fa96-4f8e-8187-c7ecc00cbac8.jpg?1562742139',
     abilities: [
     //Destroy a land
     new SpellAbility({
@@ -226,7 +226,7 @@ Database['Stone Rain'] = ['Stone Rain', '{2}{R}', 'Sorcery', '', 'Destroy target
 ]}];
 Database['Abrade'] = ['Abrade', '{1}{R}', 'Instant', '', 
 'Choose one — \n - Abrade deals 3 damage to target creature.\n - Destroy target artifact.', {
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=430772&type=card',
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/d/2/d27d5b87-6dfc-4b99-822b-f6f8489ad275.jpg?1608912224',
     choice: {choiceCount: 1, command: 'Choose one.', options:
         ['Abrade deals 3 damage to target creature.', 'Destroy target artifact.']},
     abilities: [
@@ -247,7 +247,7 @@ Database['Abrade'] = ['Abrade', '{1}{R}', 'Instant', '',
 ]}];
 Database['Darksteel Axe'] = ['Darksteel Axe', '{1}', 'Artifact', 'Equipment', 
     'Indestructible\nEquipped creature gets +2/+0.\nEquip {2}', {
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=489920&type=card',
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/4/d/4d6bfe57-872d-4f69-bff5-a3f2584d6e0a.jpg?1599709024',
     abilities: [
         //It has indestructible
         new KeywordAbility(Keyword.Indestructible),
@@ -256,51 +256,49 @@ Database['Darksteel Axe'] = ['Darksteel Axe', '{1}', 'Artifact', 'Equipment',
 ]}];
 Database['Bonesplitter'] = ['Bonesplitter', '{1}', 'Artifact', 'Equipment', 
     'Equipped creature gets +2/+0.\nEquip {1}', {
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=500938&type=card',
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/6/9/690972a8-72df-4050-a353-16e45589167c.jpg?1608917758',
     abilities: [
         //Equip for 1, it gives the creature +2/+0
-        ...Equip({ mana: '1' }, { powerChange: 2 }),
+        ...Equip({ tap: true }, { powerChange: 2 }),
 ]}];
 Database['Savannah Lions'] = ['Savannah Lions', '{W}', 'Creature', 'Cat', '', {power: 2, toughness: 1, 
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=442022&type=card',
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/a/9/a9757246-e782-4d7a-8273-d9efe284edaf.jpg?1562439539',
 }];
 Database['Epic Proportions'] = ['Epic Proportions', '{4}{G}{G}', 'Enchantment', 'Aura', 
     'Flash\nEnchant creature\nEnchanted creature gets +5/+5 and has trample.', {
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=451097&type=card',
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/7/4/7412373a-da0f-4bec-866c-5e1087f49914.jpg?1592710875',
     abilities: [
         //This has flash
         new KeywordAbility(Keyword.Flash),
         //Enchanted creature gets +5/+5 and trample
         ...EnchantmentAura('Creature', { powerChange: 5, toughnessChange: 5, [Keyword.Trample]: true, }),
 ]}];
-Database['Nature\'s Blessing'] = ['Nature\'s Blessing', '{2}{G}', 'Enchantment', 'Aura', 
-    'Enchant creature\nEnchanted creature gets +2/+2.', {
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=240040&type=card',
-    abilities: [
-        ...EnchantmentAura('Creature', { powerChange: 2, toughnessChange: 2, }),
-]}];
-
 Database['Phantom Warrior'] = ['Phantom Warrior', '{1}{U}{U}', 'Creature', 'Illusion Warrior', 'Phantom Warrior can\'t be blocked.', {power: 2, toughness: 2, 
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=446097&type=card', abilities: [new KeywordAbility(Keyword.Unblockable),],
+    abilities: [new KeywordAbility(Keyword.Unblockable),],
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/9/3/93044619-0c1e-4e42-a654-a8869c73f8c5.jpg?1562924674',
 }];
-Database['Bog Imp'] = ['Bog Imp', '{1}{B}', 'Creature', 'Imp', 'Flying', {power: 1, toughness: 1, 
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=83010&type=card', abilities: [new KeywordAbility(Keyword.Flying),],
+Database['Bog Imp'] = ['Bog Imp', '{1}{B}', 'Creature', 'Imp', 'Flying', {power: 1, toughness: 1, abilities: [new KeywordAbility(Keyword.Flying),],
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/8/4/846f5cda-3d93-4dfd-b1c3-1dff7b814d98.jpg?1562737863',
 }];
 Database['Giant Spider'] = ['Giant Spider', '{3}{G}', 'Creature', 'Spider', 'Reach', {power: 2, toughness: 4, abilities: [new KeywordAbility(Keyword.Reach),],
     imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/8/0/80996b0d-cd44-445e-96de-677e0018255c.jpg?1562302899',
 }];
 Database['Severed Legion'] = ['Severed Legion', '{1}{B}{B}', 'Creature', 'Zombie', 'Fear', {power: 2, toughness: 2, 
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=129693&type=card', abilities: [new KeywordAbility(Keyword.Fear),],
+    abilities: [new KeywordAbility(Keyword.Fear),],
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/8/2/82633f38-5af1-429e-8c9d-db536af85309.jpg?1562550727',
 }];
 Database['Bladetusk Boar'] = ['Bladetusk Boar', '{3}{R}', 'Creature', 'Boar', 'Intimidate', {power: 3, toughness: 2, 
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=380379&type=card', abilities: [new KeywordAbility(Keyword.Intimidate),],
+    abilities: [new KeywordAbility(Keyword.Intimidate),],
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/5/f/5f157fb0-81ac-4108-aafc-7ee81df965a9.jpg?1593095917', 
 }];
 Database['Dauthi Marauder'] = ['Dauthi Marauder', '{2}{B}', 'Creature', 'Dauthi Minion', 'Shadow', {power: 3, toughness: 1, 
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=397395&type=card', abilities: [new KeywordAbility(Keyword.Shadow),],
+    abilities: [new KeywordAbility(Keyword.Shadow),],
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/0/1/01963759-c47e-408a-8de8-924224031c8a.jpg?1562428160', 
 }];
 Database['Furtive Homunculus'] = ['Furtive Homunculus', '{1}{U}', 'Creature', 'Homunculus', 'Skulk', {power: 2, toughness: 1, 
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=409807&type=card', abilities: [new KeywordAbility(Keyword.Skulk),],
+    abilities: [new KeywordAbility(Keyword.Skulk),],
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/f/3/f376ec9b-48ac-4ed7-bfa2-60e9dca32dd7.jpg?1576384082', 
 }];
 Database['Memnite'] = ['Memnite', '{0}', 'Artifact Creature', 'Construct', '', {power: 1, toughness: 1, 
-    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=194078&type=card', 
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/4/6/469cc4e0-49c0-4009-97ea-28e44addec69.jpg?1562817049', 
 }];
