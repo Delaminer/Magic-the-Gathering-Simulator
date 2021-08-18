@@ -268,8 +268,10 @@ Database['Epic Proportions'] = ['Epic Proportions', '{4}{G}{G}', 'Enchantment', 
     'Flash\nEnchant creature\nEnchanted creature gets +5/+5 and has trample.', {
     imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=451097&type=card',
     abilities: [
+        //This has flash
+        new KeywordAbility(Keyword.Flash),
         //Enchanted creature gets +5/+5 and trample
-        ...EnchantmentAura({ powerChange: 5, toughnessChange: 5, [Keyword.Trample]: true, }),
+        ...EnchantmentAura('Creature', { powerChange: 5, toughnessChange: 5, [Keyword.Trample]: true, }),
 ]}];
 Database['Nature\'s Blessing'] = ['Nature\'s Blessing', '{2}{G}', 'Enchantment', 'Aura', 
     'Enchant creature\nEnchanted creature gets +2/+2.', {

@@ -28,7 +28,8 @@ let makeDeck = (deck) => {
     return out;
 }
 
-let soldier = ['Weary Soldier', '{W}', 'Creature', 'Human Soldier', 'Vigilance', {power: 3, toughness: 2, abilities: []}];
+let soldier = ['Weary Soldier', '{W}', 'Creature', 'Human Soldier', 'Vigilance', {power: 3, toughness: 2, 
+    abilities: [new KeywordAbility(Keyword.Vigilance),]}];
 let bat = ['High Flier', '{B}{B}', 'Creature', 'Bat Horror', 'Vigilance', {power: 6, toughness: 1}];
 let cat = ['Catty kitten', '{B}', 'Creature', 'Cat', '', {power: 1, toughness: 2}];
 let rat = ['Heel Rat', '{B}{B}', 'Creature', 'Rat', 'Flying\n{1}{B}, {T}: Tap target creature.', {power: 1, toughness: 1, abilities: [
@@ -65,6 +66,19 @@ let manaboost = ['Mana Boost', '{0}', 'Sorcery', '', 'Add twenty {W}{U}{B}{R}{G}
     }
 ]}];
 
+let superLand = ['Super Land', '', 'Land', '', '{T}: Add five {W}{U}{B}{R}{G}.', {
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=438804&type=card',
+    abilities: [
+        new ManaAbility({
+            cost: { tap: true },
+            activate: (card) => {
+                for(let color of ['white', 'blue', 'black', 'red', 'green'])
+                    card.player.mana[color] += 5;
+                card.player.updateMana();
+            },
+        }),
+]}]
+
 let alexDeck = makeDeck([
     ['Swamp', 20],
     ['Island', 20],
@@ -82,11 +96,12 @@ let bobDeck = makeDeck([
 ])
 
 let test = makeDeck([
-    ['Prodigal Sorcerer', 4],
+    [superLand, 4],
     [manaboost, 3],
     // ['Darksteel Axe', 4],
     // ['Bonesplitter', 2],
     // ['Abrade', 4],
+    [soldier, 7],
     ['Epic Proportions', 3],
     // [soldier, 5],
     // ['Stone Rain', 10],
@@ -120,10 +135,12 @@ let test = makeDeck([
 
 let t2 = makeDeck([
     ['Prodigal Sorcerer', 4],
-    [manaboost, 3],
-    ['Darksteel Axe', 4],
-    ['Bonesplitter', 2],
-    ['Abrade', 4],
+    [manaboost, 7],
+    [soldier, 7],
+    // ['Darksteel Axe', 4],
+    // ['Bonesplitter', 2],
+    ['Epic Proportions', 3],
+    // ['Abrade', 4],
 ])
 
 let game = new Game("Alex", test, 'Bob', t2);

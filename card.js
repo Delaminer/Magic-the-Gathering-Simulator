@@ -192,7 +192,7 @@ class Card {
                 this.attachments.forEach((attachment, index) => {
                     if (attachment.element.style.position != 'absolute') {
                         //Minor fix to reset possible UI issues with things changing position styles
-                        setTimeout(() => this.player.game.update(), 100);
+                        setTimeout(() => this.player.game.update(), 50);
                     }
                     if (attachment.element.style.position != 'absolute' && attachment.element.getBoundingClientRect().left < thisPosition.left) {
                         //It is to the left and will be shifted
@@ -398,7 +398,7 @@ class Card {
                     case 'Enchantment':
                         //Play the permanent spell
                         //You must be able to play it at this time though, so check for that
-                        if ((this.abilities.includes('Flash') && this.player.canPlayInstant()) || this.player.canPlaySorcery()) {
+                        if ((this.hasAbility(Keyword.Flash) && this.player.canPlayInstant()) || this.player.canPlaySorcery()) {
                             //If it is an Aura, then a target is needed. Check for a SpellAbility that has a target
                             let spellsOnCast = this.abilities.filter(ability => ability.type == 'spell');
                             let targetedSpells = spellsOnCast.filter(ability => ability.targets.length > 0);
@@ -772,6 +772,10 @@ class Card {
      * @returns {boolean} True if this card has the specified ability
      */
     hasAbility(ability) {
+        //Check the game for static abilities that grant this ability
+        if (this.player != undefined && this.player.game != undefined) //They must be defined for this
+            return this.player.game.hasAbility(this, ability);
+
         return (
             //Only get keyword abilities
             this.abilities.filter(ability => ability.type == 'keyword')

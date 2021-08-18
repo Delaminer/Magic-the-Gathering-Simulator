@@ -279,7 +279,7 @@ class Game {
                         index++;
                     }
                     // If there is damage left and this attacker has trample, deal the extra damage to the player
-                    if (damageLeft > 0 && attacker.hasAbility('Trample')) {
+                    if (damageLeft > 0 && attacker.hasAbility(Keyword.Trample)) {
                         //Deal damage to player
                         // blockingPlayer.life -= damageLeft;
                         blockingPlayer.dealDamage(damageLeft, {type: 'combat', card: attacker}, false);
@@ -297,6 +297,8 @@ class Game {
             blockingPlayer.lifeCounter.textContent = blockingPlayer.life;
             //Update each card (there could be a better way to do this)
             this.update();
+            //Update a bit later as well
+            setTimeout(() => this.update(), 50);
         }
         else if (this.phase == TurnStep.PostcombatMain) {
             //Stop attacking and blocking, each has a different way of doing so
@@ -507,6 +509,55 @@ class Game {
             });
         });
         return card.baseToughness + toughnessChange;
+    }
+
+    /**
+     * Check if a card/permanent has a certain ability
+     * @param {Card} card The card (permanent) in subject
+     * @param {Keyword} ability The ability in question
+     */
+    hasAbility(card, ability) {
+        //Determine if the player has the ability by default
+        let base = (
+            //Only get keyword abilities
+            card.abilities.filter(ability => ability.type == 'keyword')
+            //Get the keyword
+            .map(ability => ability.keyword)
+            //This list of keywords must include the ability
+            .includes(ability)
+        );
+        
+        //If they have it, return the success. If not, keep checking
+        if (base) return true;
+
+        //Go through every static ability
+        let grantedAbility = false;
+        this.players.forEach(player => {
+            //Break immediately if already found
+            if (grantedAbility) return;
+
+            player.permanents.forEach(permanent => {
+                //Break immediately if already found
+                if (grantedAbility) return;
+
+                permanent.abilities.filter(staticAbility => staticAbility.type == 'static').forEach(staticAbility => {
+                    //Break immediately if already found
+                    if (grantedAbility) return;
+
+                    //This is a static ability. Check if it is valid, and if it grants trample
+                    if (staticAbility.valid(card, permanent)) {
+                        //It is valid! Now check if trample is granted
+                        if (staticAbility.effect[ability]) {
+                            //It is!
+                            grantedAbility = true;
+                        }
+                    }
+                });
+            });
+        });
+
+        //Return status
+        return grantedAbility;
     }
 
 }

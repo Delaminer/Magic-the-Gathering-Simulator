@@ -704,7 +704,7 @@ class Player {
                 console.log(`${card.name} is now attacking.`);
     
                 //If it doesn't have vigilance, tap it
-                if (!card.hasAbility('Vigilance')) {
+                if (!card.hasAbility(Keyword.Vigilance)) {
                     card.tapped = true;
                     card.element.classList.add('tapped');
                 }

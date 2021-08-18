@@ -94,7 +94,7 @@ class ManaAbility extends Ability {
 
     canPlay(mana, action, sorcerySpeed, tapped) {
         //Check for timing restrictions
-        return !this.restrictions || sorcerySpeed || !this.restrictions.includes('sorcery-speed') &&
+        return (!this.restrictions || sorcerySpeed || !this.restrictions.includes('sorcery-speed')) &&
                 //Check for tapping cost
                 (!tapped || !this.cost.tap) && 
                 //Check for mana cost
@@ -114,11 +114,13 @@ const Keyword  = {
     Trample: 'Trample',
     Deathtouch: 'Deathtouch',
     Indestructible: 'Indestructible',
+    Vigilance: 'Vigilance',
+    Flash: 'Flash',
 }
 
 class KeywordAbility {
     /**
-     * Create a keyword ability. Very simple.
+     * Create a keyword ability. Very simple. Note: this is NOT an ability, canPlay is undefined
      * @param {Keyword} keyword The keyword.
      */
     constructor(keyword) {
@@ -139,10 +141,11 @@ const Equip = (cost, effect, triggers) => {
         {
             //Boost equipped creature
             type: 'static',
+            //Rules for equipping
             valid: (card, sourceCard) => 
                 sourceCard.attached == card && card.types.includes('Creature') && 
                 sourceCard.player == card.player && card.location == Zone.Battlefield,
-            //Effect: boost power by 2
+            //Effect is determined by parameter
             effect: effect,
         },
         new ActivatedAbility({
@@ -153,7 +156,7 @@ const Equip = (cost, effect, triggers) => {
             targets: ['Creature Control'],
             activate: (card, targets) => {
                 //Make sure the equip target is still legal (the ability should be countered if this is the case, but add this check just in case)
-                if (!validateTarget('Creature', card)(targets[0], false)) {
+                if (!validateTarget('Creature Control', card)(targets[0], false)) {
                     //The target has been invalidated
                     return;
                 }
@@ -224,10 +227,10 @@ const EnchantmentAura = (targetSpecification, effect, triggers) => {
         {
             //Boost equipped creature
             type: 'static',
+            //Rules for enchanting (much more relaxed than equipping)
             valid: (card, sourceCard) => 
-                sourceCard.attached == card && card.types.includes('Creature') && 
-                sourceCard.player == card.player && card.location == Zone.Battlefield,
-            //Effect: boost power by 2
+                sourceCard.attached == card && card.location == Zone.Battlefield,
+            //Effect is determined by parameter
             effect: effect,
         },
         
@@ -237,7 +240,7 @@ const EnchantmentAura = (targetSpecification, effect, triggers) => {
             automaticallyCounter: false, //Must specifically set this to false so that the ability will not automatically counter
             activate: (card, targets) => {
                 //Make sure both the target and the aura are still on the battlefield when this resolves
-                if (!validateTarget('Creature', card)(targets[0], false) || card.location != Zone.Battlefield) {
+                if (!validateTarget(targetSpecification, card)(targets[0], false) || card.location != Zone.Battlefield) {
                     //Do not destroy this, it must go DIRECTLY to the graveyard
                     card.moveToGraveyard(false);
                     return;
