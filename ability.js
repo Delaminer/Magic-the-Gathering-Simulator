@@ -24,28 +24,32 @@ class Ability {
             this[variable] = data[variable];
         }
         
-        //Add automatic countering/fizzle/Counter Upon Resolution if ALL targets are illegal. 
-        //Individual targets CAN be illegal, those parts of the ability will just not be activated .
-        //(the card definition has to deal with individual illegal targets)
-        this.baseActivate = this.activate;
-        this.activate = (card, targets) => {
-            //Make sure at least one target is legal
-            let legalTargets = 0;
-            for(let i in targets) {
-                if (validateTarget(this.targets[i], card)(targets[i], targets[i] instanceof Player)) {
-                    //It is valid
-                    legalTargets++;
-                    break;
+        //Add automatic countering unless requested not to
+        if (data.automaticallyCounter == undefined || data.automaticallyCounter == true) {
+
+            //Add automatic countering/fizzle/Counter Upon Resolution if ALL targets are illegal. 
+            //Individual targets CAN be illegal, those parts of the ability will just not be activated .
+            //(the card definition has to deal with individual illegal targets)
+            this.baseActivate = this.activate;
+            this.activate = (card, targets) => {
+                //Make sure at least one target is legal
+                let legalTargets = 0;
+                for(let i in targets) {
+                    if (validateTarget(this.targets[i], card)(targets[i], targets[i] instanceof Player)) {
+                        //It is valid
+                        legalTargets++;
+                        break;
+                    }
                 }
-            }
-            //At least one target must have been legal, or there are no targets
-            if (legalTargets > 0 || targets.length == 0) {
-                this.baseActivate(card, targets);
-            }
-            else {
-                console.log('No legal targets, this ability has been Countered Upon Resolution.');
-            }
-        };
+                //At least one target must have been legal, or there are no targets
+                if (legalTargets > 0 || targets.length == 0) {
+                    this.baseActivate(card, targets);
+                }
+                else {
+                    console.log('No legal targets, this ability has been Countered Upon Resolution.');
+                }
+            };
+        }
     }
     /**
      * See if you can play an ability.
@@ -124,7 +128,7 @@ class KeywordAbility {
 }
 
 /**
- * Create the Equip and Equipped Creature
+ * Create the Equip and Equipped Creature effects.
  * @param {*} cost 
  * @param {*} effect 
  * @param {*} triggers 
@@ -197,6 +201,82 @@ const Equip = (cost, effect, triggers) => {
                     card.attached = undefined;
                     //Reset this UI
                     card.element.style.position = 'initial';
+                    //Update the game
+                    card.player.game.update();
+                });
+    
+                //Update everything
+                targets[0].player.game.update();
+            },
+        }),
+    ]);
+}
+
+/**
+ * Create the Equip and Equipped Creature effects.
+ * @param {*} cost 
+ * @param {*} effect 
+ * @param {*} triggers 
+ * @returns 
+ */
+const EnchantmentAura = (targetSpecification, effect, triggers) => {
+    return ([
+        {
+            //Boost equipped creature
+            type: 'static',
+            valid: (card, sourceCard) => 
+                sourceCard.attached == card && card.types.includes('Creature') && 
+                sourceCard.player == card.player && card.location == Zone.Battlefield,
+            //Effect: boost power by 2
+            effect: effect,
+        },
+        
+        new SpellAbility({
+            //Enchant target
+            targets: [targetSpecification],
+            automaticallyCounter: false, //Must specifically set this to false so that the ability will not automatically counter
+            activate: (card, targets) => {
+                //Make sure both the target and the aura are still on the battlefield when this resolves
+                if (!validateTarget('Creature', card)(targets[0], false) || card.location != Zone.Battlefield) {
+                    //Do not destroy this, it must go DIRECTLY to the graveyard
+                    card.moveToGraveyard(false);
+                    return;
+                }
+    
+                //Attach to the creature
+                card.attached = targets[0];
+                targets[0].attach(card, false);
+    
+                //Attach listener to auto-detach when the creature dies and save the reference
+                card.attachTrigger = targets[0].addTrigger('leave-battlefield', () => true, () => {
+                    //Detach from card
+                    card.attached.detach(card, false);
+                    //Remove listeners - for when the creature dies and for when the artifact dies
+                    card.attached.removeTrigger('leave-battlefield', card.attachTrigger);
+                    card.removeTrigger('leave-battlefield', card.deathTrigger);
+                    //Remove reference
+                    card.attached = undefined;
+                    //Reset this UI
+                    card.element.style.position = 'initial';
+                    //Go to the graveyard
+                    card.moveToGraveyard(false);
+                    //Update the game
+                    card.player.game.update();
+                });
+    
+                //Attach listener to auto-detach when the artifact dies and save the reference
+                card.deathTrigger = card.addTrigger('leave-battlefield', () => true, () => {
+                    //Detach from card
+                    card.attached.detach(card, false);
+                    //Remove listeners - for when the creature dies and for when the artifact dies
+                    card.attached.removeTrigger('leave-battlefield', card.attachTrigger);
+                    card.removeTrigger('leave-battlefield', card.deathTrigger);
+                    //Remove reference
+                    card.attached = undefined;
+                    //Reset this UI
+                    card.element.style.position = 'initial';
+                    //Go to the graveyard
+                    card.moveToGraveyard(false);
                     //Update the game
                     card.player.game.update();
                 });

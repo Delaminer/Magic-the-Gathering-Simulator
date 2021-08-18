@@ -264,3 +264,16 @@ Database['Bonesplitter'] = ['Bonesplitter', '{1}', 'Artifact', 'Equipment',
 Database['Savannah Lions'] = ['Savannah Lions', '{W}', 'Creature', 'Cat', '', {power: 2, toughness: 1, 
     imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=442022&type=card',
 }];
+Database['Epic Proportions'] = ['Epic Proportions', '{4}{G}{G}', 'Enchantment', 'Aura', 
+    'Flash\nEnchant creature\nEnchanted creature gets +5/+5 and has trample.', {
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=451097&type=card',
+    abilities: [
+        //Enchanted creature gets +5/+5 and trample
+        ...EnchantmentAura({ powerChange: 5, toughnessChange: 5, [Keyword.Trample]: true, }),
+]}];
+Database['Nature\'s Blessing'] = ['Nature\'s Blessing', '{2}{G}', 'Enchantment', 'Aura', 
+    'Enchant creature\nEnchanted creature gets +2/+2.', {
+    imageURL: 'https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=240040&type=card',
+    abilities: [
+        ...EnchantmentAura('Creature', { powerChange: 2, toughnessChange: 2, }),
+]}];

@@ -238,12 +238,19 @@ class Card {
     destroy(source, update) {
         //Only destroy this if it doesn't have indestructible
         if (!this.hasAbility(Keyword.Indestructible)) {
-            this.cleanup(update);
-            this.player.graveyardElement.appendChild(this.element); //Move element
-            this.player.permanents.splice(this.player.permanents.indexOf(this), 1); //remove from permanents list
-            this.player.graveyard.push(this); //add to graveyard list
-            this.setLocation(Zone.Graveyard); //Change status variable and update UI
+            this.moveToGraveyard(update);
         }
+    }
+
+    /**
+     * Move this to the graveyard.
+     */
+    moveToGraveyard(update) {
+        this.cleanup(update);
+        this.player.graveyardElement.appendChild(this.element); //Move element
+        this.player.permanents.splice(this.player.permanents.indexOf(this), 1); //remove from permanents list
+        this.player.graveyard.push(this); //add to graveyard list
+        this.setLocation(Zone.Graveyard); //Change status variable and update UI
     }
 
     /**
@@ -392,26 +399,76 @@ class Card {
                         //Play the permanent spell
                         //You must be able to play it at this time though, so check for that
                         if ((this.abilities.includes('Flash') && this.player.canPlayInstant()) || this.player.canPlaySorcery()) {
-                            //Ask for player to pay for this
-                            this.player.payForCard(this, (success) => {
-                                if (success) {
-                                    //Remove it from the hand
-                                    this.player.hand.splice(this.player.hand.indexOf(this), 1);
-                                    //Add it to the stack
-                                    this.setLocation(Zone.Stack);
-                                    //For when it resolves
-                                    this.play = () => {
-                                        //Play the creature, putting it onto the battlefield
-                                        this.player.permanentsElement.appendChild(this.element);
-                                        this.player.permanents.push(this); //add to permanents
-                                        this.setLocation(Zone.Battlefield);
+                            //If it is an Aura, then a target is needed. Check for a SpellAbility that has a target
+                            let spellsOnCast = this.abilities.filter(ability => ability.type == 'spell');
+                            let targetedSpells = spellsOnCast.filter(ability => ability.targets.length > 0);
 
-                                        //Update everything else
-                                        this.player.game.update();
+                            if (targetedSpells.length > 0) {
+                                //Get the target specs from these
+                                let targetsNeeded = targetedSpells.map(ability => ability.targets);
+                                //Flatten this 2D array into 1D
+                                targetsNeeded = [].concat.apply([], targetsNeeded);
+
+                                //Get targets
+                                this.player.getTargets(targetsNeeded, allTargets => {
+                                    //Reset action after getting targets
+                                    this.player.game.players.forEach(player => player.action = ActionType.Play);
+
+
+                                    //Pay and play the spell just like normal, except use the targets to play the spell after
+                                    this.player.payForCard(this, (success) => {
+                                        if (success) {
+                                            //Remove it from the hand
+                                            this.player.hand.splice(this.player.hand.indexOf(this), 1);
+                                            //Add it to the stack
+                                            this.setLocation(Zone.Stack);
+                                            //For when it resolves
+                                            this.play = () => {
+                                                //Play the creature, putting it onto the battlefield
+                                                this.player.permanentsElement.appendChild(this.element);
+                                                this.player.permanents.push(this); //add to permanents
+                                                this.setLocation(Zone.Battlefield);
+                                                //Play the spells
+                                                let targetsIndex = 0;
+                                                spellsOnCast.forEach(ability => {
+                                                    let targets = allTargets.slice(targetsIndex, ability.targets.length);
+                                                    ability.activate(this, targets);
+                                                    targetsIndex += ability.targets.length;
+                                                });
+        
+                                                //Update everything else
+                                                this.player.game.update();
+                                            }
+                                            this.player.game.addToStack(this, false);
+                                        }
+                                    });
+                                }, this);
+                            }
+                            else {
+                                //Normal permanent: just pay and play
+
+                                //Ask for player to pay for this
+                                this.player.payForCard(this, (success) => {
+                                    if (success) {
+                                        //Remove it from the hand
+                                        this.player.hand.splice(this.player.hand.indexOf(this), 1);
+                                        //Add it to the stack
+                                        this.setLocation(Zone.Stack);
+                                        //For when it resolves
+                                        this.play = () => {
+                                            //Play the creature, putting it onto the battlefield
+                                            this.player.permanentsElement.appendChild(this.element);
+                                            this.player.permanents.push(this); //add to permanents
+                                            this.setLocation(Zone.Battlefield);
+    
+                                            //Update everything else
+                                            this.player.game.update();
+                                        }
+                                        this.player.game.addToStack(this, false);
                                     }
-                                    this.player.game.addToStack(this, false);
-                                }
-                            });
+                                });
+                            }
+
                         }
                         break;
                     case 'Instant':
