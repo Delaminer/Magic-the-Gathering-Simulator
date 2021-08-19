@@ -37,8 +37,8 @@ class Card {
 
         this.text = text.split('\n');
         this.abilities = [];
-        //These are called at the end of turn, for cleanup
-        this.endOfTurnEffects = [];
+        //Effects that last until the end of the turn
+        this.untilEndOfTurnEffects = [];
 
         //Add creature properties
         if (this.types.includes('Creature')) {
@@ -302,9 +302,8 @@ class Card {
         if (this.types.includes('Creature')) {
             this.damage = 0;
         }
-        //TODO: Clear Until EOT effects
-        this.endOfTurnEffects.forEach(effect => effect(this));
-        this.endOfTurnEffects = [];
+        //Clear until end of turn effects
+        this.untilEndOfTurnEffects = [];
 
         // Update UI (if requested)
         if (update)
@@ -739,6 +738,7 @@ class Card {
      */
     setLocation(location) {
         let handChange = this.location === Zone.Hand || location === Zone.Hand;
+        let enterBattlefield = this.location !== Zone.Battlefield && location === Zone.Battlefield;
         let leftBattlefield = this.location === Zone.Battlefield && location !== Zone.Battlefield;
 
         this.element.classList.remove(this.location + 'Card');
@@ -754,15 +754,28 @@ class Card {
         }
 
         //Trigger events
+        if (enterBattlefield) {
+            this.localTriggers('enter-battlefield');
+            this.player.game.triggerEvent('enter-battlefield', this);
+        }
         if (leftBattlefield) {
-            //Triggers must exist and triggers for leave-battlefield must exist
-            if (this.triggers && this.triggers['leave-battlefield']) {
-                for(let triggerID in this.triggers['leave-battlefield']) {
-                    //Get the trigger from the ID
-                    let trigger = this.triggers['leave-battlefield'][triggerID];
-                    if (trigger.validateEvent(this)) {
-                        trigger.triggeredFunction(this);
-                    }
+            this.localTriggers('leave-battlefield');
+            this.player.game.triggerEvent('leave-battlefield', this);
+        }
+    }
+
+    /**
+     * Run local triggers for an event.
+     * @param {string} eventName Name of the event
+     */
+    localTriggers(eventName) {
+        //Triggers must exist and triggers for this event must exist
+        if (this.triggers && this.triggers[eventName]) {
+            for(let triggerID in this.triggers[eventName]) {
+                //Get the trigger from the ID
+                let trigger = this.triggers[eventName][triggerID];
+                if (trigger.validateEvent(this)) {
+                    trigger.triggeredFunction(this);
                 }
             }
         }

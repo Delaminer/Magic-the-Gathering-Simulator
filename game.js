@@ -472,7 +472,7 @@ class Game {
         let powerChange = 0;
         //Get all of the static abilities in play, and check if this creature's power is changed by any of them.
         this.players.forEach(player => {
-            player.permanents.forEach(permanent => {
+            player.permanents.concat(player.lands).forEach(permanent => {
                 permanent.abilities.filter(ability => ability.type == 'static').forEach(ability => {
                     //This is a static ability. Check if it is valid, and if it changes the power
                     if (ability.valid(card, permanent)) {
@@ -483,6 +483,12 @@ class Game {
                     }
                 });
             });
+        });
+        //Go through until end of turn effects
+        card.untilEndOfTurnEffects.forEach(effect => {
+            if (effect.powerChange != undefined) {
+                powerChange += effect.powerChange;
+            }
         });
         return card.basePower + powerChange;
     }
@@ -499,7 +505,7 @@ class Game {
         let toughnessChange = 0;
         //Get all of the static abilities in play, and check if this creature's toughness is changed by any of them.
         this.players.forEach(player => {
-            player.permanents.forEach(permanent => {
+            player.permanents.concat(player.lands).forEach(permanent => {
                 permanent.abilities.filter(ability => ability.type == 'static').forEach(ability => {
                     //This is a static ability. Check if it is valid, and if it changes the toughness
                     if (ability.valid(card, permanent)) {
@@ -510,6 +516,12 @@ class Game {
                     }
                 });
             });
+        });
+        //Go through until end of turn effects
+        card.untilEndOfTurnEffects.forEach(effect => {
+            if (effect.toughnessChange != undefined) {
+                toughnessChange += effect.toughnessChange;
+            }
         });
         return card.baseToughness + toughnessChange;
     }
@@ -533,13 +545,27 @@ class Game {
         //If they have it, return the success. If not, keep checking
         if (base) return true;
 
-        //Go through every static ability
         let grantedAbility = false;
+        
+        //Go through until end of turn effects
+        card.untilEndOfTurnEffects.forEach(effect => {
+            //Break immediately if already found
+            if (grantedAbility) return;
+
+            if (effect[ability]) {
+                grantedAbility = true;
+            }
+        });
+
+        //Break early if found
+        if (grantedAbility) return true;
+
+        //Go through every static ability
         this.players.forEach(player => {
             //Break immediately if already found
             if (grantedAbility) return;
 
-            player.permanents.forEach(permanent => {
+            player.permanents.concat(player.lands).forEach(permanent => {
                 //Break immediately if already found
                 if (grantedAbility) return;
 
@@ -561,6 +587,67 @@ class Game {
 
         //Return status
         return grantedAbility;
+    }
+
+    /**
+     * Trigger an event.
+     * @param {string} eventName The event that was triggered.
+     * @param {*} source The source of the event.
+     */
+    triggerEvent(eventName, source) {
+
+        //Store the events that will trigger in a list, so the user an choose the order of them.
+        //Each item contains the triggered ability in question, as well as its source, and the event and its source (the last two are redundant)
+        let triggeredEvents = [];
+
+        //Loop through each player
+        this.players.forEach(player => {
+            //Loop through each permanent they have
+            player.permanents.concat(player.lands).forEach(permanent => {
+                permanent.abilities.filter(staticAbility => staticAbility.type == 'triggered').forEach(triggeredAbility => {
+                    //This is a static ability. Check if it is valid, and if it grants trample
+                    if (triggeredAbility.valid(source, permanent)) {
+                        //It is valid! This ability will be activated.
+                        //Triggered abilities act similar to activated abilities.
+                        //Both require targets, and both go onto the stack (note: triggered abilities also require choices and payments, but thats a WIP)
+
+                        //As a result, because multiple abilities can trigger (and often do), the user will HAVE to order these abilties
+                        // to play them. This will take a lot of work, but is necessary to ensure each ability will activate as intended.
+
+                        //For right now, this triggered ability will be added to a list. This list holds the abilities that will trigger,
+                        // so these will be ordered by the user, and if there is only one ability, that can be put onto the stack immediately.
+
+                        triggeredEvents.push({ability: triggeredAbility, abilitySource: permanent, event: eventName, eventSource: source});
+                    }
+                });
+            });
+        });
+
+        //Alright, we have collected a list of triggered abilities. If none have been triggered, do nothing.
+        //If exactly one triggered, play that one first. If there are more than one, ask the user to choose the order and add them to the stack in that order.
+        if (triggeredEvents.length == 1) {
+            let triggeredEvent = triggeredEvents[0];
+            let ability = triggeredEvent.ability;
+            let abilitySource = triggeredEvent.abilitySource;
+
+            //Get targets for the ability
+            abilitySource.player.getTargets(ability.targets, (targets, targetsSuccess) => {
+                //Reset play mode
+                this.players.forEach(player => player.action = ActionType.Play);
+
+                //Play the ability
+                if (targetsSuccess) {
+                    this.addToStack(ability, true, abilitySource, () => ability.activate(abilitySource, targets));
+                }
+                else {
+                    console.log(`Error! Triggered ability from ${triggeredEvent.abilitySource.name} for ${eventName} failed to receive targets!`);
+                }
+
+            }, abilitySource, true);
+        }
+        else if (triggeredEvents.length > 1) {
+            console.log('More than 1 triggered event from '+eventName+', there were '+triggeredEvents.length);
+        }
     }
 
 }

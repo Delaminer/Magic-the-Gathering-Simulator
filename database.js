@@ -1,41 +1,5 @@
 const Database = {};
 
-Database['Dark Ritual'] = ['Dark Ritual', '{B}', 'Instant', '', 'Add {B}{B}{B} to your mana pool.', {
-    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/e/b/ebb6664d-23ca-456e-9916-afcd6f26aa7f.jpg?1559591495',
-    abilities: [
-    //Add 3 black mana to your mana pool
-    (card) => {
-        card.player.mana['black'] += 3;
-        card.player.updateMana();
-    }
-]}];
-
-Database['Ancestral Recall'] = ['Ancestral Recall', '{U}', 'Instant', '', 'Target player draws three cards.', {
-    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/7/0/70e7ddf2-5604-41e7-bb9d-ddd03d3e9d0b.jpg?1559591549',
-    abilities: [
-    //Target player draws three cards
-    new SpellAbility({
-        //Target: a player
-        targets: ['Player'],
-        //When activated, target player draws three cards
-        activate: (card, targets) => {
-            targets[0].draw(3);
-        },
-    }),
-]}];
-Database['Lightning Bolt'] = ['Lightning Bolt', '{R}', 'Instant', '', 'Lightning Bolt deals 3 damage to any target.', {
-    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/e/3/e3285e6b-3e79-4d7c-bf96-d920f973b122.jpg?1562442158',
-    abilities: [
-    //Deal three damage to any target
-    new SpellAbility({
-        //Target: anything
-        targets: ['Any'],
-        //When activated, deal 3 damage to the target
-        activate: (card, targets) => {
-            targets[0].dealDamage(3, {type: 'spell', card: card}, true);
-        },
-    }),
-]}];
 Database['Healing Salve'] = ['Healing Salve', '{W}', 'Instant', '', 
     'Choose one — \n - Target player gains 3 life.\n - Prevent the next 3 damage that would be dealt to any target this turn.', {
     imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/0/f/0ff82aba-9022-4eff-a6dc-67365360d646.jpg?1561771079',
@@ -67,6 +31,41 @@ Database['Healing Salve'] = ['Healing Salve', '{W}', 'Instant', '',
         },
     }),
 ]}];
+Database['Ancestral Recall'] = ['Ancestral Recall', '{U}', 'Instant', '', 'Target player draws three cards.', {
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/7/0/70e7ddf2-5604-41e7-bb9d-ddd03d3e9d0b.jpg?1559591549',
+    abilities: [
+    //Target player draws three cards
+    new SpellAbility({
+        //Target: a player
+        targets: ['Player'],
+        //When activated, target player draws three cards
+        activate: (card, targets) => {
+            targets[0].draw(3);
+        },
+    }),
+]}];
+Database['Dark Ritual'] = ['Dark Ritual', '{B}', 'Instant', '', 'Add {B}{B}{B} to your mana pool.', {
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/e/b/ebb6664d-23ca-456e-9916-afcd6f26aa7f.jpg?1559591495',
+    abilities: [
+    //Add 3 black mana to your mana pool
+    (card) => {
+        card.player.mana['black'] += 3;
+        card.player.updateMana();
+    }
+]}];
+Database['Lightning Bolt'] = ['Lightning Bolt', '{R}', 'Instant', '', 'Lightning Bolt deals 3 damage to any target.', {
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/e/3/e3285e6b-3e79-4d7c-bf96-d920f973b122.jpg?1562442158',
+    abilities: [
+    //Deal three damage to any target
+    new SpellAbility({
+        //Target: anything
+        targets: ['Any'],
+        //When activated, deal 3 damage to the target
+        activate: (card, targets) => {
+            targets[0].dealDamage(3, {type: 'spell', card: card}, true);
+        },
+    }),
+]}];
 Database['Giant Growth'] = ['Giant Growth', '{G}', 'Instant', '', 'Target creature gets +3/+3 until end of turn.', {
     imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/6/b/6b712e6e-eb48-4a71-b95d-ce343966b236.jpg?1562436546',
     abilities: [
@@ -74,19 +73,11 @@ Database['Giant Growth'] = ['Giant Growth', '{G}', 'Instant', '', 'Target creatu
     new SpellAbility({
         //Target: a player
         targets: ['Creature'],
-        //When activated, target player draws three cards
+        //When activated, target creature gets +3/+3
         activate: (card, targets) => {
-            //+3/+3 Effect
-            targets[0].power += 3;
-            targets[0].toughness += 3;
-            targets[0].update();
-
-            //Remove effect at the end of the turn
-            targets[0].endOfTurnEffects.push(() => {
-                targets[0].power -= 3;
-                targets[0].toughness -= 3;
-                targets[0].update();
-            })
+            targets[0].untilEndOfTurnEffects.push({powerChange: 3, toughnessChange: 3});
+            //Update everything
+            targets[0].player.game.update();
         },
     }),
 ]}];
@@ -302,3 +293,38 @@ Database['Furtive Homunculus'] = ['Furtive Homunculus', '{1}{U}', 'Creature', 'H
 Database['Memnite'] = ['Memnite', '{0}', 'Artifact Creature', 'Construct', '', {power: 1, toughness: 1, 
     imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/4/6/469cc4e0-49c0-4009-97ea-28e44addec69.jpg?1562817049', 
 }];
+Database['Cloudkin Seer'] = ['Cloudkin Seer', '{2}{U}', 'Creature', 'Elemental Wizard', 
+    'Flying\nWhen Cloudkin Seer enters the battlefield, draw a card.', {power: 2, toughness: 1, 
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/e/2/e2111753-a930-403f-9d94-a86dfcb069da.jpg?1592516341',
+    abilities: [new KeywordAbility(Keyword.Flying), {
+        type: 'triggered',
+        text: 'When Cloudkin Seer enters the battlefield, draw a card.',
+        event: 'enter-battlefield', 
+        valid: (card, sourceCard) => card == sourceCard,
+        targets: [],
+        activate: (card, targets) => {
+            card.player.draw(1);
+        },
+    }]
+}];
+Database['Radiant Fountain'] = ['Radiant Fountain', '', 'Land', '', 'When Radiant Fountain enters the battlefield, you gain 2 life.\n{T}: Add {C}.', {
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/7/e/7ee5e77f-ca43-480d-ac37-48336d3bf044.jpg?1625980789',
+    abilities: [
+        new ManaAbility({
+            cost: { tap: true },
+            activate: (card) => {
+                card.player.mana['colorless']++;
+                card.player.updateMana();
+            },
+        }),
+        {
+            type: 'triggered',
+            text: 'When Radiant Fountain enters the battlefield, you gain 2 life.',
+            event: 'enter-battlefield', 
+            valid: (card, sourceCard) => card == sourceCard,
+            targets: [],
+            activate: (card, targets) => {
+                card.player.gainLife(2, {card: card, type: 'ability'}, true);
+            },
+        }
+]}]

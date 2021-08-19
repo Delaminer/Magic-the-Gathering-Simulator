@@ -257,6 +257,9 @@ class Player {
      * @param {Array} stack The current stack of the game.
      */
     updatePriority(newPriorityPlayer, stack) {
+        //Cannot override targeting with move control
+        if (this.action == ActionType.Target) return;
+
         //Get the values yourself if they are undefined
         if (newPriorityPlayer == undefined) newPriorityPlayer = this.game.getPriorityPlayer();
         if (stack == undefined) stack = this.game.stack;
@@ -841,8 +844,9 @@ class Player {
      * @param {Function} receiveTargetsCallback This method will be called once all targets have been obtained, 
      * returning an array of targets that follow the specs.
      * @param {Card} sourceCard The card that is requesting the targets.
+     * @param {boolean} requireTargets If true, the user CANNOT cancel the designation of targets. Used for forced triggered abilities.
      */
-    getTargets(targetSpecifications, receiveTargetsCallback, sourceCard) {
+    getTargets(targetSpecifications, receiveTargetsCallback, sourceCard, requireTargets) {
         if (targetSpecifications == undefined || targetSpecifications.length == 0) {
             //There are no specifications, so callback right away with no targets
             receiveTargetsCallback([], true);
@@ -851,16 +855,8 @@ class Player {
             //All players are now in Target mode as targets have to be specified.
             this.game.players.forEach(player => player.action = ActionType.Target);
 
-            //Rewrite the callback so that original text and functions are restored
-            let original = {
-                status: this.moveStatus.textContent,
-                control: this.moveControl.textContent,
-                d: () => {console.log('click'); this.moveControl.click();},
-            }
+            //Rewrite the callback so that original control is restored
             let newCallback = (a, b) => {
-                // this.moveStatus.textContent = original.status;
-                // this.moveControl.textContent = original.control;
-                // this.moveControl.onclick = () => original.d();
                 this.updatePriority();
                 receiveTargetsCallback(a, b);
             }
@@ -896,12 +892,21 @@ class Player {
             //Update UI showing that a target needs to be specified.
             this.moveStatus.textContent = 'Please select a target.';
 
-            //Change what the control button does (it cancels selecting a target)
-            this.moveControl.textContent = 'Cancel';
-            this.moveControl.onclick = () => { //Cancel selecting targets
-                //Let the card know it was cancelled
-                newCallback([], false);
-            };
+            //If targets aren't required, add a cancel button
+            if (requireTargets != undefined && requireTargets == true) {
+                //Required: hide the button
+                this.moveControl.style.display = 'none';
+                this.moveControl.disabled = true;
+                this.moveControl.onclick = () => {};
+            }
+            else {
+                //Not required
+                this.moveControl.textContent = 'Cancel';
+                this.moveControl.onclick = () => { //Cancel selecting targets
+                    //Let the card know it was cancelled
+                    newCallback([], false);
+                };
+            }
         }
     }
 
