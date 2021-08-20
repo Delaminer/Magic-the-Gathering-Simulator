@@ -347,11 +347,12 @@ button {
 
 .card .text {
     height: 30%;
-    background-color: wheat;
     margin-left: 9px;
     margin-right: 9px;
     padding-left: 5px;
     padding-right: 5px;
+
+    padding-top: 5px;
 }
 
 

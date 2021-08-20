@@ -387,7 +387,7 @@ class Card {
 
         let text = document.createElement('div');
         text.classList.add('text');
-        text.innerHTML = insertSymbols(this.text.join('<br>'));
+        text.innerHTML = insertSymbols(this.text.map(text => '<p>' + text + '</p>').join(''));
         uiElement.appendChild(text);
 
         if (this.types.includes('Creature')) {
