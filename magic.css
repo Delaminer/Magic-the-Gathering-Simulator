@@ -89,7 +89,8 @@ button {
     border-radius: 0px 0px 70% 70% / 0px 0px 80% 80%;
 }
 
-.choices {
+.choices,
+.order {
     z-index: 300;
     position: fixed;
     top: 0;
@@ -101,22 +102,22 @@ button {
     text-align: center;
     justify-content: center;
 }
-.choices .dialogue {
+.choices .dialogue,
+.order .dialogue {
     background-color: white;
     /* opacity: 5.0; */
     position: relative;
     z-index: 301;
     border: solid thin black;
     width: 50%;
-    /* height: 50%; */
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    
     padding: 30px;
-
 }
-.choices .dialogue .title {
+.order .dialogue { width: 70%;}
+.choices .dialogue .title,
+.order .dialogue .title {
     font-size: x-large;
     font-weight: bold;
 }
@@ -144,6 +145,23 @@ button {
 }
 .choices .dialogue .submit.valid {
     background-color: blue;
+}
+
+.order .dialogue .info .last {
+    float: left;
+}
+.order .dialogue .info .first {
+    float: right;
+}
+.order .dialogue .selection {
+    padding: 50px;
+}
+.order .dialogue .selection .triggered-ability-selection {
+    position: absolute;
+}
+.order .dialogue .controls .submit {
+    width: 50%;
+    height: 50px;
 }
 
 .card {

@@ -97,8 +97,8 @@ let bobDeck = makeDeck([
 
 let test = makeDeck([
     // ['Prodigal Sorcerer', 4],
-    [superLand, 4],
-    [manaboost, 4],
+    // [superLand, 4],
+    [manaboost, 1],
     // ['Darksteel Axe', 4],
     // ['Bonesplitter', 1],
     // ['Abrade', 4],
@@ -120,7 +120,7 @@ let test = makeDeck([
     // ['Mountain', 5],
     // ['Forest', 1],
     // ['Healing Salve', 5],
-    ['Ancestral Recall', 4],
+    ['Ancestral Recall', 1],
     // ['Dark Ritual', 5],
     // ['Lightning Bolt', 2],
     // ['Giant Growth', 2],
@@ -137,8 +137,9 @@ let test = makeDeck([
     // ['Furtive Homunculus', 1],
     // ['Memnite', 1],
     // ['Giant Spider', 1],
-    ['Cloudkin Seer', 4],
-    ['Radiant Fountain', 4],
+    ['Cloudkin Seer', 1],
+    // ['Radiant Fountain', 1],
+    ['Essence Warden', 4],
 ])
 
 let t2 = makeDeck([

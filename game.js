@@ -155,28 +155,11 @@ class Game {
             //It is an ability
             let ability = item;
             //Generate a UI for this ability
-            let element = sourceCard.element.cloneNode(true)
-            //Change type line to say ability
-            element.getElementsByClassName('type')[0].textContent = 'Ability';
-            //Remove the mana cost
-            element.getElementsByClassName('cost')[0].remove();
-            //Change the text to say only that of the ability (and no mana cost!)
-            if (ability.text) {
-                element.getElementsByClassName('text')[0].innerHTML = insertSymbols(ability.text);
-            }
-            //Remove tapped CSS
-            element.classList.remove('tapped');
+            let element = AbilityUI(ability, sourceCard);
             //Clear positioning adjustments
             element.style.top = '0px';
             element.style.left = '0px';
             element.style.position = 'relative';
-            //Remove stats if present
-            let stats = element.getElementsByClassName('stats');
-            if (stats.length > 0) stats[0].remove();
-            //Draw image from original image
-            element.getElementsByTagName('canvas')[0].getContext('2d').drawImage(sourceCard.element.getElementsByTagName('canvas')[0], 0, 0);
-            //Add custom CSS (for things like custom shaped cards)
-            element.classList.add('stack-ability');
 
 
             this.stackElement.body.appendChild(element);
@@ -598,10 +581,11 @@ class Game {
 
         //Store the events that will trigger in a list, so the user an choose the order of them.
         //Each item contains the triggered ability in question, as well as its source, and the event and its source (the last two are redundant)
-        let triggeredEvents = [];
+        let triggeredEvents = {};
 
         //Loop through each player
-        this.players.forEach(player => {
+        this.players.forEach((player, playerIndex) => {
+            triggeredEvents[playerIndex] = [];
             //Loop through each permanent they have
             player.permanents.concat(player.lands).forEach(permanent => {
                 permanent.abilities.filter(staticAbility => staticAbility.type == 'triggered').forEach(triggeredAbility => {
@@ -617,37 +601,67 @@ class Game {
                         //For right now, this triggered ability will be added to a list. This list holds the abilities that will trigger,
                         // so these will be ordered by the user, and if there is only one ability, that can be put onto the stack immediately.
 
-                        triggeredEvents.push({ability: triggeredAbility, abilitySource: permanent, event: eventName, eventSource: source});
+                        triggeredEvents[playerIndex].push({ability: triggeredAbility, abilitySource: permanent, event: eventName, eventSource: source});
                     }
                 });
             });
         });
+        console.log(triggeredEvents)
+        //Loop through each players triggeres and trigger them (or ask for order) in APNAP order, adding everything to the stack
+        for(let i = 0; i < this.players.length; i++) {
+            let playerIndex = (this.currentPlayer + i) % this.players.length; //Starts at current player, increases by 1
+
+            if (triggeredEvents[playerIndex].length == 1) {
+                let triggeredEvent = triggeredEvents[playerIndex][0];
+                let ability = triggeredEvent.ability;
+                let abilitySource = triggeredEvent.abilitySource;
+    
+                //Get targets for the ability
+                abilitySource.player.getTargets(ability.targets, (targets, targetsSuccess) => {
+                    //Reset play mode
+                    this.players.forEach(player => player.action = ActionType.Play);
+    
+                    //Play the ability
+                    if (targetsSuccess) {
+                        this.addToStack(ability, true, abilitySource, () => ability.activate(abilitySource, targets));
+                    }
+                    else {
+                        console.log(`Error! Triggered ability from ${triggeredEvent.abilitySource.name} for ${eventName} failed to receive targets!`);
+                    }
+    
+                }, abilitySource, true);
+            }
+            else if (triggeredEvents[playerIndex].length > 1) {
+                console.log('More than 1 triggered event from '+eventName+', there were '+triggeredEvents[playerIndex].length);
+                //Get the order from the user
+                this.players[playerIndex].orderTriggers(triggeredEvents[playerIndex], orderedTriggeredEvents => {
+                    console.log('Received events in desired order!');
+                    orderedTriggeredEvents.forEach(triggeredEvent => {
+                        let ability = triggeredEvent.ability;
+                        let abilitySource = triggeredEvent.abilitySource;
+            
+                        //Get targets for the ability
+                        abilitySource.player.getTargets(ability.targets, (targets, targetsSuccess) => {
+                            //Reset play mode
+                            this.players.forEach(player => player.action = ActionType.Play);
+            
+                            //Play the ability
+                            if (targetsSuccess) {
+                                this.addToStack(ability, true, abilitySource, () => ability.activate(abilitySource, targets));
+                            }
+                            else {
+                                console.log(`Error! Triggered ability from ${triggeredEvent.abilitySource.name} for ${eventName} failed to receive targets!`);
+                            }
+            
+                        }, abilitySource, true);
+                    });
+                });
+            }
+        }
 
         //Alright, we have collected a list of triggered abilities. If none have been triggered, do nothing.
         //If exactly one triggered, play that one first. If there are more than one, ask the user to choose the order and add them to the stack in that order.
-        if (triggeredEvents.length == 1) {
-            let triggeredEvent = triggeredEvents[0];
-            let ability = triggeredEvent.ability;
-            let abilitySource = triggeredEvent.abilitySource;
-
-            //Get targets for the ability
-            abilitySource.player.getTargets(ability.targets, (targets, targetsSuccess) => {
-                //Reset play mode
-                this.players.forEach(player => player.action = ActionType.Play);
-
-                //Play the ability
-                if (targetsSuccess) {
-                    this.addToStack(ability, true, abilitySource, () => ability.activate(abilitySource, targets));
-                }
-                else {
-                    console.log(`Error! Triggered ability from ${triggeredEvent.abilitySource.name} for ${eventName} failed to receive targets!`);
-                }
-
-            }, abilitySource, true);
-        }
-        else if (triggeredEvents.length > 1) {
-            console.log('More than 1 triggered event from '+eventName+', there were '+triggeredEvents.length);
-        }
+        
     }
 
 }

@@ -327,4 +327,18 @@ Database['Radiant Fountain'] = ['Radiant Fountain', '', 'Land', '', 'When Radian
                 card.player.gainLife(2, {card: card, type: 'ability'}, true);
             },
         }
-]}]
+]}];
+Database['Essence Warden'] = ['Essence Warden', '{G}', 'Creature', 'Elf Shaman', 
+    'Whenever another creature enters the battlefield, you gain 1 life.', {power: 1, toughness: 1, 
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/3/1/31ca84d1-30a6-432b-966c-089fb6652a89.jpg?1592672942',
+    abilities: [{
+        type: 'triggered',
+        text: 'Whenever another creature enters the battlefield, you gain 1 life.',
+        event: 'enter-battlefield', 
+        valid: (card, sourceCard) => card != sourceCard && card.types.includes('Creature'),
+        targets: [],
+        activate: (card, targets) => {
+            card.player.gainLife(1, {card: card, type: 'ability'}, true);
+        },
+    }]
+}];

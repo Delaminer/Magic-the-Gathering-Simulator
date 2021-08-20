@@ -12,9 +12,12 @@
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
+            * {user-select: none;}
             .blue { background-color: rgb(145, 145, 238); }
             .red { background-color: rgb(229, 155, 155); }
             .yellow { background-color: rgb(224, 229, 155); }
+            .green { background-color: rgb(132, 180, 132); }
+            .purple { background-color: rgb(217, 155, 229); }
             .card {
                 width: 100px;
                 height: 150px;
@@ -37,26 +40,98 @@
                 /* top: -20px; */
             }
             .card:hover {
-                background-color: rgb(132, 180, 132);
+                background-color: gray;
+            }
+            .draggable {
+                position: absolute;
             }
         </style>
     </head>
     <body>
-        <div style="margin: 90px; border: solid thick red">
+        <div id='base' style="margin: 90px; border: solid thick red">
 
-            <div id='a' class='card blue special' style=" z-index: 3;">
-                A
-            </div>
-            
-            <div id='b' class='card red' style='z-index: 2;'>B</div>
-            <div id='c' class='card yellow' style='z-index: 2;'>C</div>
-            <!-- <script>
-                console.log('hi')
-                let base = document.getElementById('a').getBoundingClientRect();
-                attached = document.getElementById('b');
-                attached.style.left = base.left + 'px';
-                attached.style.top = base.top - 20 + 'px';
-            </script> -->
+            <div id='a' class='card special draggable blue' style=" z-index: 3;">A</div>
+            <div id='b' class='card special draggable red' style='z-index: 2;'>B</div>
+            <div id='c' class='card special draggable yellow' style='z-index: 2;'>C</div>
+            <div id='d' class='card special draggable purple' style='z-index: 2;'>D</div>
+            <div id='e' class='card special draggable green' style='z-index: 2;'>E</div>
+            <script>
+                let cards = ['a','b','c','d','e'].map(id => document.getElementById(id));
+                let movingCard = null;
+                cards.forEach(card => {
+
+                    card.onmousedown = event => {
+                        event = event || window.event;
+                        event.preventDefault();
+                        card.startingPosition = event.clientX;
+
+                        document.onmouseup = () => {
+                            //Move around index items
+                            let newIndex = -1;
+                            cards.forEach((otherCard, index) => {
+                                console.log(`This card: ${card.offsetLeft}, that card: ${otherCard.offsetLeft}`)
+                                if (card.offsetLeft > otherCard.offsetLeft) {
+                                    newIndex = index;
+                                }
+                            })
+                            if (newIndex < card.index)
+                            newIndex++;
+                            // console.log(newIndex)
+                            let toAdd = cards.filter(otherCard => otherCard != card);
+                            let before = toAdd.slice(0, newIndex);
+                            let after = toAdd.slice(newIndex, cards.length);
+                            cards = before.concat(card, after)
+                            // console.log(after)
+
+                            //Set positions in stone
+                            set()
+
+                            //Stop movement
+                            document.onmouseup = null;
+                            document.onmousemove = null;
+                            movingCard = null;
+                        }
+                        document.onmousemove = event => {
+                            let movement = event.clientX - card.startingPosition;
+                            // console.log(card.offsetLeft+', cursor is '+event.clientX)
+                            // card.offsetLeft = event.clientX;
+
+                            //Move nearby item
+                            cards.forEach((otherCard, index) => {
+                                if (otherCard != card) {
+                                    //Check if it is now to the left
+                                    let thisIndex = cards.indexOf(card);
+                                    if (otherCard.offsetLeft > (card.offsetLeft + movement) && otherCard.index < card.index) {
+                                        console.log('Move right!')
+                                        otherCard.index = card.index + 1;
+                                        otherCard.style.left = otherCard.offsetLeft + card.offsetWidth + 30;
+                                    }
+                                    //Check if it is now to the right
+                                    if (otherCard.offsetLeft < (card.offsetLeft + movement) && otherCard.index > card.index) {
+                                        console.log('Move left!')
+                                        otherCard.index = card.index - 1;
+                                        otherCard.style.left = otherCard.offsetLeft - (card.offsetWidth + 30);
+                                    }
+                                }
+                            })
+
+                            card.style.left = card.offsetLeft + movement;
+                            card.startingPosition = event.clientX;
+                        }
+                    }
+                })
+
+                //Set positions based on order
+                let set = () => {
+                    cards.forEach((card, index) => {
+                        card.index = index;
+                        card.style.left = document.getElementById('base').offsetLeft + index * (card.offsetWidth + 30);
+                    })
+                    console.log(cards)
+                }
+                set();
+
+            </script>
         </div>
     </body>
 </html>

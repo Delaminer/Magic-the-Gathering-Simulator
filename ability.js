@@ -110,6 +110,37 @@ class SpellAbility extends Ability {
     }
 }
 
+/**
+ * Create UI for an ability, so that it can be shown on the stack and other places
+ * @param {Ability} ability The ability being represented.
+ * @param {Card} sourceCard The card the ability originated from.
+ * @returns {HTMLElement} The created element
+ */
+const AbilityUI = (ability, sourceCard) => {
+
+    //Base ability element
+    let element = sourceCard.element.cloneNode(true)
+    //Change type line to say ability
+    element.getElementsByClassName('type')[0].textContent = 'Ability';
+    //Remove the mana cost
+    element.getElementsByClassName('cost')[0].remove();
+    //Change the text to say only that of the ability (and no mana cost!)
+    if (ability.text) {
+        element.getElementsByClassName('text')[0].innerHTML = insertSymbols(ability.text);
+    }
+    //Remove tapped CSS
+    element.classList.remove('tapped');
+    //Remove stats if present
+    let stats = element.getElementsByClassName('stats');
+    if (stats.length > 0) stats[0].remove();
+    //Draw image from original image
+    element.getElementsByTagName('canvas')[0].getContext('2d').drawImage(sourceCard.element.getElementsByTagName('canvas')[0], 0, 0);
+    //Add custom CSS (for things like custom shaped cards)
+    element.classList.add('stack-ability');
+
+    return element;
+}
+
 const Keyword  = {
     Deathtouch: 'Deathtouch',
     Defender: 'Defender', //added

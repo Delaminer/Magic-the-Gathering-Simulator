@@ -194,10 +194,46 @@ class Player {
         this.choiceDialogue.cancel.textContent = 'Cancel';
         this.choiceDialogue.controls.appendChild(this.choiceDialogue.cancel);
 
-        // this.choiceDisplayCard = document.createElement('div'); //Blank element so it can be removed later
-        // this.choiceDialogue.appendChild(this.choiceDisplayCard);
-
         
+        //Element for ordering triggers
+        let orderElement = document.createElement('div');
+        orderElement.classList.add('order');
+        orderElement.style.display = 'none';
+        //Base for everything else
+        orderElement.dialogue = document.createElement('div');
+        orderElement.dialogue.classList.add('dialogue');
+        orderElement.appendChild(orderElement.dialogue);
+        //Title
+        orderElement.titleElement = document.createElement('div');
+        orderElement.titleElement.classList.add('title');
+        orderElement.titleElement.textContent = 'Order triggers.';
+        orderElement.dialogue.appendChild(orderElement.titleElement);
+        //Directions Info
+        orderElement.info = document.createElement('div');
+        orderElement.info.classList.add('info');
+        orderElement.info.last = document.createElement('span');
+        orderElement.info.last.classList.add('last');
+        orderElement.info.last.textContent = 'Bottom of Stack: Resolves Last';
+        orderElement.info.appendChild(orderElement.info.last);
+        orderElement.info.first = document.createElement('span');
+        orderElement.info.first.classList.add('first');
+        orderElement.info.first.textContent = 'Top of Stack: Resolves First';
+        orderElement.info.appendChild(orderElement.info.first);
+        orderElement.dialogue.appendChild(orderElement.info);
+        //Actual order selection
+        orderElement.selection = document.createElement('div');
+        orderElement.selection.classList.add('selection');
+        orderElement.dialogue.appendChild(orderElement.selection);
+        //Controls: Submit button (no cancel)
+        orderElement.controls = document.createElement('div');
+        orderElement.controls.classList.add('controls');
+        orderElement.controls.submit = document.createElement('button');
+        orderElement.controls.submit.classList.add('submit');
+        orderElement.controls.submit.textContent = 'Submit';
+        orderElement.controls.appendChild(orderElement.controls.submit);
+        orderElement.dialogue.appendChild(orderElement.controls);
+        document.body.appendChild(orderElement);
+        this.orderElement = orderElement;
     }
 
     /**
@@ -968,6 +1004,106 @@ class Player {
             this.choiceElement.style.display = 'none';
             choicesCallback(false);
         }
+    }
+
+    /**
+     * Get the user's choice over how triggers are ordered onto the stack
+     * @param {Array} triggerDatas A list of triggers. Each item contains the trigger, the source, and other data.
+     * @param {Function} orderCallback This method will be called once the order has been decided.
+     */
+    orderTriggers(triggerDatas, orderCallback) {
+        console.log('Triggers were requested: '+triggerDatas.length)
+        //Show the order selector element
+        this.orderElement.style.display = 'block';
+        //Update the selecter UI, showing each ability
+        this.orderElement.selection.innerHTML = '';
+        const spaceBetweenTriggerElements = 30;
+        //Initialize UI elements for each ability
+        for(let i in triggerDatas) {
+            //Create UI for this ability
+            triggerDatas[i].element = AbilityUI(triggerDatas[i].ability, triggerDatas[i].abilitySource);
+            //Add CSS class specific to triggered abilities that need to be selected
+            triggerDatas[i].element.classList.add('triggered-ability-selection');
+            this.orderElement.selection.appendChild(triggerDatas[i].element);
+        };
+        //Add height to the parent of the abilities to give them space
+        this.orderElement.selection.style.height = triggerDatas[0].element.offsetHeight;
+
+        //Add functionality to the UI
+        triggerDatas.forEach(triggerData => {
+            let element = triggerData.element;
+            //Add functionality
+            element.onmousedown = event => {
+                event = event || window.event;
+                event.preventDefault();
+                element.position = event.clientX;
+
+                document.onmouseup = () => {
+                    //Find new index of trigger
+                    let newIndex = -1;
+                    triggerDatas.forEach((otherTrigger, otherIndex) => {
+                        if (element.offsetLeft > otherTrigger.element.offsetLeft) {
+                            newIndex = otherIndex;
+                        }
+                    });
+                    if (newIndex < element.index) newIndex++;
+
+                    //Reorder items
+                    let toAdd = triggerDatas.filter(trigger => trigger != triggerData);
+                    let before = toAdd.slice(0, newIndex);
+                    let after = toAdd.slice(newIndex, triggerDatas.length);
+                    triggerDatas = before.concat(triggerData, after);
+                    setTriggerPositions();
+
+                    //Stop movement
+                    document.onmouseup = null;
+                    document.onmousemove = null;
+                }
+
+                document.onmousemove = moveEvent => {
+                    let movement = moveEvent.clientX - element.position;
+
+                    //Move nearby items out of the way
+                    triggerDatas.forEach((otherTrigger, index) => {
+                        if (otherTrigger != triggerData) {
+                            let otherElement = otherTrigger.element;
+
+                            //Check if it is now to the left
+                            let thisIndex = triggerDatas.indexOf(triggerData);
+                            if (otherElement.offsetLeft > (element.offsetLeft + movement) && otherElement.index < element.index) {
+                                otherElement.index = element.index + 1;
+                                otherElement.style.left = otherElement.offsetLeft + element.offsetWidth + spaceBetweenTriggerElements;
+                            }
+                            //Check if it is now to the right
+                            if (otherElement.offsetLeft < (element.offsetLeft + movement) && otherElement.index > element.index) {
+                                otherElement.index = element.index - 1;
+                                otherElement.style.left = otherElement.offsetLeft - (element.offsetWidth + spaceBetweenTriggerElements);
+                            }
+                        }
+                    });
+                    element.style.left = element.offsetLeft + movement;
+                    element.position = moveEvent.clientX;
+                }
+            }
+        });
+
+        let baseLeftPosition = this.orderElement.selection.offsetLeft;
+        let setTriggerPositions = () => {
+            triggerDatas.forEach((triggerData, index) => {
+                triggerData.element.index = index;
+                triggerData.element.style.left = baseLeftPosition + index * (triggerData.element.offsetWidth + spaceBetweenTriggerElements);
+            });
+        }
+
+        setTriggerPositions();
+
+        //Add functionality to the Submit button
+        this.orderElement.controls.submit.onclick = () => {
+            //Hide this UI
+            this.orderElement.style.display = 'none';
+            //Call back
+            orderCallback(triggerDatas);
+        };
     }
 
     /**
