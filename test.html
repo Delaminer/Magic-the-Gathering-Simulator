@@ -45,16 +45,20 @@
             .draggable {
                 position: absolute;
             }
+            .attacker {
+                /* background-color: red; */
+                box-shadow: 0 0 0 5px red;
+            }
         </style>
     </head>
     <body>
-        <div id='base' style="margin: 90px; border: solid thick red">
+        <div id='base' style="margin: 90px; border: solid thick blue">
 
-            <div id='a' class='card special draggable blue' style=" z-index: 3;">A</div>
-            <div id='b' class='card special draggable red' style='z-index: 2;'>B</div>
-            <div id='c' class='card special draggable yellow' style='z-index: 2;'>C</div>
-            <div id='d' class='card special draggable purple' style='z-index: 2;'>D</div>
-            <div id='e' class='card special draggable green' style='z-index: 2;'>E</div>
+            <div id='a' class='card draggable blue' style=" z-index: 3;">A</div>
+            <div id='b' class='card attacker draggable red' style='z-index: 2;'>B</div>
+            <div id='c' class='card attacker draggable yellow' style='z-index: 2;'>C</div>
+            <div id='d' class='card draggable purple' style='z-index: 2;'>D</div>
+            <div id='e' class='card draggable green' style='z-index: 2;'>E</div>
             <script>
                 let cards = ['a','b','c','d','e'].map(id => document.getElementById(id));
                 let movingCard = null;

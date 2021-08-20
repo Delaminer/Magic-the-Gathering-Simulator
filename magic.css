@@ -356,10 +356,12 @@ button {
 
 
 .card.attacker {
-    background-color: rgb(247, 157, 157);
+    /* background-color: rgb(247, 157, 157); */
+    box-shadow: 0 0 0 7px rgb(223, 120, 120);
 }
 .card.blocker {
-    background-color: rgb(158, 158, 241);
+    /* background-color: rgb(158, 158, 241); */
+    box-shadow: 0 0 0 7px rgb(113, 113, 201);
 }
 
 /* Font settings */
