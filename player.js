@@ -256,7 +256,7 @@ class Player {
     draw(numCards) {
         for(let i = 0; i < numCards; i++) {
             if (this.library.length < 1) {
-                console.log(`${this.name} tried to draw a card from an empty library. ${this.name} lost the game!`);
+                console.log(`${this.name} tried to draw a card from an empty library. ${this.name} lost the game!`);    
             }
 
             let cardToDraw = this.library.pop(); //remove from end (end = top of library)

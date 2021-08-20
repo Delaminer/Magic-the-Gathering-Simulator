@@ -135,11 +135,12 @@ let test = makeDeck([
     // ['Bladetusk Boar', 1],
     // ['Dauthi Marauder', 1],
     // ['Furtive Homunculus', 1],
-    ['Memnite', 7],
+    // ['Memnite', 7],
     // ['Giant Spider', 1],
     ['Cloudkin Seer', 1],
     // ['Radiant Fountain', 1],
-    ['Essence Warden', 4],
+    ['Essence Warden', 3],
+    ['Impact Tremors', 1],
 ])
 
 let t2 = makeDeck([
@@ -154,7 +155,6 @@ let t2 = makeDeck([
     ['Dauthi Marauder', 1],
     ['Furtive Homunculus', 1],
     ['Memnite', 1],
-    ['Memnite', 7],
     ['Giant Spider', 1],
     // ['Darksteel Axe', 4],
     // ['Bonesplitter', 2],

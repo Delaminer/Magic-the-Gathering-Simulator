@@ -606,7 +606,6 @@ class Game {
                 });
             });
         });
-        console.log(triggeredEvents)
         //Loop through each players triggeres and trigger them (or ask for order) in APNAP order, adding everything to the stack
         for(let i = 0; i < this.players.length; i++) {
             let playerIndex = (this.currentPlayer + i) % this.players.length; //Starts at current player, increases by 1
@@ -636,7 +635,10 @@ class Game {
                 //Get the order from the user
                 this.players[playerIndex].orderTriggers(triggeredEvents[playerIndex], orderedTriggeredEvents => {
                     console.log('Received events in desired order!');
-                    orderedTriggeredEvents.forEach(triggeredEvent => {
+
+                    //These must be added asynchronously
+                    let addTriggeredEventToTheStack = (triggeredEventIndex) => {
+                        let triggeredEvent = triggeredEvents[playerIndex][triggeredEventIndex];
                         let ability = triggeredEvent.ability;
                         let abilitySource = triggeredEvent.abilitySource;
             
@@ -648,13 +650,17 @@ class Game {
                             //Play the ability
                             if (targetsSuccess) {
                                 this.addToStack(ability, true, abilitySource, () => ability.activate(abilitySource, targets));
-                            }
-                            else {
-                                console.log(`Error! Triggered ability from ${triggeredEvent.abilitySource.name} for ${eventName} failed to receive targets!`);
+                                //Go to the next one
+                                if (triggeredEventIndex < triggeredEvents[playerIndex].length - 1) {
+                                    addTriggeredEventToTheStack(triggeredEventIndex + 1)
+                                }
                             }
             
                         }, abilitySource, true);
-                    });
+                    }
+
+                    //Start requests
+                    addTriggeredEventToTheStack(0);
                 });
             }
         }

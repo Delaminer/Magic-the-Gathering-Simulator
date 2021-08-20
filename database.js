@@ -342,3 +342,20 @@ Database['Essence Warden'] = ['Essence Warden', '{G}', 'Creature', 'Elf Shaman',
         },
     }]
 }];
+Database['Impact Tremors'] = ['Impact Tremors', '{1}{R}', 'Enchantment', '', 
+    'Whenever a creature enters the battlefield under your control, Impact Tremors deals 1 damage to each opponent.', {
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/5/6/56fb4035-197b-4d28-9bf7-bb62c304067e.jpg?1562786545',
+    abilities: [{
+        type: 'triggered',
+        text: 'Whenever a creature enters the battlefield under your control, Impact Tremors deals 1 damage to each opponent.',
+        event: 'enter-battlefield', 
+        valid: (card, sourceCard) => card.player == sourceCard.player && card.types.includes('Creature'),
+        targets: [],
+        activate: (card, targets) => {
+            //Get opponents
+            card.player.game.players.filter(player => player != card.player)
+            //Apply 1 damage to each
+            .forEach(player => player.dealDamage(1, {card: card, type: 'ability'}, true));
+        },
+    }]
+}];
