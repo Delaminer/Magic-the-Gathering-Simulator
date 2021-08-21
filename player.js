@@ -47,6 +47,29 @@ class Player {
         this.libraryElement.classList.add('library');
         this.graveyardElement = document.createElement('div');
         this.graveyardElement.classList.add('graveyard');
+        //Graveyard element UI:
+        this.graveyardElement.dialogue = document.createElement('div');
+        this.graveyardElement.dialogue.classList.add('dialogue');
+        this.graveyardElement.appendChild(this.graveyardElement.dialogue);
+        this.graveyardElement.titleElement = document.createElement('div');
+        this.graveyardElement.titleElement.classList.add('title');
+        this.graveyardElement.titleElement.textContent = this.name + '\'s Graveyard';
+        this.graveyardElement.dialogue.appendChild(this.graveyardElement.titleElement);
+        this.graveyardElement.cards = document.createElement('div');
+        this.graveyardElement.cards.classList.add('cards');
+        this.graveyardElement.dialogue.appendChild(this.graveyardElement.cards);
+        this.graveyardElement.controls = document.createElement('div');
+        this.graveyardElement.controls.classList.add('controls');
+        this.graveyardElement.dialogue.appendChild(this.graveyardElement.controls);
+        this.graveyardElement.closeButton = document.createElement('button');
+        this.graveyardElement.closeButton.classList.add('close');
+        this.graveyardElement.closeButton.textContent = 'Close';
+        this.graveyardElement.closeButton.onclick = () => {
+            this.graveyardElement.style.display = 'none';
+        };
+        this.graveyardElement.controls.appendChild(this.graveyardElement.closeButton);
+
+
         this.exileElement = document.createElement('div');
         this.exileElement.classList.add('exile');
 
@@ -55,6 +78,8 @@ class Player {
         battlefield.appendChild(this.landsElement);
         battlefield.appendChild(this.permanentsElement);
         battlefield.appendChild(this.libraryElement);
+        battlefield.appendChild(this.graveyardElement);
+        battlefield.appendChild(this.exileElement);
 
         
         //Name and life elements show the player's name and life total
@@ -74,10 +99,24 @@ class Player {
             this.selectTarget(this, true);
         };
 
+        //Little buttons that can open the graveyard, exile, and other zones
+        this.visibilityControls = document.createElement('div');
+        this.visibilityControls.classList.add('visibility-controls');
+        this.visibilityControls.graveyard = document.createElement('button');
+        this.visibilityControls.graveyard.classList.add('graveyardDisplay');
+        this.visibilityControls.graveyard.textContent = 'G';
+        this.visibilityControls.graveyard.onclick = () => {
+            this.graveyardElement.style.display = 'block';
+        }
+        this.visibilityControls.appendChild(this.visibilityControls.graveyard);
+        
+
+
         //Side bar holds all player control
         let sidebar = document.createElement('div');
         sidebar.classList.add('sidebar');
         sidebar.appendChild(playerElement);
+        sidebar.appendChild(this.visibilityControls);
 
         //Add player controls
         this.moveControl = document.createElement('button');
@@ -85,6 +124,11 @@ class Player {
         this.moveControl.textContent = 'Pass';
         this.moveControl.classList.add('control');
         this.moveControl.onclick = () => { this.progressTurn() }
+        //Add custom player controls (for questions)
+        this.moveControlArray = document.createElement('div');
+        this.moveControlArray.style.display = 'none';
+        this.moveControlArray.innerHTML = '';
+        this.moveControlArray.classList.add('control-array');
 
         this.moveStatus = document.createElement('p');
         this.moveStatus.classList.add('move-status');
@@ -118,6 +162,7 @@ class Player {
         sidebar.appendChild(this.turnStatus);
         sidebar.appendChild(this.moveStatus);
         sidebar.appendChild(this.moveControl);
+        sidebar.appendChild(this.moveControlArray);
         sidebar.appendChild(this.manaStatus);
 
         let mainElement = document.createElement('div');
@@ -135,7 +180,7 @@ class Player {
         for(let i = 0; i < this.deck.length; i++) { //Process all cards in the deck
             this.libraryElement.appendChild(this.deck[i].element);
             this.library.push(this.deck[i]);
-            this.deck[i].setLocation(Zone.Library);
+            this.deck[i].setLocation(Zone.Library, false);
 
             this.deck[i].player = this; //Assign it's owner to this player
         }
@@ -144,6 +189,7 @@ class Player {
         this.lands = [];
         this.permanents = [];
         this.graveyard = [];
+        this.exile = [];
         this.hand = [];
 
         this.draw(7);
@@ -262,7 +308,7 @@ class Player {
             let cardToDraw = this.library.pop(); //remove from end (end = top of library)
             this.handElement.appendChild(cardToDraw.element);
             this.hand.push(cardToDraw);
-            cardToDraw.setLocation(Zone.Hand);
+            cardToDraw.setLocation(Zone.Hand, true);
         }
         this.updateHandUI();
     }
@@ -293,8 +339,8 @@ class Player {
      * @param {Array} stack The current stack of the game.
      */
     updatePriority(newPriorityPlayer, stack) {
-        //Cannot override targeting with move control
-        if (this.action == ActionType.Target) return;
+        //Cannot override targeting or paying with move control
+        if (this.action == ActionType.Target || this.action == ActionType.Pay) return;
 
         //Get the values yourself if they are undefined
         if (newPriorityPlayer == undefined) newPriorityPlayer = this.game.getPriorityPlayer();
@@ -348,6 +394,7 @@ class Player {
                 this.progressTurn();
             };
             this.moveControl.style.display = 'inline-block';
+            this.moveControlArray.style.display = 'none';
 
             //Autopass: if we cannot take any actions, then pass priority
             //Note: I have chosen to make it so you cannot pass the first main phase (just in case)
@@ -383,6 +430,7 @@ class Player {
             this.moveControl.onclick = () => {}; // Disable clicking no matter what.
             this.moveControl.textContent = 'Wait';
             this.moveControl.style.display = 'none';
+            this.moveControlArray.style.display = 'none';
         }
 
         return false;
@@ -501,7 +549,7 @@ class Player {
         this.endOfTurnEffects = [];
 
         //Cleanup all effects
-        this.permanents.forEach(permanent => permanent.cleanup(true));
+        this.permanents.forEach(permanent => permanent.cleanup(true, false));
     }
 
     /**
@@ -517,7 +565,8 @@ class Player {
      * @returns {boolean} True if this player can play a sorcery at this time.
      */
     canPlaySorcery() {
-        return this.canPlayInstant() && this.game.currentPlayer == this.playerIndex && (this.game.phase == TurnStep.PrecombatMain || this.game.phase == TurnStep.PostcombatMain) && this.game.stack.length == 0;
+        return this.canPlayInstant() && this.game.currentPlayer == this.playerIndex && 
+            (this.game.phase == TurnStep.PrecombatMain || this.game.phase == TurnStep.PostcombatMain) && this.game.stack.length == 0;
     }
 
     /**
@@ -600,10 +649,10 @@ class Player {
             //Update mana UI
             this.updateMana();
 
-            //Restore the controls and focus of the turn
-            this.updatePriority();
             //Allow spells to be played as normal
             this.action = ActionType.Play;
+            //Restore the controls and focus of the turn
+            this.updatePriority();
             //Let the card know it was cancelled
             callback(false);
         };
@@ -893,8 +942,8 @@ class Player {
 
             //Rewrite the callback so that original control is restored
             let newCallback = (a, b) => {
-                this.updatePriority();
                 receiveTargetsCallback(a, b);
+                this.updatePriority();
             }
 
             //Set up the player's temp storage to handle target selection.
@@ -932,6 +981,7 @@ class Player {
             if (requireTargets != undefined && requireTargets == true) {
                 //Required: hide the button
                 this.moveControl.style.display = 'none';
+                this.moveControlArray.style.display = 'none';
                 this.moveControl.disabled = true;
                 this.moveControl.onclick = () => {};
             }
@@ -1012,7 +1062,6 @@ class Player {
      * @param {Function} orderCallback This method will be called once the order has been decided.
      */
     orderTriggers(triggerDatas, orderCallback) {
-        console.log('Triggers were requested: '+triggerDatas.length)
         //Show the order selector element
         this.orderElement.style.display = 'block';
         //Update the selecter UI, showing each ability
@@ -1107,6 +1156,42 @@ class Player {
     }
 
     /**
+     * Ask the player a question
+     * @param {string} question A question that the player will be asked to answer.
+     * @param {Array} options An array of options (strings) the player can respond with.
+     * @param {Function} callback A callback function that receives the answer the player gives.
+     */
+    askQuestion(question, options, callback) {
+        this.moveStatus.textContent = question;
+        //Hide the single button control
+        this.moveControl.style.display = 'none';
+        //Show the multiple buttons control
+        this.moveControlArray.style.display = 'block';
+        //Clear all previous data
+        this.moveControlArray.innerHTML = '';
+        //Add options to the array
+        options.forEach(option => {
+            let optionElement = document.createElement('button');
+            optionElement.classList.add('option');
+            optionElement.textContent = option;
+
+            optionElement.onclick = () => {
+                //Select this option
+
+                //Restore UI
+                this.moveControl.style.display = 'inline-block';
+                this.moveControlArray.style.display = 'none';
+                this.moveControlArray.innerHTML = '';
+
+                //Send back the option
+                callback(option);
+            }
+
+            this.moveControlArray.appendChild(optionElement);
+        });
+    }
+
+    /**
      * Gets if the specified card is currently attacking
      * @param {Card} card 
      * @returns {boolean} True if card is attacking
@@ -1154,7 +1239,19 @@ class Player {
             this.damagePrevention -= reduction;
         }
         
-        this.life -= damage;
+        //Lose that amount of life
+        this.loseLife(damage, source, update);
+    }
+
+
+    /**
+     * Lose an amount of life.
+     * @param {number} amount Amount of life to lose
+     * @param {*} source Source of the life loss. This is an object with source of life loss 'type' and the card 'card'.
+     * @param {boolean} update True if you want state based actions to update based on this life loss.
+     */
+    loseLife(amount, source, update) {
+        this.life -= amount;
         if (update) {
             //Update UI
             this.lifeCounter.textContent = this.life;

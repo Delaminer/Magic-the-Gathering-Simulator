@@ -90,7 +90,8 @@ button {
 }
 
 .choices,
-.order {
+.order,
+.graveyard {
     z-index: 300;
     position: fixed;
     top: 0;
@@ -103,7 +104,8 @@ button {
     justify-content: center;
 }
 .choices .dialogue,
-.order .dialogue {
+.order .dialogue,
+.graveyard .dialogue {
     background-color: white;
     /* opacity: 5.0; */
     position: relative;
@@ -115,9 +117,12 @@ button {
     transform: translate(-50%, -50%);
     padding: 30px;
 }
-.order .dialogue { width: 70%;}
+.order .dialogue { width: 70%; }
+.order .graveyard { width: 70%; }
+
 .choices .dialogue .title,
-.order .dialogue .title {
+.order .dialogue .title,
+.graveyard .dialogue .title {
     font-size: x-large;
     font-weight: bold;
 }
@@ -135,12 +140,14 @@ button {
 .choices .dialogue .options .option.selected button {
     background-color: green;
 }
-.choices .dialogue .controls {
+.choices .dialogue .controls,
+.graveyard .dialogue .controls {
     padding: 30px;
     display: flex;
     height: 50px;
 }
-.choices .dialogue .controls > * {
+.choices .dialogue .controls > *,
+.graveyard .dialogue .controls > * {
     flex: 1;
 }
 .choices .dialogue .submit.valid {

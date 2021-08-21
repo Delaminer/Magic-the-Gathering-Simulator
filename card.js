@@ -39,12 +39,38 @@ class Card {
         this.abilities = [];
         //Effects that last until the end of the turn
         this.untilEndOfTurnEffects = [];
+        //Effects that are permanent until the creature changes zones (like +1/+1 counters)
+        this.permanentEffects = [];
+        //Information that is cleared every turn
+        this.turnInformation = {};
+        this.turnInformation.damageDealt = [];
 
         //Add creature properties
         if (this.types.includes('Creature')) {
             //Add creature data
-            this.basePower = extra.power;
-            this.baseToughness = extra.toughness;
+
+            //Power and toughness can be defined as functions (for */* creatures)
+            if (typeof extra.power == 'function') {
+                console.log(typeof extra.power)
+                this.basePower = card => {
+                    if (card.player && card.player.game) return extra.power(card);
+                    return 0;
+                };
+            }
+            else {
+                //Basic
+                this.basePower = () => extra.power;
+            }
+            if (typeof extra.toughness == 'function') {
+                this.baseToughness = card => {
+                    if (card.player && card.player.game) return extra.toughness(card);
+                    return 0;
+                };
+            }
+            else {
+                //Basic
+                this.baseToughness = () => extra.toughness;
+            }
             this.damage = 0;
             this.damagePrevention = 0;
         }
@@ -154,7 +180,7 @@ class Card {
             return this.player.game.getPower(this);
         
         //Otherwise use the base power
-        return this.basePower;
+        return this.basePower(this);
     }
 
     /**
@@ -166,7 +192,7 @@ class Card {
             return this.player.game.getToughness(this);
         
         //Otherwise use the base toughness
-        return this.baseToughness;
+        return this.baseToughness(this);
     }
 
     /**
@@ -213,6 +239,7 @@ class Card {
      * Update this cards UI and checks if damage kills it.
      */
     update() {
+        if (this.location != Zone.Battlefield) return;
         if (this.types.includes('Creature')) {
             if (this.damage >= this.getToughness()) {
                 // Lethal damage: Destroy this creature
@@ -278,32 +305,79 @@ class Card {
     destroy(source, update) {
         //Only destroy this if it doesn't have indestructible
         if (!this.hasAbility(Keyword.Indestructible)) {
-            this.moveToGraveyard(update);
+            //Do not send triggers at this time. Death triggers must occur before the leave triggers.
+            this.moveLocation(Zone.Graveyard, update, false);
+            //Trigger death
+            this.localTriggers('death');
+            this.player.game.triggerEvent('death', this);
+            //Trigger leave-battlefield
+            this.localTriggers('leave-battlefield');
+            this.player.game.triggerEvent('leave-battlefield', this);
         }
     }
 
     /**
-     * Move this to the graveyard.
+     * Move this to the a new location.
+     * @param {Zone} location The new location (CANNOT BE THE OLD ONE, this will not run)
+     * @param {boolean} update Whether or not to update UI
+     * @param {boolean} sendTriggers Whether or not to trigger events
      */
-    moveToGraveyard(update) {
-        this.cleanup(update);
-        this.player.graveyardElement.appendChild(this.element); //Move element
-        this.player.permanents.splice(this.player.permanents.indexOf(this), 1); //remove from permanents list
-        this.player.graveyard.push(this); //add to graveyard list
-        this.setLocation(Zone.Graveyard); //Change status variable and update UI
+    moveLocation(location, update, sendTriggers) {
+        if (this.location == location) return;
+
+        this.cleanup(update, true);
+        const zoneToElement = {
+            [Zone.Battlefield]: (this.types.includes('Land')? this.player.landsElement : this.player.permanentsElement),
+            [Zone.Hand]: this.player.handElement,
+            [Zone.Graveyard]: this.player.graveyardElement.cards,
+            [Zone.Exile]: this.player.exileElement,
+            [Zone.Stack]: this.player.game.stackElement.body,
+            [Zone.Library]: this.player.libraryElement,
+        };
+        const zoneToList = {
+            [Zone.Battlefield]: (this.types.includes('Land')? this.player.lands : this.player.permanents),
+            [Zone.Hand]: this.player.hand,
+            [Zone.Graveyard]: this.player.graveyard,
+            [Zone.Exile]: this.player.exile,
+            [Zone.Stack]: this.player.game.stack,
+            [Zone.Library]: this.player.library,
+        };
+        
+        let destinationElement = zoneToElement[location];
+        let destinationList = zoneToList[location];
+        let oldList = zoneToList[this.location];
+
+        //Move element to new destination
+        destinationElement.appendChild(this.element);
+        //Remove from old list
+        oldList.splice(this.player.permanents.indexOf(this), 1);
+        //Add to new list
+        destinationList.push(this);
+        //Change status variable and update UI
+        this.setLocation(location, sendTriggers);
     }
 
     /**
      * Cleanup all damage and temporary effects from the creature during the cleanup phase.
      * @param {boolean} update Whether or not to call update()
+     * @param {boolean} allEffects Whether or not to remove effects that last multiple turns (+1/+1 counters). Leave false for the End of Turn cleanup
      */
-    cleanup(update) {
+    cleanup(update, allEffects) {
         //Clear damage and 'until end of turn' effects
         if (this.types.includes('Creature')) {
             this.damage = 0;
         }
         //Clear until end of turn effects
         this.untilEndOfTurnEffects = [];
+        //Clear turn information
+        for(let i in this.turnInformation) {
+            this.turnInformation[i] = [];
+        }
+
+        if (allEffects) {
+            //Remove ALL effects
+            this.permanentEffects = [];
+        }
 
         // Update UI (if requested)
         if (update)
@@ -426,7 +500,10 @@ class Card {
                             this.player.landsElement.appendChild(this.element); //Move element
                             this.player.hand.splice(this.player.hand.indexOf(this), 1); //remove from hand list
                             this.player.lands.push(this); //add to lands list
-                            this.setLocation(Zone.Battlefield); //Change status and update UI
+                            this.setLocation(Zone.Battlefield, true); //Change status and update UI
+
+                            //Update everything
+                            this.player.game.update();
                         }
                         else {
                             console.log('Cant play a land right now.');
@@ -460,13 +537,13 @@ class Card {
                                                 //Remove it from the hand
                                                 this.player.hand.splice(this.player.hand.indexOf(this), 1);
                                                 //Add it to the stack
-                                                this.setLocation(Zone.Stack);
+                                                this.setLocation(Zone.Stack, true);
                                                 //For when it resolves
                                                 this.play = () => {
                                                     //Play the creature, putting it onto the battlefield
                                                     this.player.permanentsElement.appendChild(this.element);
                                                     this.player.permanents.push(this); //add to permanents
-                                                    this.setLocation(Zone.Battlefield);
+                                                    this.setLocation(Zone.Battlefield, true);
                                                     //Play the spells
                                                     let targetsIndex = 0;
                                                     spellsOnCast.forEach(ability => {
@@ -493,13 +570,13 @@ class Card {
                                         //Remove it from the hand
                                         this.player.hand.splice(this.player.hand.indexOf(this), 1);
                                         //Add it to the stack
-                                        this.setLocation(Zone.Stack);
+                                        this.setLocation(Zone.Stack, true);
                                         //For when it resolves
                                         this.play = () => {
                                             //Play the creature, putting it onto the battlefield
                                             this.player.permanentsElement.appendChild(this.element);
                                             this.player.permanents.push(this); //add to permanents
-                                            this.setLocation(Zone.Battlefield);
+                                            this.setLocation(Zone.Battlefield, true);
     
                                             //Update everything else
                                             this.player.game.update();
@@ -546,7 +623,7 @@ class Card {
                                                 //Remove it from the hand
                                                 this.player.hand.splice(this.player.hand.indexOf(this), 1);
                                                 //Add it to the stack
-                                                this.setLocation(Zone.Stack);
+                                                this.setLocation(Zone.Stack, true);
                                                 //For when it resolves
                                                 this.play = () => {
                                                     //Do what the card says
@@ -565,9 +642,9 @@ class Card {
                                                     });
     
                                                     //Once played, it goes directly to the graveyard (it's not a permanent)
-                                                    this.player.graveyardElement.appendChild(this.element);
+                                                    this.player.graveyardElement.cards.appendChild(this.element);
                                                     this.player.graveyard.push(this); //add to graveyard
-                                                    this.setLocation(Zone.Graveyard);
+                                                    this.setLocation(Zone.Graveyard, true);
                                                 }
                                                 this.player.game.addToStack(this, false);
                                             }
@@ -724,7 +801,14 @@ class Card {
                         break;
                 }
             break;
-            case 'stack':
+            case Zone.Graveyard:
+                //You can only click on graveyard cards when looking for targets
+                case ActionType.Target:
+                    //User clicked on this card to target it with a spell or ability
+                    this.player.selectTarget(this, false);
+                    break;
+            break;
+            case Zone.Stack:
                 //Do nothing
             break;
             default:
@@ -734,9 +818,10 @@ class Card {
 
     /**
      * Move the card to a new location
-     * @param {Zone} location 
+     * @param {Zone} location The new location for this card
+     * @param {boolean} sendTriggers Whether or not you want to send triggers from this object changing zones
      */
-    setLocation(location) {
+    setLocation(location, sendTriggers) {
         let handChange = this.location === Zone.Hand || location === Zone.Hand;
         let enterBattlefield = this.location !== Zone.Battlefield && location === Zone.Battlefield;
         let leftBattlefield = this.location === Zone.Battlefield && location !== Zone.Battlefield;
@@ -754,13 +839,15 @@ class Card {
         }
 
         //Trigger events
-        if (enterBattlefield) {
-            this.localTriggers('enter-battlefield');
-            this.player.game.triggerEvent('enter-battlefield', this);
-        }
-        if (leftBattlefield) {
-            this.localTriggers('leave-battlefield');
-            this.player.game.triggerEvent('leave-battlefield', this);
+        if (sendTriggers) {
+            if (enterBattlefield) {
+                this.localTriggers('enter-battlefield');
+                this.player.game.triggerEvent('enter-battlefield', this);
+            }
+            if (leftBattlefield) {
+                this.localTriggers('leave-battlefield');
+                this.player.game.triggerEvent('leave-battlefield', this);
+            }
         }
     }
 

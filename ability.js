@@ -177,6 +177,7 @@ class KeywordAbility {
     }
 }
 
+
 /**
  * Create the Equip and Equipped Creature effects.
  * @param {*} cost 
@@ -264,6 +265,14 @@ const Equip = (cost, effect, triggers) => {
 }
 
 /**
+ * Return a static ability that gives a creature +1/+1 counter.
+ * @returns A simple 'effect' object (like UntilEndOfTurn effects).
+ */
+ const PlusOnePlusOneCounter = () => {
+     return {powerChange: 1, toughnessChange: 1}
+}
+
+/**
  * Create the Equip and Equipped Creature effects.
  * @param {*} cost 
  * @param {*} effect 
@@ -290,7 +299,7 @@ const EnchantmentAura = (targetSpecification, effect, triggers) => {
                 //Make sure both the target and the aura are still on the battlefield when this resolves
                 if (!validateTarget(targetSpecification, card)(targets[0], false) || card.location != Zone.Battlefield) {
                     //Do not destroy this, it must go DIRECTLY to the graveyard
-                    card.moveToGraveyard(false);
+                    card.moveLocation(Zone.Graveyard, false, true);
                     return;
                 }
     
@@ -310,7 +319,7 @@ const EnchantmentAura = (targetSpecification, effect, triggers) => {
                     //Reset this UI
                     card.element.style.position = 'initial';
                     //Go to the graveyard
-                    card.moveToGraveyard(false);
+                    card.moveLocation(Zone.Graveyard, false, true);
                     //Update the game
                     card.player.game.update();
                 });
@@ -327,7 +336,7 @@ const EnchantmentAura = (targetSpecification, effect, triggers) => {
                     //Reset this UI
                     card.element.style.position = 'initial';
                     //Go to the graveyard
-                    card.moveToGraveyard(false);
+                    card.moveLocation(Zone.Graveyard, false, true);
                     //Update the game
                     card.player.game.update();
                 });

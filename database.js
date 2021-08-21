@@ -151,7 +151,8 @@ Database['Honor of the Pure'] = ['Honor of the Pure', '{1}{W}', 'Enchantment', '
         type: 'static',
         //Must be a creature, must be white, and you must be controlling it
         valid: (card, sourceCard) => 
-            card.types.includes('Creature') && card.colors.includes('white') && sourceCard.player === card.player && card.location == Zone.Battlefield,
+            card.types.includes('Creature') && card.colors.includes('white') && sourceCard.player === card.player && 
+            card.location == Zone.Battlefield && sourceCard.location == Zone.Battlefield,
         //Effect: boost power by 1, boost toughness by 1
         effect: {
             powerChange: 1,
@@ -200,7 +201,8 @@ Database['Forest'] = ['Forest', '', 'Land', 'Forest', '{G}', {supertypes: 'Basic
     imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/a/4/a4df3e89-610c-4f42-a93a-e694342307cc.jpg?1594737893', 
 }];
 Database['Falkenrath Reaver'] = ['Falkenrath Reaver', '{1}{R}', 'Creature', 'Vampire', '', {
-    power: 2, toughness: 2, imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/d/7/d7b5913e-a103-4e4a-9281-8b88c1fb746e.jpg?1562201358',
+    power: 2, toughness: 2, 
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/d/7/d7b5913e-a103-4e4a-9281-8b88c1fb746e.jpg?1562201358',
 }];
 Database['Stone Rain'] = ['Stone Rain', '{2}{R}', 'Sorcery', '', 'Destroy target land.', {
     imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/d/2/d2334c10-fa96-4f8e-8187-c7ecc00cbac8.jpg?1562742139',
@@ -264,14 +266,15 @@ Database['Epic Proportions'] = ['Epic Proportions', '{4}{G}{G}', 'Enchantment', 
         //Enchanted creature gets +5/+5 and trample
         ...EnchantmentAura('Creature', { powerChange: 5, toughnessChange: 5, [Keyword.Trample]: true, }),
 ]}];
-Database['Phantom Warrior'] = ['Phantom Warrior', '{1}{U}{U}', 'Creature', 'Illusion Warrior', 'Phantom Warrior can\'t be blocked.', {power: 2, toughness: 2, 
-    abilities: [new KeywordAbility(Keyword.Unblockable),],
+Database['Phantom Warrior'] = ['Phantom Warrior', '{1}{U}{U}', 'Creature', 'Illusion Warrior', 'Phantom Warrior can\'t be blocked.', 
+    {power: 2, toughness: 2, abilities: [new KeywordAbility(Keyword.Unblockable),],
     imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/9/3/93044619-0c1e-4e42-a654-a8869c73f8c5.jpg?1562924674',
 }];
 Database['Bog Imp'] = ['Bog Imp', '{1}{B}', 'Creature', 'Imp', 'Flying', {power: 1, toughness: 1, abilities: [new KeywordAbility(Keyword.Flying),],
     imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/8/4/846f5cda-3d93-4dfd-b1c3-1dff7b814d98.jpg?1562737863',
 }];
-Database['Giant Spider'] = ['Giant Spider', '{3}{G}', 'Creature', 'Spider', 'Reach', {power: 2, toughness: 4, abilities: [new KeywordAbility(Keyword.Reach),],
+Database['Giant Spider'] = ['Giant Spider', '{3}{G}', 'Creature', 'Spider', 'Reach', {power: 2, toughness: 4, 
+    abilities: [new KeywordAbility(Keyword.Reach),],
     imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/8/0/80996b0d-cd44-445e-96de-677e0018255c.jpg?1562302899',
 }];
 Database['Severed Legion'] = ['Severed Legion', '{1}{B}{B}', 'Creature', 'Zombie', 'Fear', {power: 2, toughness: 2, 
@@ -307,7 +310,8 @@ Database['Cloudkin Seer'] = ['Cloudkin Seer', '{2}{U}', 'Creature', 'Elemental W
         },
     }]
 }];
-Database['Radiant Fountain'] = ['Radiant Fountain', '', 'Land', '', 'When Radiant Fountain enters the battlefield, you gain 2 life.\n{T}: Add {C}.', {
+Database['Radiant Fountain'] = ['Radiant Fountain', '', 'Land', '', 
+    'When Radiant Fountain enters the battlefield, you gain 2 life.\n{T}: Add {C}.', {
     imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/7/e/7ee5e77f-ca43-480d-ac37-48336d3bf044.jpg?1625980789',
     abilities: [
         new ManaAbility({
@@ -335,7 +339,7 @@ Database['Essence Warden'] = ['Essence Warden', '{G}', 'Creature', 'Elf Shaman',
         type: 'triggered',
         text: 'Whenever another creature enters the battlefield, you gain 1 life.',
         event: 'enter-battlefield', 
-        valid: (card, sourceCard) => card != sourceCard && card.types.includes('Creature'),
+        valid: (card, sourceCard) => sourceCard.location == Zone.Battlefield && card != sourceCard && card.types.includes('Creature'),
         targets: [],
         activate: (card, targets) => {
             card.player.gainLife(1, {card: card, type: 'ability'}, true);
@@ -349,7 +353,8 @@ Database['Impact Tremors'] = ['Impact Tremors', '{1}{R}', 'Enchantment', '',
         type: 'triggered',
         text: 'Whenever a creature enters the battlefield under your control, Impact Tremors deals 1 damage to each opponent.',
         event: 'enter-battlefield', 
-        valid: (card, sourceCard) => card.player == sourceCard.player && card.types.includes('Creature'),
+        valid: (card, sourceCard) => sourceCard.location == Zone.Battlefield && 
+            card.player == sourceCard.player && card.types.includes('Creature'),
         targets: [],
         activate: (card, targets) => {
             //Get opponents
@@ -358,4 +363,277 @@ Database['Impact Tremors'] = ['Impact Tremors', '{1}{R}', 'Enchantment', '',
             .forEach(player => player.dealDamage(1, {card: card, type: 'ability'}, true));
         },
     }]
+}];
+
+Database['Tattered Mummy'] = ['Tattered Mummy', '{1}{B}', 'Creature', 'Zombie Jackal', 
+    'When Tattered Mummy dies, each opponent loses 2 life.', {power: 1, toughness: 2, 
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/7/f/7f9a5267-eb90-43bc-bf92-fcfb06821bae.jpg?1561792134',
+    abilities: [{
+        type: 'triggered',
+        text: 'When Tattered Mummy dies, each opponent loses 2 life.',
+        event: 'death',
+        valid: (card, sourceCard) => card == sourceCard,
+        targets: [],
+        activate: (card, targets) => {
+            //Get opponents
+            card.player.game.players.filter(player => player != card.player)
+            //Each opponent loses 2 life
+            .forEach(player => player.loseLife(2, {card: card, type: 'ability'}, true));
+        },
+    }]
+}];
+Database['Essence Extraction'] = ['Essence Extraction', '{1}{B}{B}', 'Instant', '', 
+    'Essence Extraction deals 3 damage to target creature and you gain 3 life.', {
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/d/7/d7693c10-5ebb-4896-bb60-63d03577dd60.jpg?1576381622',
+    abilities: [
+    //Deal three damage to target creature and gain 3 life
+    new SpellAbility({
+        //Target: anything
+        targets: ['Creature'],
+        //When activated, deal 3 damage to the target
+        activate: (card, targets) => {
+            //Deal damage
+            targets[0].dealDamage(3, {type: 'spell', card: card}, true);
+            //Gain life
+            card.player.gainLife(3, {type: 'spell', card: card}, true);
+        },
+    }),
+]}];
+Database['Certain Death'] = ['Certain Death', '{5}{B}', 'Sorcery', '', 
+    'Destroy target creature. Its controller loses 2 life and you gain 2 life.', {
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/c/6/c67784b3-eb55-452e-b965-f63220b88896.jpg?1576384279',
+    abilities: [
+    //Deal three damage to target creature and gain 3 life
+    new SpellAbility({
+        //Target: anything
+        targets: ['Creature'],
+        //When activated, deal 3 damage to the target
+        activate: (card, targets) => {
+            //Destroy the creature
+            targets[0].destroy({type: 'destroy', card: card}, true);
+            //Its controller loses 2 life
+            targets[0].player.loseLife(2, {type: 'spell', card: card}, true);
+            //You gain 2 life
+            card.player.gainLife(2, {type: 'spell', card: card}, true);
+        },
+    }),
+]}];
+Database['Dune Beetle'] = ['Dune Beetle', '{1}{B}', 'Creature', 'Insect', '', {power: 1, toughness: 4, 
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/9/2/923cb904-c725-4d57-bc17-7aa87a7cd8e0.jpg?1543675266',
+}];
+Database['Inspiration'] = ['Inspiration', '{3}{U}', 'Instant', '', 'Target player draws two cards.', {
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/9/5/95233b5e-9401-4d6d-8ec4-959ca22270ff.jpg?1562199546',
+    abilities: [
+    //Target player draws two cards
+    new SpellAbility({
+        targets: ['Player'],
+        activate: (card, targets) => {
+            targets[0].draw(2);
+        },
+    }),
+]}];
+Database['Drag Under'] = ['Drag Under', '{2}{U}', 'Sorcery', '', 'Return target creature to its owner\'s hand.\nDraw a card.', {
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/0/d/0dffa444-92ff-41d8-8b55-8896808bbfab.jpg?1576384096',
+    abilities: [
+    //Return target creature to its owner's hand and draw a card
+    new SpellAbility({
+        targets: ['Creature'],
+        activate: (card, targets) => {
+            //Return target creature to its owner's hand
+            targets[0].moveLocation(Zone.Hand, true, true);
+            //Draw a card
+            card.player.draw(1);
+        },
+    }),
+]}];
+Database['Bloodhunter Bat'] = ['Bloodhunter Bat', '{3}{B}', 'Creature', 'Bat', 
+    'Flying\nWhen Bloodhunter Bat enters the battlefield, target player loses 2 life and you gain 2 life.', {power: 2, toughness: 2, 
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/3/d/3ded635c-ab7c-4bb4-a771-481c4d66381e.jpg?1562198243',
+    abilities: [new KeywordAbility(Keyword.Flying), {
+        type: 'triggered',
+        text: 'When Bloodhunter Bat enters the battlefield, target player loses 2 life and you gain 2 life.',
+        event: 'enter-battlefield',
+        valid: (card, sourceCard) => card == sourceCard,
+        targets: ['Player'],
+        activate: (card, targets) => {
+            //Target player loses 2 life
+            targets[0].loseLife(2, {card: card, type: 'ability'}, true);
+            //You gain 2 life
+            card.player.gainLife(2, {card: card, type: 'ability'}, true);
+        },
+    }]
+}];
+Database['Sphinx of Magosi'] = ['Sphinx of Magosi', '{3}{U}{U}{U}', 'Creature', 'Sphinx', 
+    'Flying\n{2}{U}: Draw a card, then put a +1/+1 counter on Sphinx of Magosi.', {power: 6, toughness: 6, 
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/a/2/a2b4f70d-e922-4ecb-9d5a-6253f7a7716c.jpg?1562199986',
+    abilities: [new KeywordAbility(Keyword.Flying), new ActivatedAbility({
+            text: 'Draw a card, then put a +1/+1 counter on Sphinx of Magosi.',
+            cost: { mana: '{2}{U}' },
+            targets: [],
+            activate: (card, targets) => {
+                //Draw a card
+                card.player.draw(1);
+                //Put a +1/+1 counter on this
+                card.permanentEffects.push(PlusOnePlusOneCounter());
+                //Update everything
+                card.player.game.update();
+            },
+        }),
+    ]
+}];
+Database['Sengir Vampire'] = ['Sengir Vampire', '{3}{B}{B}', 'Creature', 'Vampire', 
+    'Flying\nWhenever a creature dealt damage by Sengir Vampire this turn dies, put a +1/+1 counter on Sengir Vampire.', {power: 4, toughness: 4, 
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/5/f/5f747a37-b4bb-40bf-ae59-6d865d60cede.jpg?1573510450',
+    abilities: [new KeywordAbility(Keyword.Flying), {
+        type: 'triggered',
+        text: 'Whenever a creature dealt damage by Sengir Vampire this turn dies, put a +1/+1 counter on Sengir Vampire.',
+        event: 'death',
+        valid: (card, sourceCard) => sourceCard.location == Zone.Battlefield && sourceCard.turnInformation.damageDealt.includes(card),
+        targets: [],
+        activate: (card, targets) => {
+            //Put a +1/+1 counter on this
+            card.permanentEffects.push(PlusOnePlusOneCounter());
+        },
+    },,
+    ]
+}];
+Database['Sleep Paralysis'] = ['Sleep Paralysis', '{3}{U}', 'Enchantment', 'Aura', 
+    'Enchant creature\nWhen Sleep Paralysis enters the battlefield, tap enchanted creature.'+
+    '\nEnchanted creature doesn\' untap during its controller\'s untap step.', {
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/2/b/2babef35-27ab-45aa-88cd-f21dccae5125.jpg?1592516504',
+    abilities: [
+        //Enchanted creature doesn't untap
+        ...EnchantmentAura('Creature', { cancelUntap: true }),
+        //On ETB, tap the creature 
+        {
+            type: 'triggered',
+            text: 'When Sleep Paralysis enters the battlefield, tap enchanted creature.',
+            event: 'enter-battlefield',
+            valid: (card, sourceCard) => card == sourceCard,
+            targets: [],
+            activate: (card, targets) => {
+                let enchantedCreature = card.attached;
+                //Make sure it is still valid
+                if (enchantedCreature.location == Zone.Battlefield) {
+                    //Tap it
+                    enchantedCreature.tapped = true;
+                    enchantedCreature.element.classList.add('tapped');
+                }
+            },
+        }
+]}];
+Database['Ancient Crab'] = ['Ancient Crab', '{1}{U}{U}', 'Creature', 'Crab', '', {power: 1, toughness: 5, 
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/7/c/7c2ca68b-15fb-4691-b549-268df92ca413.jpg?1543674868',
+}];
+Database['Untamed Hunger'] = ['Untamed Hunger', '{2}{B}', 'Enchantment', 'Aura', 
+    'Enchant creature\nEnchanted creature gets +2/+1 and has menace.', {
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/c/a/caccbba0-80b1-461c-b548-33d7f3a48342.jpg?1562200901',
+    abilities: [
+        //Enchanted creature gets +2/+1 and menace
+        ...EnchantmentAura('Creature', { powerChange: 2, toughnessChange: 1, [Keyword.Menace]: true, }),
+]}];
+Database['Nimble Innovator'] = ['Nimble Innovator', '{3}{U}', 'Creature', 'Vedalken Artificer', 
+    'When Nimble Innovator enters the battlefield, draw a card.', {power: 2, toughness: 2, 
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/f/6/f6dbf333-23b5-47d9-9e55-1e8fbd5a72cb.jpg?1576381340',
+    abilities: [{
+        type: 'triggered',
+        text: 'When Nimble Innovator enters the battlefield, draw a card.',
+        event: 'enter-battlefield', 
+        valid: (card, sourceCard) => card == sourceCard,
+        targets: [],
+        activate: (card, targets) => {
+            card.player.draw(1);
+        },
+    }]
+}];
+Database['Stealer of Secrets'] = ['Stealer of Secrets', '{2}{U}', 'Creature', 'Human Rogue', 
+    'Whenever Stealer of Secrets deals combat damage to a player, draw a card.', {power: 2, toughness: 2, 
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/0/2/02acbe9b-fac7-4135-8318-5f3dc93a9e58.jpg?1562197272',
+    abilities: [{
+        type: 'triggered',
+        text: 'Whenever Stealer of Secrets deals combat damage to a player, draw a card.',
+        event: 'combat-damage-player', 
+        valid: (card, sourceCard) => card == sourceCard,
+        targets: [],
+        activate: (card, targets) => {
+            card.player.draw(1);
+        },
+    }]
+}];
+Database['Wind Drake'] = ['Wind Drake', '{2}{U}', 'Creature', 'Drake', 'Flying', {power: 2, toughness: 2, 
+    abilities: [new KeywordAbility(Keyword.Flying),],
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/5/e/5e227a63-abea-494e-9d66-6ff0a3da14ca.jpg?1576381503',
+}];
+Database['Tricks of the Trade'] = ['Tricks of the Trade', '{3}{U}', 'Enchantment', 'Aura', 
+    'Enchant creature\nEnchanted creature gets +2/+0 and can\'t be blocked.', {
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/f/7/f7860cf3-c3ea-4055-8c95-6d1c8d50e69d.jpg?1562201921',
+    abilities: [
+        //Enchanted creature gets +2/+0 and cant be blocked
+        ...EnchantmentAura('Creature', { powerChange: 2, toughnessChange: 0, [Keyword.Unblockable]: true, }),
+]}];
+Database['Raise Dead'] = ['Raise Dead', '{B}', 'Sorcery', '', 'Return target creature card from your graveyard to your hand.', {
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/4/9/4950c3c2-80c1-4447-ac38-cf40f76b9545.jpg?1562198355',
+    abilities: [
+    //Return target creature card from your graveyard to your hand
+    new SpellAbility({
+        targets: ['ZoneGraveyard Creature'],
+        activate: (card, targets) => {
+            //Return target creature card from your graveyard to your hand
+            targets[0].moveLocation(Zone.Hand, true, true);
+        },
+    }),
+]}];
+Database['Coral Merfolk'] = ['Coral Merfolk', '{1}{U}', 'Creature', 'Merfolk', '', {power: 2, toughness: 1, 
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/6/3/63b2cdfe-31ef-43d7-b4ca-e2505d613244.jpg?1562198944',
+}];
+Database['Angler Drake'] = ['Angler Drake', '{4}{U}{U}', 'Creature', 'Drake', 
+    'Flying\nWhen Angler Drake enters the battlefield, you may return target creature to its owner’s hand.', {power: 4, toughness: 4, 
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/d/1/d14c753e-c5bf-4c34-b408-ac367b6ca6ab.jpg?1543674875',
+    abilities: [new KeywordAbility(Keyword.Flying), {
+        type: 'triggered',
+        optional: true,
+        text: 'When Angler Drake enters the battlefield, you may return target creature to its owner’s hand.',
+        event: 'enter-battlefield', 
+        valid: (card, sourceCard) => card == sourceCard,
+        targets: ['Creature'],
+        activate: (card, targets) => {
+            //Return target creature to its owner's hand
+            targets[0].moveLocation(Zone.Hand, true, true);
+        },
+    }]
+}];
+Database['Air Elemental'] = ['Air Elemental', '{3}{U}{U}', 'Creature', 'Elemental', 'Flying', {power: 4, toughness: 4, abilities: [
+    new KeywordAbility(Keyword.Flying),],
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/a/2/a27efec0-40c4-48bc-a21a-3af28a6529b5.jpg?1592516263',
+}];
+Database['Gravedigger'] = ['Gravedigger', '{3}{B}', 'Creature', 'Zombie', 
+    'When Gravedigger enters the battlefield, you may return target creature card from your graveyard to your hand.', {power: 2, toughness: 2, 
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/0/f/0fb714a0-e61b-4ccf-8de6-3a6bf87c8315.jpg?1592516699',
+    abilities: [{
+        type: 'triggered',
+        optional: true,
+        text: 'When Gravedigger enters the battlefield, you may return target creature card from your graveyard to your hand.',
+        event: 'enter-battlefield', 
+        valid: (card, sourceCard) => card == sourceCard,
+        targets: ['ZoneGraveyard Creature'],
+        activate: (card, targets) => {
+            //Return target creature card from your graveyard to your hand
+            targets[0].moveLocation(Zone.Hand, true, true);
+        },
+    }]
+}];
+Database['Alley Strangler'] = ['Alley Strangler', '{2}{B}', 'Creature', 'Aetherborn Rogue', 'Menace', {
+    power: 2, toughness: 3, abilities: [new KeywordAbility(Keyword.Menace),],
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/a/1/a131d558-5f6b-448b-a378-1882e2d02bd2.jpg?1576381609',
+}];
+Database['Cursed Minotaur'] = ['Cursed Minotaur', '{2}{B}', 'Creature', 'Zombie Minotaur', 'Menace', {
+    power: 3, toughness: 2, abilities: [new KeywordAbility(Keyword.Menace),],
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/a/3/a3990d2f-39d9-49f9-936f-1d40adcf295c.jpg?1543675233',
+}];
+Database['Nightmare'] = ['Nightmare', '{5}{B}', 'Creature', 'Nightmare Horse', 
+    'Flying\nNightmare’s power and toughness are each equal to the number of Swamps you control.', {
+    power: card => card.player.lands.filter(land => land.subtypes.includes('Swamp')).length,
+    toughness: card => card.player.lands.filter(land => land.subtypes.includes('Swamp')).length, 
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/0/5/052022ff-795f-4f50-a45c-91cf8be9fbe9.jpg?1562197283',
+    abilities: [new KeywordAbility(Keyword.Flying), ]
 }];

@@ -97,23 +97,43 @@ class Game {
             else {
                 //Nonactive player passed, so resolve the spell
 
-                //Remove it from the stack
-                this.stack.pop();
 
                 //Resolve it either as a spell or ability
                 if (stackItem.isAbility) {
-                    //Activate it
-                    stackItem.activate();
-                    //Remove the UI
-                    stackItem.element.remove();
+                    if (stackItem.ability.optional) {
+                        //Ask if you want it to resolve
+                        this.players[stackItem.owner].askQuestion(`Let ${stackItem.source.name}'s ability resolve?`, ['Yes', 'No'], option => {
+                            //Remove it from the stack
+                            this.stack.pop();
+                            //Activate it if it resolves
+                            if (option == 'Yes') {
+                                stackItem.activate();
+                            }
+                            //Remove the UI
+                            stackItem.element.remove();
+                            //Update player UI
+                            this.updatePlayers(this.getPriorityPlayer());
+                        });
+                    }
+                    else {
+                        //Remove it from the stack
+                        this.stack.pop();
+                        //Activate it
+                        stackItem.activate();
+                        //Remove the UI
+                        stackItem.element.remove();
+                        //Update player UI
+                        this.updatePlayers(this.getPriorityPlayer());
+                    }
                 }
                 else {
+                    //Remove it from the stack
+                    this.stack.pop();
                     //Play it
                     stackItem.card.play();
+                    //Update player UI
+                    this.updatePlayers(this.getPriorityPlayer());
                 }
-
-                //Update player UI
-                this.updatePlayers(this.getPriorityPlayer());
             }
         }
         else {
@@ -208,8 +228,13 @@ class Game {
         if (this.phase == TurnStep.Untap) {
             //Untap
             let untap = card => {
-                card.tapped = false;
-                card.element.classList.remove('tapped');
+                //Make sure it actually CAN untap
+                if (!this.hasAbility(card, 'cancelUntap')) {
+                    card.tapped = false;
+                    card.element.classList.remove('tapped');
+                    //Update UI as well
+                    card.update();
+                }
             };
             this.players[this.currentPlayer].lands.forEach(untap);
             this.players[this.currentPlayer].permanents.forEach(untap);
@@ -255,10 +280,12 @@ class Game {
                         // Decrease how much damage is left to deal to other blockers (or trample to the player)
                         damageLeft -= damageToDeal;
                         // Deal the damage to the blocker
+                        attacker.turnInformation.damageDealt.push(blockers[index]);
                         // blockers[index].damage += damageToDeal;
                         blockers[index].dealDamage(damageToDeal, {type: 'combat', card: attacker}, false);
 
                         // Take damage from the blocker
+                        blockers[index].turnInformation.damageDealt.push(attacker);
                         // attacker.damage += blockers[index].power;
                         attacker.dealDamage(blockers[index].getPower(), {type: 'combat', card: blockers[index]}, false);
 
@@ -267,6 +294,7 @@ class Game {
                     // If there is damage left and this attacker has trample, deal the extra damage to the player
                     if (damageLeft > 0 && attacker.hasAbility(Keyword.Trample)) {
                         //Deal damage to player
+                        this.triggerEvent('combat-damage-player', attacker);
                         // blockingPlayer.life -= damageLeft;
                         blockingPlayer.dealDamage(damageLeft, {type: 'combat', card: attacker}, false);
                         damageLeft = 0;
@@ -274,6 +302,7 @@ class Game {
                 }
                 else {
                     //Deal damage to target player
+                    this.triggerEvent('combat-damage-player', attacker);
                     // blockingPlayer.life -= attacker.power;
                     blockingPlayer.dealDamage(attacker.getPower(), {type: 'combat', card: attacker}, false);
                 }
@@ -450,7 +479,7 @@ class Game {
     getPower(card) {
         //Players must be defined first
         if (this.players == undefined)
-            return card.basePower;
+            return card.basePower(card);
 
         let powerChange = 0;
         //Get all of the static abilities in play, and check if this creature's power is changed by any of them.
@@ -467,13 +496,13 @@ class Game {
                 });
             });
         });
-        //Go through until end of turn effects
-        card.untilEndOfTurnEffects.forEach(effect => {
+        //Go through until end of turn effects and permanent effects
+        card.untilEndOfTurnEffects.concat(card.permanentEffects).forEach(effect => {
             if (effect.powerChange != undefined) {
                 powerChange += effect.powerChange;
             }
         });
-        return card.basePower + powerChange;
+        return card.basePower(card) + powerChange;
     }
     /**
      * Get the toughness of a creature right now.
@@ -483,7 +512,7 @@ class Game {
     getToughness(card) {
         //Players must be defined first
         if (this.players == undefined)
-            return card.baseToughness;
+            return card.baseToughness(card);
 
         let toughnessChange = 0;
         //Get all of the static abilities in play, and check if this creature's toughness is changed by any of them.
@@ -500,13 +529,13 @@ class Game {
                 });
             });
         });
-        //Go through until end of turn effects
-        card.untilEndOfTurnEffects.forEach(effect => {
+        //Go through until end of turn effects and permanent effects
+        card.untilEndOfTurnEffects.concat(card.permanentEffects).forEach(effect => {
             if (effect.toughnessChange != undefined) {
                 toughnessChange += effect.toughnessChange;
             }
         });
-        return card.baseToughness + toughnessChange;
+        return card.baseToughness(card) + toughnessChange;
     }
 
     /**
@@ -530,8 +559,8 @@ class Game {
 
         let grantedAbility = false;
         
-        //Go through until end of turn effects
-        card.untilEndOfTurnEffects.forEach(effect => {
+        //Go through until end of turn effects and permanent effects
+        card.untilEndOfTurnEffects.concat(card.permanentEffects).forEach(effect => {
             //Break immediately if already found
             if (grantedAbility) return;
 
@@ -587,13 +616,15 @@ class Game {
         this.players.forEach((player, playerIndex) => {
             triggeredEvents[playerIndex] = [];
             //Loop through each permanent they have
-            player.permanents.concat(player.lands).forEach(permanent => {
-                permanent.abilities.filter(staticAbility => staticAbility.type == 'triggered').forEach(triggeredAbility => {
+            player.permanents.concat(player.lands, player.graveyard.filter(card => card.isPermanent())).forEach(permanent => {
+                permanent.abilities.filter(triggeredAbility => triggeredAbility.type == 'triggered' && triggeredAbility.event == eventName)
+                .forEach(triggeredAbility => {
                     //This is a static ability. Check if it is valid, and if it grants trample
                     if (triggeredAbility.valid(source, permanent)) {
                         //It is valid! This ability will be activated.
                         //Triggered abilities act similar to activated abilities.
-                        //Both require targets, and both go onto the stack (note: triggered abilities also require choices and payments, but thats a WIP)
+                        //Both require targets, and both go onto the stack 
+                        // (note: triggered abilities also require choices and payments, but thats a WIP)
 
                         //As a result, because multiple abilities can trigger (and often do), the user will HAVE to order these abilties
                         // to play them. This will take a lot of work, but is necessary to ensure each ability will activate as intended.
@@ -601,7 +632,42 @@ class Game {
                         //For right now, this triggered ability will be added to a list. This list holds the abilities that will trigger,
                         // so these will be ordered by the user, and if there is only one ability, that can be put onto the stack immediately.
 
-                        triggeredEvents[playerIndex].push({ability: triggeredAbility, abilitySource: permanent, event: eventName, eventSource: source});
+                        //Before adding it, there must be legal targets available for it to be added to the stack. 
+                        //If there are not, do not add it to the stack.
+                        let targetsNeeded = triggeredAbility.targets;
+                        if (targetsNeeded != undefined && targetsNeeded.length > 0) {
+                            let stillLegal = true;
+                            targetsNeeded.forEach(neededTarget => {
+                                if (!stillLegal) return; //Break out early
+
+                                //Find a target for this
+                                let validateFunction = validateTarget(neededTarget, permanent);
+                                //Loop through EVERYTHING, looking for a valid target for this
+                                let targetsFound = (
+                                    //Go through players
+                                    this.players.filter(player => validateFunction(player, true)).length > 0 ||
+                                    //Get a list of every card in the game
+                                    [].concat.apply([], 
+                                    this.players.map(p => [].concat(p.lands, p.permanents, p.hand, p.library, p.exile, p.graveyard))
+                                    )
+                                    .filter(card => validateFunction(card, false)).length > 0
+                                );
+                                if (!targetsFound) {
+                                    //We messed up, no legal targets
+                                    stillLegal = false;
+                                }
+                            });
+                            if (stillLegal) {
+                                //Add it
+                            triggeredEvents[playerIndex].push(
+                                {ability: triggeredAbility, abilitySource: permanent, event: eventName, eventSource: source});
+                        }
+                        }
+                        else {
+                            //No targets needed, add it
+                            triggeredEvents[playerIndex].push(
+                                {ability: triggeredAbility, abilitySource: permanent, event: eventName, eventSource: source});
+                        }
                     }
                 });
             });
@@ -625,17 +691,14 @@ class Game {
                         this.addToStack(ability, true, abilitySource, () => ability.activate(abilitySource, targets));
                     }
                     else {
-                        console.log(`Error! Triggered ability from ${triggeredEvent.abilitySource.name} for ${eventName} failed to receive targets!`);
+                        console.log(`Error! Triggered ability from ${triggeredEvent.abilitySource.name} for ${eventName}, failed to receive targets!`);
                     }
     
                 }, abilitySource, true);
             }
             else if (triggeredEvents[playerIndex].length > 1) {
-                console.log('More than 1 triggered event from '+eventName+', there were '+triggeredEvents[playerIndex].length);
                 //Get the order from the user
                 this.players[playerIndex].orderTriggers(triggeredEvents[playerIndex], orderedTriggeredEvents => {
-                    console.log('Received events in desired order!');
-
                     //These must be added asynchronously
                     let addTriggeredEventToTheStack = (triggeredEventIndex) => {
                         let triggeredEvent = triggeredEvents[playerIndex][triggeredEventIndex];
