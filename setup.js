@@ -28,6 +28,14 @@ let makeDeck = (deck) => {
     return out;
 }
 
+let getDeck = (filename, callback) => {
+    fetch(filename).then(res => res.text()).then(text => {
+        callback(makeDeck(text.split('\n').map(line => line.trim())
+            .map(line => [line.substring(line.indexOf(' ') + 1), parseInt(line.substring(0, line.indexOf(' ')))])
+        ))
+    })
+}
+
 let soldier = ['Weary Soldier', '{W}', 'Creature', 'Human Soldier', 'Vigilance', {power: 3, toughness: 2, 
     abilities: [new KeywordAbility(Keyword.Vigilance),]}];
 let bat = ['High Flier', '{B}{B}', 'Creature', 'Bat Horror', 'Vigilance', {power: 6, toughness: 1}];
@@ -184,8 +192,11 @@ let t2 = makeDeck([
     // ['Abrade', 4],
 ])
 
-let game = new Game("Alex", test, 'Bob', t2);
+getDeck('starter_deck1.txt', a => {
 
-game.drawUI(document.getElementById('game'));
+    let game = new Game("Alex", a, 'Bob', t2);
 
-game.start();
+    game.drawUI(document.getElementById('game'));
+    
+    game.start();
+})

@@ -51,7 +51,6 @@ class Card {
 
             //Power and toughness can be defined as functions (for */* creatures)
             if (typeof extra.power == 'function') {
-                console.log(typeof extra.power)
                 this.basePower = card => {
                     if (card.player && card.player.game) return extra.power(card);
                     return 0;
