@@ -359,7 +359,8 @@ class Card {
     /**
      * Cleanup all damage and temporary effects from the creature during the cleanup phase.
      * @param {boolean} update Whether or not to call update()
-     * @param {boolean} allEffects Whether or not to remove effects that last multiple turns (+1/+1 counters). Leave false for the End of Turn cleanup
+     * @param {boolean} allEffects Whether or not to remove effects that last multiple turns (+1/+1 counters). 
+     * Leave false for the End of Turn cleanup.
      */
     cleanup(update, allEffects) {
         //Clear damage and 'until end of turn' effects
@@ -831,6 +832,11 @@ class Card {
 
         //Update this UI, just in case
         this.update();
+        
+        //Update player visibility UI
+        if (this.player)
+            for(let zone of ['graveyard', 'exile', 'library'])
+                this.player.visibilityControls[zone].textContent = this.player[zone].length;
 
         //Update hand if cards in hand changed
         if (handChange) {
@@ -973,7 +979,8 @@ class Card {
             case 'Instant':
                 return this.player.canPlayInstant() && canPayCost(mana, this.cost);
             default: //All sorcery-like spells: Creatures, Sorceries, Enchantments, Artifacts, Planeswalkers, etc
-                return (this.player.canPlaySorcery() || (this.hasAbility(Keyword.Flash) && this.player.canPlayInstant())) && canPayCost(mana, this.cost);
+                return (this.player.canPlaySorcery() || (this.hasAbility(Keyword.Flash) && this.player.canPlayInstant()))
+                 && canPayCost(mana, this.cost);
         }
     }
 

@@ -45,6 +45,28 @@ button {
     text-align: center;
 }
 
+.sidebar .visibility-controls {
+    display: flex;
+    aspect-ratio: 3;
+}
+.sidebar .visibility-controls button {
+    flex: 1;
+}
+
+.sidebar .visibility-controls .graveyardDisplay {
+    background-image: url("Images/graveyard.png");
+    background-size: cover;
+}
+.sidebar .visibility-controls .exileDisplay {
+    background-image: url("Images/exile.png");
+    background-size: cover;
+}
+.sidebar .visibility-controls .libraryDisplay {
+    background-image: url("Images/library.png");
+    background-size: cover;
+}
+
+
 .player .main .battlefield {
     float: left;
     width: 90%;
@@ -91,7 +113,7 @@ button {
 
 .choices,
 .order,
-.graveyard {
+.viewableZone {
     z-index: 300;
     position: fixed;
     top: 0;
@@ -105,7 +127,7 @@ button {
 }
 .choices .dialogue,
 .order .dialogue,
-.graveyard .dialogue {
+.viewableZone .dialogue {
     background-color: white;
     /* opacity: 5.0; */
     position: relative;
@@ -118,11 +140,11 @@ button {
     padding: 30px;
 }
 .order .dialogue { width: 70%; }
-.order .graveyard { width: 70%; }
+.order .viewableZone { width: 70%; }
 
 .choices .dialogue .title,
 .order .dialogue .title,
-.graveyard .dialogue .title {
+.viewableZone .dialogue .title {
     font-size: x-large;
     font-weight: bold;
 }
@@ -141,13 +163,13 @@ button {
     background-color: green;
 }
 .choices .dialogue .controls,
-.graveyard .dialogue .controls {
+.viewableZone .dialogue .controls {
     padding: 30px;
     display: flex;
     height: 50px;
 }
 .choices .dialogue .controls > *,
-.graveyard .dialogue .controls > * {
+.viewableZone .dialogue .controls > * {
     flex: 1;
 }
 .choices .dialogue .submit.valid {

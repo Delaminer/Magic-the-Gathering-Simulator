@@ -43,35 +43,32 @@ class Player {
         this.landsElement.classList.add('lands');
         this.permanentsElement = document.createElement('div');
         this.permanentsElement.classList.add('permanents');
-        this.libraryElement = document.createElement('div');
-        this.libraryElement.classList.add('library');
-        this.graveyardElement = document.createElement('div');
-        this.graveyardElement.classList.add('graveyard');
-        //Graveyard element UI:
-        this.graveyardElement.dialogue = document.createElement('div');
-        this.graveyardElement.dialogue.classList.add('dialogue');
-        this.graveyardElement.appendChild(this.graveyardElement.dialogue);
-        this.graveyardElement.titleElement = document.createElement('div');
-        this.graveyardElement.titleElement.classList.add('title');
-        this.graveyardElement.titleElement.textContent = this.name + '\'s Graveyard';
-        this.graveyardElement.dialogue.appendChild(this.graveyardElement.titleElement);
-        this.graveyardElement.cards = document.createElement('div');
-        this.graveyardElement.cards.classList.add('cards');
-        this.graveyardElement.dialogue.appendChild(this.graveyardElement.cards);
-        this.graveyardElement.controls = document.createElement('div');
-        this.graveyardElement.controls.classList.add('controls');
-        this.graveyardElement.dialogue.appendChild(this.graveyardElement.controls);
-        this.graveyardElement.closeButton = document.createElement('button');
-        this.graveyardElement.closeButton.classList.add('close');
-        this.graveyardElement.closeButton.textContent = 'Close';
-        this.graveyardElement.closeButton.onclick = () => {
-            this.graveyardElement.style.display = 'none';
-        };
-        this.graveyardElement.controls.appendChild(this.graveyardElement.closeButton);
-
-
-        this.exileElement = document.createElement('div');
-        this.exileElement.classList.add('exile');
+        //Extra zones UI
+        for(let zone of ['graveyard', 'exile', 'library']) {
+            this[zone + 'Element'] = document.createElement('div');
+            this[zone + 'Element'].classList.add(zone);
+            this[zone + 'Element'].classList.add('viewableZone');
+            this[zone + 'Element'].dialogue = document.createElement('div');
+            this[zone + 'Element'].dialogue.classList.add('dialogue');
+            this[zone + 'Element'].appendChild(this[zone + 'Element'].dialogue);
+            this[zone + 'Element'].titleElement = document.createElement('div');
+            this[zone + 'Element'].titleElement.classList.add('title');
+            this[zone + 'Element'].titleElement.textContent = this.name + '\'s ' + zone.substring(0, 1).toUpperCase() + zone.substring(1);
+            this[zone + 'Element'].dialogue.appendChild(this[zone + 'Element'].titleElement);
+            this[zone + 'Element'].cards = document.createElement('div');
+            this[zone + 'Element'].cards.classList.add('cards');
+            this[zone + 'Element'].dialogue.appendChild(this[zone + 'Element'].cards);
+            this[zone + 'Element'].controls = document.createElement('div');
+            this[zone + 'Element'].controls.classList.add('controls');
+            this[zone + 'Element'].dialogue.appendChild(this[zone + 'Element'].controls);
+            this[zone + 'Element'].closeButton = document.createElement('button');
+            this[zone + 'Element'].closeButton.classList.add('close');
+            this[zone + 'Element'].closeButton.textContent = 'Close';
+            this[zone + 'Element'].closeButton.onclick = () => {
+                this[zone + 'Element'].style.display = 'none';
+            };
+            this[zone + 'Element'].controls.appendChild(this[zone + 'Element'].closeButton);
+        }
 
         let battlefield = document.createElement('div');
         battlefield.classList.add('battlefield');
@@ -99,16 +96,20 @@ class Player {
             this.selectTarget(this, true);
         };
 
-        //Little buttons that can open the graveyard, exile, and other zones
+        //Little buttons that can open the graveyard, exile, and library
         this.visibilityControls = document.createElement('div');
         this.visibilityControls.classList.add('visibility-controls');
-        this.visibilityControls.graveyard = document.createElement('button');
-        this.visibilityControls.graveyard.classList.add('graveyardDisplay');
-        this.visibilityControls.graveyard.textContent = 'G';
-        this.visibilityControls.graveyard.onclick = () => {
-            this.graveyardElement.style.display = 'block';
+        for(let zone of ['graveyard', 'exile', 'library']) {
+            this.visibilityControls[zone] = document.createElement('button');
+            this.visibilityControls[zone].classList.add(zone + 'Display');
+            this.visibilityControls[zone].textContent = 0;
+            this.visibilityControls[zone].onclick = () => {
+                this[zone + 'Element'].style.display = 'block';
+            }
+            this.visibilityControls.appendChild(this.visibilityControls[zone]);
         }
-        this.visibilityControls.appendChild(this.visibilityControls.graveyard);
+        //Disable library viewer
+        this.visibilityControls.library.onclick = () => {};
         
 
 
@@ -174,26 +175,7 @@ class Player {
         this.element.classList.add('player');
         this.element.classList.add('player' + playerIndex); //For player specific CSS
         this.element.appendChild(mainElement);
-        this.element.appendChild(this.handElement);
-
-        this.library = [];
-        for(let i = 0; i < this.deck.length; i++) { //Process all cards in the deck
-            this.libraryElement.appendChild(this.deck[i].element);
-            this.library.push(this.deck[i]);
-            this.deck[i].setLocation(Zone.Library, false);
-
-            this.deck[i].player = this; //Assign it's owner to this player
-        }
-        this.shuffle();
-        
-        this.lands = [];
-        this.permanents = [];
-        this.graveyard = [];
-        this.exile = [];
-        this.hand = [];
-
-        this.draw(7);
-        
+        this.element.appendChild(this.handElement);        
 
         //Change hand UI to keep the cards on one line
         //Use .bind(this) to ensure the function still runs as a part of this object
@@ -280,6 +262,28 @@ class Player {
         orderElement.dialogue.appendChild(orderElement.controls);
         document.body.appendChild(orderElement);
         this.orderElement = orderElement;
+
+        
+        this.library = [];
+        for(let i = 0; i < this.deck.length; i++) { //Process all cards in the deck
+            this.libraryElement.appendChild(this.deck[i].element);
+            this.library.push(this.deck[i]);
+            this.deck[i].setLocation(Zone.Library, false);
+
+            this.deck[i].player = this; //Assign it's owner to this player
+        }
+        this.shuffle();
+        
+        this.lands = [];
+        this.permanents = [];
+        this.graveyard = [];
+        this.exile = [];
+        this.hand = [];
+
+        this.draw(7);
+
+        for(let zone of ['graveyard', 'exile', 'library'])
+            this.visibilityControls[zone].textContent = this[zone].length;
     }
 
     /**
