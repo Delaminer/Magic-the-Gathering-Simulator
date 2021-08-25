@@ -251,6 +251,10 @@ const validateTarget = (targetSpec, sourceCard) => {
                 case 'Enchantment':
                     //Card must be an artifact
                     test = (target, isPlayer) => !isPlayer && target.types.includes('Enchantment');
+                break;
+                case 'Permanent':
+                    //Card must be an artifact
+                    test = (target, isPlayer) => !isPlayer && target.isPermanent();
                     break;
                 case 'Player':
                     //Target must be a player

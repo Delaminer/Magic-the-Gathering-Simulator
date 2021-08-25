@@ -192,11 +192,37 @@ let t2 = makeDeck([
     // ['Abrade', 4],
 ])
 
-getDeck('starter_deck1.txt', a => {
-
-    let game = new Game("Alex", a, 'Bob', t2);
-
-    game.drawUI(document.getElementById('game'));
+let startGame = (deck1, deck2) => {
+    let useBothDecks = (deck1, deck2) => {
+        let game = new Game("Alex", deck1, 'Bob', deck2);
     
-    game.start();
-})
+        game.drawUI(document.getElementById('game'));
+        
+        game.start();
+    }
+
+    let useDeck1 = newDeck1 => {
+        if (typeof deck2 == 'string') {
+            //Load file
+            getDeck(deck2, newDeck2 => {
+                useBothDecks(newDeck1, newDeck2);
+            });
+        }
+        else {
+            useBothDecks(newDeck1, deck2);
+        }
+    }
+
+    if (typeof deck1 == 'string') {
+        //Load file
+        getDeck(deck1, newDeck1 => {
+            useDeck1(newDeck1);
+        });
+    }
+    else {
+        useDeck1(deck1);
+    }
+}
+
+
+startGame('/decks/test_deck1.txt', '/decks/starter_deck1.txt');

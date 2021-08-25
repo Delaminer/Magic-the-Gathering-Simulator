@@ -252,7 +252,7 @@ Database['Bonesplitter'] = ['Bonesplitter', '{1}', 'Artifact', 'Equipment',
     imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/6/9/690972a8-72df-4050-a353-16e45589167c.jpg?1608917758',
     abilities: [
         //Equip for 1, it gives the creature +2/+0
-        ...Equip({ tap: true }, { powerChange: 2 }),
+        ...Equip({ mana: '1' }, { powerChange: 2 }),
 ]}];
 Database['Savannah Lions'] = ['Savannah Lions', '{W}', 'Creature', 'Cat', '', {power: 2, toughness: 1, 
     imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/a/9/a9757246-e782-4d7a-8273-d9efe284edaf.jpg?1562439539',
@@ -637,3 +637,9 @@ Database['Nightmare'] = ['Nightmare', '{5}{B}', 'Creature', 'Nightmare Horse',
     imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/0/5/052022ff-795f-4f50-a45c-91cf8be9fbe9.jpg?1562197283',
     abilities: [new KeywordAbility(Keyword.Flying), ]
 }];
+Database['Indestructibility'] = ['Indestructibility', '{3}{W}', 'Enchantment', 'Aura', 
+    'Enchant permanent\nEnchanted permanent has indestructible.', {
+    imageURL: 'https://c1.scryfall.com/file/scryfall-cards/large/front/e/0/e086a062-d39b-4e2a-bde0-f4d6d1797a5f.jpg?1562836168',
+    abilities: [
+        ...EnchantmentAura('Permanent', { [Keyword.Indestructible]: true, }),
+]}];
