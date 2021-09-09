@@ -397,11 +397,11 @@ button {
 /* Font settings */
 @font-face {
     font-family: 'Magic Title';
-    src: url('/Fonts/Matrix\ Bold.ttf') format('truetype');
+    src: url('/Magic-the-Gathering-Simulator/Fonts/Matrix\ Bold.ttf') format('truetype');
 }
 @font-face {
     font-family: 'Magic Text';
-    src: url('/Fonts/MPlantin.ttf') format('truetype');
+    src: url('/Magic-the-Gathering-Simulator/Fonts/MPlantin.ttf') format('truetype');
 }
 
 .card .title,
