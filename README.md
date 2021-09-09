@@ -1,5 +1,6 @@
 # Magic-the-Gathering-Simulator
  A simulator for playing the trading card Magic the Gathering.
+[You can play it here.](https://projects.alexanderdelaiglesia.com/Magic-the-Gathering-Simulator/magic.html)
 
 ![Screenshot of the game](https://raw.githubusercontent.com/Delaminer/Magic-the-Gathering-Simulator/main/Images/Screenshots/Starting%20Hand%201.png)
 ![Make a choice](https://raw.githubusercontent.com/Delaminer/Magic-the-Gathering-Simulator/main/Images/Screenshots/Choice%201.png)
