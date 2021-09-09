@@ -1,6 +1,8 @@
 # Magic-the-Gathering-Simulator
  A simulator for playing the trading card Magic the Gathering.
 
+![Screenshot of the game](https://raw.githubusercontent.com/Delaminer/Magic-the-Gathering-Simulator/main/Images/Screenshots/Starting%20Hand%201.png)
+
 ### Running
 ```
 # Before running for the first time, run this command 
