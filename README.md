@@ -2,6 +2,8 @@
  A simulator for playing the trading card Magic the Gathering.
 
 ![Screenshot of the game](https://raw.githubusercontent.com/Delaminer/Magic-the-Gathering-Simulator/main/Images/Screenshots/Starting%20Hand%201.png)
+![Make a choice](https://raw.githubusercontent.com/Delaminer/Magic-the-Gathering-Simulator/main/Images/Screenshots/Choice%201.png)
+![Spell on the stack](https://raw.githubusercontent.com/Delaminer/Magic-the-Gathering-Simulator/main/Images/Screenshots/Stack%201.png)
 
 ### Running
 ```

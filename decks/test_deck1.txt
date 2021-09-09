@@ -1,5 +1,7 @@
-5 Mountain
+13 Swamp
+15 Mountain
 5 Plains
+4 Sengir Vampire
 5 Indestructibility
 5 Stone Rain
 5 Abrade

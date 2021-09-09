@@ -225,4 +225,4 @@ let startGame = (deck1, deck2) => {
 }
 
 // Replace each deck name with the URL of the decklist (as a TXT file)
-startGame('/decks/test_deck1.txt', '/decks/starter_deck1.txt');
+startGame('/decks/starter_deck1.txt', '/decks/test_deck1.txt');
